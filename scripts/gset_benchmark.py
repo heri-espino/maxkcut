@@ -208,11 +208,20 @@ def main():
     parser.add_argument('--seed', type=int, default=2026)
     parser.add_argument('--max-n', type=int, default=1000)
     parser.add_argument('--verbose', action='store_true')
+    parser.add_argument('--inspect-only', action='store_true', help='Validate and report .mat graph sizes without CVXPY')
     args = parser.parse_args()
     names = sorted(args.gset_dir.glob('G*.mat')) if args.graphs == ['ALL'] else [args.gset_dir / (s if s.endswith('.mat') else s + '.mat') for s in args.graphs]
     for name in names:
         if not name.is_file():
             parser.error(f'No graph file: {name}')
+    if args.inspect_only:
+        for name in names:
+            adjacency = load_graph(name)
+            _, _, weights = edge_arrays(adjacency)
+            print(json.dumps({'graph': name.stem, 'n': adjacency.shape[0],
+                              'edges': int(len(weights)), 'weight_min': float(weights.min()),
+                              'weight_max': float(weights.max())}))
+        return
     if args.restarts < 1:
         parser.error('--restarts must be positive')
     benchmark(names, args.k, args.output, solver=args.solver, eps=args.eps,
