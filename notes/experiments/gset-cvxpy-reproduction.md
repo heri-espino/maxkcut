@@ -145,3 +145,13 @@ Default job timeout: 35 minutes. The GitHub-hosted runner might run out of memor
 - Max-Cut $k=2$ replication results kept separate from exploratory Max-$k$-Cut $k>2$.
 
 **Current status:** code, tests, runbook, and opt-in workflow provided; no real G-set SDP run completed during authoring.
+
+## SDP reuse and profiling (code update)
+
+The command-line interface now caches the original solved Gram matrix by
+SHA256(input file), $k$, solver and solver-version/tolerance settings. This is
+**not** an additional scientific result. Use `--no-sdp-cache` if an independent
+solve is desired; use `--scs-indirect` to separately profile SCS's iterative
+KKT solver. Each JSONL row includes cache-hit and timing fields. Always use a
+**new JSONL output file per run** to avoid mixing old repeats with new data.
+See `docs/performance.md` for commands and restrictions.
