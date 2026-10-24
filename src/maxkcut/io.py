@@ -61,5 +61,9 @@ def load_graph(path: Path) -> sparse.csr_matrix:
     return a.tocsr()
 
 def edge_arrays(a: sparse.csr_matrix):
+    """Return three arrays (i, j, weight), one per undirected edge.
+
+    Only upper-triangular entries are counted to avoid double counting.
+    """
     upper = sparse.triu(a, 1).tocoo()
     return upper.row, upper.col, upper.data
