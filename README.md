@@ -57,6 +57,13 @@ Core public API: `load_graph`, `edge_arrays`, `cut_weight`, `solve_sdp`, `factor
 
 ## Performance tuning and reproducible SDP caching
 
+**Numerical PSD note:** SCS may return a small negative Gram eigenvalue at
+a loose tolerance. The rounding factorization now records and clips *small*
+negative eigenvalues with a warning; it still rejects large violations. This
+does **not** certify an SDP bound. To insist on a fresh, more accurate solve,
+use `--eps 1e-5 --max-iters 20000 --no-sdp-cache` (potentially slower).
+See [Windows PowerShell troubleshooting](docs/windows-powershell.md).
+
 The first G11 run saves an SDP Gram matrix in `reports/gset/sdp_cache/`.
 Re-running with a different seed or restart count **reuses the same SDP**
 when the graph file and solver settings are unchanged.
