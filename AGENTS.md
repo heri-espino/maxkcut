@@ -79,7 +79,7 @@ sphinx-build -b html docs docs/_build/html -W --keep-going
 
 ## Cross-platform command examples
 
-When responding to a user's terminal logs, identify their shell before providing copy/paste commands. **PowerShell does not use Bash `\\` continuation**. For PowerShell, provide one-line commands or use a backtick as the last character on each continued line. Keep `docs/windows-powershell.md` up to date whenever CLI flags or benchmark commands change.
+When responding to a user's terminal logs, identify their shell before providing copy/paste commands. **PowerShell does not use Bash backslash continuation**. For PowerShell, provide one-line commands or use a backtick as the last character on each continued line. Keep `docs/windows-powershell.md` up to date whenever CLI flags or benchmark commands change.
 
 ## Workflow authorization and scope
 
