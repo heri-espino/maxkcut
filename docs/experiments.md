@@ -51,3 +51,24 @@ comparing many random initializations. New cache entries are keyed by graph
 checksum, $k$, solver/version and numerical settings; they do not change the
 mathematical experiment. Save each batch into its own JSONL output file and
 log whether the SDP came from cache. See [performance](performance.md).
+
+## Numerical SDP postprocessing policy
+
+First-order solvers can return a small negative Gram eigenvalue even when
+termination criteria were satisfied. The SDP solution is stored in its raw
+solver-produced form; rounding factorization may clip small negative eigenvalues
+and rescale vector rows to unit norm. This is **not** a dual upper-bound
+certificate and is not Higham's exact nearest-correlation-matrix algorithm.
+
+Default acceptance requires
+`max(0,-lambda_min) / max(1,lambda_max) <= 1e-3`. The operation logs
+`psd_projection_applied`, `psd_relative_negative_eigenvalue`,
+`psd_negative_eigenvalue_count` and `psd_negative_eigenvalue_sum` for
+every resulting cut, and always retains `min_eigenvalue` from the original
+matrix. More substantial violations remain fatal; do not increase this
+threshold merely to obtain a cut without considering solver accuracy.
+
+When producing a scientific comparison, rerun with stricter SCS tolerances
+and record whether rounding scores are stable. For $k>2$, vector
+renormalization may violate the Frieze–Jerrum lower bounds, although labels
+still constitute a valid discrete partition.
