@@ -15,6 +15,7 @@ quickstart
 windows-powershell
 experiments
 performance
+gpu-cpu-performance
 ```
 
 ```{toctree}
