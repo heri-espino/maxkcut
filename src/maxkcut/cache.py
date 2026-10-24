@@ -27,9 +27,10 @@ def _package_version(name: str) -> str:
 
 
 def cache_identity(graph_path: Path, *, k: int, solver: str, eps: float,
-                   max_iters: int, scs_indirect: bool) -> dict:
+                   max_iters: int, scs_indirect: bool, cpu_threads: int | None = None,
+                   scs_cudss: bool = False) -> dict:
     """Construct a cache identity; include input SHA256 and solver versions."""
-    return {
+    identity = {
         "format": CACHE_FORMAT_VERSION,
         "graph_sha256": hashlib.sha256(Path(graph_path).read_bytes()).hexdigest(),
         "k": int(k),
@@ -45,6 +46,14 @@ def cache_identity(graph_path: Path, *, k: int, solver: str, eps: float,
             "sdpa": _package_version("sdpa-python") if solver.upper() == "SDPA" else None,
         },
     }
+    # Preserve compatibility with existing default CPU caches. Switching
+    # explicitly selected threading/GPU backends invalidates a cache entry,
+    # so timings are not silently attributed to a different compute mode.
+    if cpu_threads is not None:
+        identity["cpu_threads"] = int(cpu_threads)
+    if scs_cudss:
+        identity["scs_cudss"] = True
+    return identity
 
 
 def cache_path(graph_path: Path, cache_dir: Path, identity: dict) -> Path:
