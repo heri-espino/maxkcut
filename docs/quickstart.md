@@ -20,7 +20,7 @@ maxkcut --graphs G11 --k 2 --restarts 10 \
   --output reports/gset/g11-k2.jsonl
 ```
 
-**Windows PowerShell:** the backslash (`\\`) shown in Bash examples is **not** a PowerShell line continuation. Run the command on one line instead:
+**Windows PowerShell:** the trailing backslash shown in Bash examples is **not** a PowerShell line continuation. Run the command on one line instead:
 
 ```powershell
 maxkcut --graphs G11 --k 2 --restarts 10 --solver SCS --eps 1e-3 --max-iters 3000 --output reports/gset/g11-k2.jsonl
