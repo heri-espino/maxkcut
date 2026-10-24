@@ -1,19 +1,62 @@
 # maxkcut
 
-Research on semidefinite relaxations and rounding methods for Max-$k$-Cut.
+Python research library for **Max-Cut** and **Max-$k$-Cut** using semidefinite relaxations, randomized rounding, and spherical $k$-means rounding.
 
-Start with the [source-grounded research notes](notes/background/README.md), which review Chapter 7 of Rodríguez Fernández's 2021 dissertation, the Frieze–Jerrum and clustering rounding methods, benchmarks, limitations, and related literature.
+The project is motivated by Ángel Eduardo Rodríguez Fernández's 2021 dissertation (Chapters 6–7). It is experimental research software: **solver success does not imply an exact optimum or a new approximation guarantee**.
 
-The existing `G-Set/` directory is a separate Max-Cut benchmark collection; it is **not** the thesis chapter's A/B/C/D random-graph benchmark.
-
-## G-set SDP experiments
-
-A [CVXPY reproduction runbook](notes/experiments/gset-cvxpy-reproduction.md) and the implementation in [`scripts/gset_benchmark.py`](scripts/gset_benchmark.py) are available on this branch. Start by validating the MATLAB files:
+## Install with Conda
 
 ```bash
-python -m pip install -r requirements-dev.txt
-python -m pytest tests -q
-python scripts/gset_benchmark.py --graphs G11 G1 G22 --inspect-only
+git clone https://github.com/heri-espino/maxkcut.git
+cd maxkcut
+conda env create -f environment.yml
+conda activate maxkcut
+python -m pytest -q
 ```
 
-To attempt the real G11 Max-Cut SDP, run `python scripts/gset_benchmark.py --graphs G11 --k 2 --restarts 10`. Runs may require substantial RAM and CPU; heavy GitHub Actions runs are manual-only. No full G-set run has been claimed or executed in this PR.
+`environment.yml` installs the package **editable** from `src/maxkcut/` and includes CVXPY, SCS, NumPy, SciPy, pytest, Sphinx, Furo and MyST. If the environment already exists, use `conda env update -f environment.yml --prune`. Pip fallback: `python -m pip install -e '.[dev]'`.
+
+## Inspect graphs first (no SDP solve)
+
+```bash
+maxkcut --graphs G11 G1 G22 --inspect-only
+# or python -m maxkcut --graphs G11 --inspect-only
+```
+
+## Run a single controlled experiment
+
+```bash
+maxkcut --graphs G11 --k 2 --restarts 10 --solver SCS \
+  --eps 1e-3 --max-iters 3000 --output reports/gset/g11-k2.jsonl
+```
+
+The default `--max-n 1000` guard prevents unexpectedly large runs. The legacy entry point `python scripts/gset_benchmark.py` still works once the environment is active. Expensive GitHub Actions experiments remain **manual-only**.
+
+## Import the library
+
+```python
+from pathlib import Path
+import numpy as np
+from maxkcut import load_graph, edge_arrays, cut_weight
+
+graph = load_graph(Path("G-Set/G11.mat"))
+edges = edge_arrays(graph)
+print(graph.shape, len(edges[0]))
+print(cut_weight(edges, np.zeros(graph.shape[0], dtype=int)))
+```
+
+Core public API: `load_graph`, `edge_arrays`, `cut_weight`, `solve_sdp`, `factorize`, `round_fj`, `round_spherical_kmeans`, `benchmark`.
+
+## Documentation and agent instructions
+
+```bash
+sphinx-build -b html docs docs/_build/html -W --keep-going
+```
+
+Read `docs/_build/html/index.html` for the Sphinx/Furo site, or `docs/index.md` for source. For contributors and AI agents, **start with [AGENTS.md](AGENTS.md)** and the [agent guide](docs/agent-guide.md).
+
+- [Source-grounded research background](notes/background/README.md) — SDP mathematics, Chapter 7, prior art and open questions.
+- [G-set reproduction runbook](notes/experiments/gset-cvxpy-reproduction.md) — inputs, protocol and numerical limitations.
+- [Package architecture](docs/architecture.md) and [API](docs/api.md).
+
+The `G-Set/` files are associated with Chapter 6's Max-Cut benchmark, **not** the 300 A/B/C/D random graphs used in Chapter 7. No full G-set SDP computation is claimed by this packaging refactor.

@@ -1,17 +1,10 @@
 import importlib.util
-from pathlib import Path
-import sys
-
 import numpy as np
 import pytest
 from scipy import sparse
 from scipy.io import savemat
 
-MODULE_PATH = Path(__file__).resolve().parents[1] / 'scripts' / 'gset_benchmark.py'
-spec = importlib.util.spec_from_file_location('gset_benchmark', MODULE_PATH)
-mod = importlib.util.module_from_spec(spec)
-sys.modules[spec.name] = mod
-spec.loader.exec_module(mod)
+import maxkcut as mod
 
 
 def test_sparse_symmetric_graph_and_cut(tmp_path):
@@ -85,3 +78,23 @@ def test_antipodal_rejects_general_k():
     with pytest.raises(ValueError, match='k=2'):
         mod.round_spherical_kmeans(
             np.eye(3), 3, np.random.default_rng(1), antipodal=True)
+
+
+def test_public_api_and_version():
+    assert mod.__version__ == '0.1.0'
+    for name in ('load_graph', 'edge_arrays', 'cut_weight', 'factorize',
+                 'round_fj', 'round_spherical_kmeans', 'solve_sdp', 'benchmark'):
+        assert callable(getattr(mod, name))
+
+
+def test_module_cli_inspection(monkeypatch, capsys, tmp_path):
+    import sys
+    from maxkcut.cli import main
+    a = sparse.csr_matrix([[0, 2], [2, 0]])
+    savemat(tmp_path / 'G9.mat', {'A': a})
+    monkeypatch.setattr(sys, 'argv', ['maxkcut', '--gset-dir', str(tmp_path),
+                                       '--graphs', 'G9', '--inspect-only'])
+    main()
+    output = capsys.readouterr().out
+    assert '"graph": "G9"' in output
+    assert '"edges": 1' in output
