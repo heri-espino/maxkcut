@@ -47,12 +47,19 @@ When contributing a new experiment, **add reusable numerical routines under `src
      \quad X_{ij}\ge -1/(k-1)\ (k>2).
    ]
 4. The (k=2) constraint (X_{ij}\ge-1) is redundant and may be omitted. **Do not omit** the (k>2) lower bound.
-5. The factorization is a Gram representation (X\approx VV^\top) with **one row per graph vertex**. PSD clipping/projection may change constraints, so log repairs and validate.
-6. **GW (k=2):** one Gaussian hyperplane. **Frieze–Jerrum (k>2):** maximum projection on (k) independent **unnormalized** Gaussian directions. **Spherical (k)-means:** normalized centroids updated by cosine similarity.
-7. **K-MeansNM (k=2):** antipodal initialization representing the paired GW initial partition; preserve the highest **actual cut** encountered, including the starting state. K-Means2N uses independent initialization.
-8. **Clustering distortion/inertia is not the graph cut objective.** Measure and optimize each under its correct name.
-9. For signed weights, shifting AIG or CG denominators requires documented formulas; **never** interpret raw cut divided by the primal SDP score as a universal approximation ratio.
-10. A numerical maximization **primal objective is not automatically a certified upper bound**. Approximate solver statuses, PSD residuals, eigenvalue clipping, and dual bounds are separate concerns.
+5. An approximate solver may return a slightly indefinite Gram matrix. The
+   rounding-only PSD clip/row-normalization path is governed by a documented
+   relative negative-eigenvalue threshold (currently 1e-3), warns and logs
+   original defects. **Never** call the repaired matrix a certified optimum,
+   original feasible SDP point, or valid dual upper bound; for (k>2) pairwise
+   lower bounds may not survive repair. Reject substantial defects, and
+   tighten solver tolerances before scientific claims.
+6. The factorization is a Gram representation (X\approx VV^\top) with **one row per graph vertex**. PSD clipping/projection may change constraints, so log repairs and validate.
+7. **GW (k=2):** one Gaussian hyperplane. **Frieze–Jerrum (k>2):** maximum projection on (k) independent **unnormalized** Gaussian directions. **Spherical (k)-means:** normalized centroids updated by cosine similarity.
+8. **K-MeansNM (k=2):** antipodal initialization representing the paired GW initial partition; preserve the highest **actual cut** encountered, including the starting state. K-Means2N uses independent initialization.
+9. **Clustering distortion/inertia is not the graph cut objective.** Measure and optimize each under its correct name.
+10. For signed weights, shifting AIG or CG denominators requires documented formulas; **never** interpret raw cut divided by the primal SDP score as a universal approximation ratio.
+11. A numerical maximization **primal objective is not automatically a certified upper bound**. Approximate solver statuses, PSD residuals, eigenvalue clipping, and dual bounds are separate concerns.
 
 ## Data provenance, claims, and citations
 
