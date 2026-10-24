@@ -77,6 +77,10 @@ sphinx-build -b html docs docs/_build/html -W --keep-going
 
 **Do not introduce Ruff or impose Ruff as a required check.** Readability and tests take priority; regular Python style still applies.
 
+## Cross-platform command examples
+
+When responding to a user's terminal logs, identify their shell before providing copy/paste commands. **PowerShell does not use Bash `\\` continuation**. For PowerShell, provide one-line commands or use a backtick as the last character on each continued line. Keep `docs/windows-powershell.md` up to date whenever CLI flags or benchmark commands change.
+
 ## Workflow authorization and scope
 
 - **Never** launch a large graph SDP, numerical figure generation, or paper/PDF build as an automatic push/PR job. Heavy work requires `workflow_dispatch`, explicit operator selection and bounded inputs/resources. Lightweight tests/lint are allowed.
