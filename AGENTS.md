@@ -81,7 +81,7 @@ sphinx-build -b html docs docs/_build/html -W --keep-going
 
 - **Never** launch a large graph SDP, numerical figure generation, or paper/PDF build as an automatic push/PR job. Heavy work requires `workflow_dispatch`, explicit operator selection and bounded inputs/resources. Lightweight tests/lint are allowed.
 - Avoid compute surprises: default CLI guard `--max-n=1000`; for larger (n), require an explicit opt-in. Do not disable caps merely to make examples work.
-- **Do not merge PRs unless explicitly asked by the user.** Never force-push, rewrite someone else's branch, delete user data, or modify unrelated projects.
+- **The user's latest preference is to create and merge PRs automatically after appropriate validation, unless the user explicitly requests otherwise.** Do not bypass branch protection, force a merge, or claim CI succeeded when it did not. Never force-push, rewrite someone else's branch, delete user data, or modify unrelated projects.
 - Do not claim tests ran unless they ran. If `cvxpy`, Sphinx or graph files are unavailable, report skipped/untested scopes.
 - Do not add network calls or automatic downloads to module imports, tests or doc builds.
 - Preserve backwards compatibility of `scripts/gset_benchmark.py` and `maxkcut` CLI, and document any deliberate breaking change.
@@ -95,10 +95,10 @@ sphinx-build -b html docs docs/_build/html -W --keep-going
 - [ ] Sphinx pages/API updated for public functions and options.
 - [ ] Existing G-set data, past notes and scripts remain accessible.
 - [ ] State what was **actually run**, what passed, and what remains untested.
-- [ ] PR raised against `main`, **no auto-merge**.
+- [ ] PR raised against `main`; if the user has not opted out, merge after reviewing changed files and available checks.
 
 ## Recommended development flow
 
-Read instructions → inspect the current branch/files → state the mathematical invariant being changed → create a feature branch → implement reusable module and test → run fast tests → update notes/docs → review diff for provenance and surprising compute → open PR → await explicit merge request.
+Read instructions → inspect the current branch/files → state the mathematical invariant being changed → create a feature branch → implement reusable module and test → run fast tests → update notes/docs → review diff for provenance and surprising compute → open PR → inspect checks and merge if permitted and the user has not opted out.
 
 **For additional explanation and task templates**, see `docs/agent-guide.md`.
