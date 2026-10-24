@@ -20,6 +20,22 @@ def factorize(x):
     return vectors, min_eigenvalue
 
 def round_fj(vectors, k, rng):
+    """Round SDP vectors with GW for k=2 or Frieze–Jerrum for k>2.
+
+    Parameters
+    ----------
+    vectors : ndarray
+        Rows correspond to graph vertices, columns to Euclidean coordinates.
+    k : int
+        Number of allowable classes (at least 2).
+    rng : numpy.random.Generator
+        Explicit RNG; for k>2 Gaussian directions are *not* normalized.
+
+    Returns
+    -------
+    ndarray
+        Integer graph labels, with values between 0 and k-1.
+    """
     # For k=2 use the thesis's GW random hyperplane, not two Gaussian directions.
     if k == 2:
         direction = rng.standard_normal(vectors.shape[1])
