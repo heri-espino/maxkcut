@@ -5,7 +5,27 @@ import numpy as np
 from scipy import sparse
 
 def solve_sdp(a, k, solver, eps, max_iters, verbose=False):
-    """Use a *real convex SDP*, not a low-rank nonconvex proxy."""
+    """Solve the Goemans–Williamson / Frieze–Jerrum convex SDP.
+
+    Parameters
+    ----------
+    a : scipy.sparse matrix
+        Symmetric weighted adjacency, without self-loops.
+    k : int
+        Number of classes. For k>2 the Gram lower bound is -1/(k-1).
+    solver : str
+        CVXPY-compatible PSD cone solver, normally SCS.
+    eps, max_iters : float, int
+        SCS accuracy and iteration controls.
+    verbose : bool
+        Forward numerical solver logs.
+
+    Returns
+    -------
+    tuple
+        Numerical Gram matrix X and diagnostics dict. The reported *primal*
+        SDP objective is not automatically a certified upper bound.
+    """
     try:
         import cvxpy as cp
     except ImportError as exc:
