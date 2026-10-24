@@ -92,8 +92,11 @@ When responding to a user's terminal logs, identify their shell before providing
 
 - Use `--hardware-info` before advising CPU/GPU flags; a GPU without a
   model/driver identification does not establish NVIDIA CUDA support.
-- `--cpu-threads` controls only threadpoolctl-recognized BLAS libraries.
-  Do not claim it parallelizes the entire SCS algorithm.
+- `--cpu-threads` limits threadpoolctl-recognized BLAS libraries and,
+  when `--solver SDPA` is selected, passes `numThreads` to the native SDPA
+  solver. Do not claim it parallelizes all SCS operations or guarantees that
+  a native SDPA `bad_alloc` will be resolved. Windows commit limitations
+  and solver internal allocations must be diagnosed separately.
 - `--scs-cudss` is an explicitly requested **optional** SCS GPU linear-system
   backend; it requires a custom CUDA/cuDSS-linked SCS package. Do not
   auto-install CUDA, cuDSS or expensive GPU dependencies for regular users.
