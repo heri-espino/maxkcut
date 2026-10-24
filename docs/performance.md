@@ -16,7 +16,7 @@ Stages:
 
 The benchmark now **skips the second eigendecomposition** that used to be performed inside `solve_sdp` when the next operation is `factorize`.
 
-All multi-line commands on this page use **Bash** (`\\` continuation). If running in **Windows PowerShell**, use the corresponding one-line commands or a backtick as the line continuation; see the [PowerShell runbook](windows-powershell.md).
+All multi-line commands on this page use **Bash** (backslash line continuation). If running in **Windows PowerShell**, use the corresponding one-line commands or a backtick as the line continuation; see the [PowerShell runbook](windows-powershell.md).
 
 ## Cache an expensive solve
 
