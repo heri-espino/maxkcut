@@ -13,6 +13,7 @@ This documentation describes a Python package for reproducible experiments motiv
 installation
 quickstart
 experiments
+performance
 ```
 
 ```{toctree}
