@@ -33,56 +33,46 @@
 
 Let
 
-$$
-
+$
 \mathcal L_{n,k}=
 \{X=X^\top\succeq0:
 X_{ii}=1,\ X_{ij}\ge-1/(k-1)\}.
 
-$$
-
+$
 FKP22 calls this the **$k$-way elliptope**. Its partition matrices have pairwise entries
 
-$$
-
+$
 X_{ij}\in\left\{1,-\frac1{k-1}\right\};
 
-$$
-
+$
 **Theorem 7 (FKP22, §4)** identifies the vertices of the $k$-way elliptope as $k$-partition matrices (partitions into **at most** $k$ nonempty sets).
 
 Instead of directly passing the SDP factor through $k$-means, FKP22 constructs a sequence of SDPs. With
 
-$$
-
+$
 a=\frac{1-k/2}{k-1},\qquad A=a\,\mathbf1\mathbf1^\top,
 
-$$
-
+$
 the update in **FKP22, §5, Eq. (fixed-point iteration)** is
 
-$$
-
+$
 \boxed{
 X_{t+1}\in\operatorname*{arg\,max}_{Y\in\mathcal L_{n,k}}
 \langle X_t+A,Y\rangle_F.
 }
 
-$$
-
+$
 This repeatedly solves a *new linear objective* over the same convex feasible body. [FKP22] proves partition matrices are **attractive fixed points** and describes convergence; it reports experiments where iterates reach partition matrices. **Theoretical convergence to a fixed point should not be overstated as a theorem that all starting states must reach a discrete partition**: the paper notes possible other fixed points.
 
 ### Different use of Max-$k$-Cut as a clustering objective
 
 FKP22 often starts with *data points* $x_i\in\mathbb R^d$ and sets **graph weights** $M_{ij}=\|x_i-x_j\|^2$. Maximizing separated-pair distance is the same as minimizing within-cluster pairwise distance. The identity
 
-$$
-
+$
 \sum_{i,j\in C}\|x_i-x_j\|^2
 =2|C|\sum_{i\in C}\|x_i-\bar x_C\|^2
 
-$$
-
+$
 shows a **cluster-size-weighted** $k$-means-type objective, not exactly ordinary $k$-means. This is **clustering data by solving Max-$k$-Cut**, whereas TH21 is **solving an externally given Max-$k$-Cut by clustering SDP vectors**.
 
 The FKP22 experiments include synthetic point clouds and an MNIST subset. In their Gaussian-mixture experiment (10 datasets), fixed-point versus best-of-50 random rounding had a mean cut-weight ratio of **1.014**; reported mean Rand indices were **0.972 ± 0.006** (fixed-point) and **0.935 ± 0.018** (random). These numbers belong to **FKP22’s data-clustering setup**, not the 2021 thesis's graph benchmark. See FKP22 §6, Table 1 (PDF p. 21).
@@ -98,8 +88,7 @@ For an unweighted graph and any $k\ge2$:
 - The existence of a proper $k$-coloring is equivalent to the existence of a $k$-partition that cuts **every edge** (cut weight $|E|$), permitting empty classes in the “at most $k$” convention.
 - The smallest such $k$ is the chromatic number $\chi(G)$.
 - With $\omega(G)$ the clique number and $\overline G$ the graph complement, the thesis quotes Lovász's sandwich inequality:
-  $$
-
+  $
   \omega(G)\le\vartheta(\overline G)\le\chi(G).
   
 $$
