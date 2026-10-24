@@ -18,8 +18,7 @@ There are two independent objectives:
 
 1. Draw $k$ **independent Gaussian vectors** $r_1,\ldots,r_k$, with each coordinate $\sim N(0,1)$.
 2. For each graph vertex $i$, choose
-   $$
-
+   $
    c_{\mathrm{FJ}}(i)=\operatorname*{arg\,max}_{1\le a\le k}\langle v_i,r_a\rangle,
    
 $$
@@ -30,12 +29,10 @@ The Gaussian vectors need **not** be normalized: Algorithm 11 explicitly samples
 
 The guarantee quoted in [TH21, §7.3.3] is of the form
 
-$$
-
+$
 \mathbb E[F(c_{\mathrm{FJ}})]\ge\alpha_k F^\star
 
-$$
-
+$
 under the usual conditions of the cited approximation setting (in particular distinguish nonnegative from signed weights). Values reproduced as reported in the thesis:
 
 | $k$ | Lower bound on $\alpha_k$ quoted in TH21 |
@@ -65,16 +62,14 @@ This is the *actual* Max-$k$-Cut generalization proposed in Chapter 7 — not me
 
 For unit data $v_i$ and unit centroid directions $\mu_a$, an implementation consistent with the spherical $k$-means description is:
 
-$$
-
+$
 c(i)\leftarrow\operatorname*{arg\,max}_a v_i^\top \mu_a,
 \quad
 s_a\leftarrow\sum_{i:c(i)=a}v_i,
 \quad
 \mu_a\leftarrow s_a/\|s_a\| \quad(\|s_a\|>0).
 
-$$
-
+$
 Repeat assignment and update until stable (or a tolerance / iteration limit); handle empty classes and $s_a=0$ explicitly. This is **implementation-level pseudocode**, not a verbatim listing from Algorithm 12, which specifies the clustering step abstractly. The thesis does not document every stopping criterion, initialization seed, or empty-cluster policy.
 
 Spherical $k$-means seeks to maximize $\sum_i v_i^\top\mu_{c(i)}$, or equivalently minimize $\sum_i\|v_i-\mu_{c(i)}\|^2$ with unit centroids. Neither criterion directly contains $w_{ij}$, except insofar as the SDP embedding encodes those weights.
@@ -118,22 +113,18 @@ Why K-MeansNM is special at $k=2$: antipodal centroid initialization gives **the
 
 A **new comparison method** can always evaluate both candidate partitions on the exact original weights:
 
-$$
-
+$
 c_{\mathrm{hybrid}}=\operatorname*{arg\,max}_{c\in\{c_{\mathrm{FJ}},c_{\mathrm{KM}}\}}F(c).
 
-$$
-
+$
 Then **pointwise** $F(c_{\mathrm{hybrid}})\ge F(c_{\mathrm{FJ}})$. Under the nonnegative-weight assumptions where the cited FJ bound applies, taking expectations yields
 
-$$
-
+$
 \mathbb E F(c_{\mathrm{hybrid}})
 \ge\mathbb E F(c_{\mathrm{FJ}})
 \ge \alpha_k F^\star.
 
-$$
-
+$
 This preserves the *known* bound but proves **no strictly larger** worst-case factor. It remains valid as a pointwise cut comparison with negative weights, although signed-weight approximation-ratio conventions require a shift and separate justification.
 
 A further safe postprocessor is monotonic local search: move a vertex to a different class **only when its exact weighted cut value strictly increases**. This cannot worsen its starting cut, but has its own time/optimality limits.
