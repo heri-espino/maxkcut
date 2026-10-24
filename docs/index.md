@@ -12,6 +12,7 @@ This documentation describes a Python package for reproducible experiments motiv
 
 installation
 quickstart
+windows-powershell
 experiments
 performance
 ```
