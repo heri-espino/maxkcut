@@ -53,3 +53,14 @@ print(labels, diagnostics["solver_status"])
 ```
 
 **Reminder:** the primal SDP score is not an automatically verified upper bound; consult diagnostics and a dual certificate when reporting guarantees.
+
+## Avoid unnecessary repeated SDP solves
+
+The SDP matrix is cached by input checksum and solver settings. Different random
+rounding seeds reuse the expensive matrix: `maxkcut --graphs G11 --k 2
+--restarts 100 --seed 2027 --output reports/gset/g11-rounding-2027.jsonl`.
+
+Use `--no-sdp-cache` to force a fresh solve, `--scs-indirect` to test SCS's
+indirect linear system backend, or `--list-solvers` to inspect the available
+solvers. **Save to a fresh JSONL file for every run**, because output appends.
+See [performance and library choices](performance.md).
