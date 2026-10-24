@@ -155,3 +155,22 @@ solve is desired; use `--scs-indirect` to separately profile SCS's iterative
 KKT solver. Each JSONL row includes cache-hit and timing fields. Always use a
 **new JSONL output file per run** to avoid mixing old repeats with new data.
 See `docs/performance.md` for commands and restrictions.
+
+## October 2026 benchmark protocol update: archiving and certified references
+
+A recent Glass–Feder preprint (arXiv:2606.28478, June 2026) derives valid
+toroidal G-set upper bounds. Table 1 confirms that canonical G11's published
+feasible 564 equals its upper bound 564: **G11 has a proven optimum**, not
+just a heuristic best-known cut. This does not imply all 71 G-set instances
+have proven optima; see `docs/gset-reference-values.md`. The local
+`G-Set/G11.mat` needs a verified exact graph identity before transporting
+the published proof to that file.
+
+Current library experiments use 20 restarts/method by default, preserving
+the full score distributions. Every graph/k run additionally archives all
+vertex partitions, a signed-weight graph snapshot and a provenance manifest
+under `<JSONL-parent>/artifacts/` with unique run IDs. The original SDP
+Gram matrix is separately cached by graph SHA256 + solver settings and need
+not be regenerated just to examine the previous cuts. Check archive integrity
+with `maxkcut --verify-archive PATH`, which rescales no SDP and simply
+recomputes the stored cut weights. See `docs/experiment-archives.md`.

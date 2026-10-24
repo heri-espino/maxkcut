@@ -159,3 +159,24 @@ maxkcut --graphs G11 --k 2 --solver SDPA --cpu-threads 4 --no-sdp-cache --verbos
 If it still reports `bad_alloc`, stop retrying the same setup. Your SCS
 run already succeeded, and a backend-specific failure does not invalidate
 the rounded cut it produced. See [CPU/GPU performance](gpu-cpu-performance.md).
+
+## Archive and independently verify every vertex partition
+
+Running the benchmark now creates a unique archive of the normalized graph,
+weighted edges, all rounded partitions, solver/provenance metadata and
+per-method statistics **without any additional SDP solve**:
+
+```powershell
+maxkcut --graphs G11 --k 2 --solver SCS --eps 1e-3 --max-iters 3000 --restarts 20 --seed 2026 --output reports/gset/g11-archive.jsonl
+```
+
+Use the case archive path printed at the end of the run:
+
+```powershell
+maxkcut --verify-archive "reports/gset/artifacts/YOUR-RUN-ID/G11-k2"
+```
+
+The command recomputes all cut scores from the saved signed edge list and
+vertex assignments; it does **not** rerun the SDP. See
+[experiment archiving](experiment-archives.md) and
+[certified G-set optima](gset-reference-values.md).

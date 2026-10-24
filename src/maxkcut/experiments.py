@@ -7,6 +7,9 @@ from pathlib import Path
 
 import numpy as np
 
+from .archive import (
+    method_archive_path, new_archive, new_run_id, save_method, update_manifest,
+)
 from .cache import cache_identity, cache_path, load_cached_sdp, save_cached_sdp
 from .hardware import blas_limit
 from .io import edge_arrays, load_graph
@@ -19,7 +22,9 @@ def benchmark(paths, k_values, output, *, solver='SCS', eps=1e-3,
               max_iters=3000, restarts=20, seed=2026, max_n=1000,
               verbose=False, scs_indirect=False, cache_dir=Path('reports/gset/sdp_cache'),
               use_cache=True, psd_repair_rel_tol=1e-3,
-              cpu_threads=None, scs_cudss=False):
+              cpu_threads=None, scs_cudss=False,
+              artifacts_dir=None,
+              save_artifacts=True, argv=None):
     """Benchmark rounders against the same SDP, reusing cached Gram matrices.
 
     Save raw, solver-produced Gram matrices keyed to input file checksum,
@@ -28,7 +33,9 @@ def benchmark(paths, k_values, output, *, solver='SCS', eps=1e-3,
     seeds and restarts do not invalidate a legitimate SDP cache entry.
 
     Results append to a JSONL file; choose a fresh output path to avoid
-    confusing separate executions with independent samples.
+    confusing separate executions with independent samples. When enabled,
+    write a compact graph/partitions archive and provenance manifest under
+    artifacts_dir. The raw SDP matrix remains in the separate SDP cache.
     """
     if cpu_threads is not None and (isinstance(cpu_threads, bool) or
                                     not isinstance(cpu_threads, int) or cpu_threads < 1):
@@ -37,6 +44,8 @@ def benchmark(paths, k_values, output, *, solver='SCS', eps=1e-3,
         raise ValueError('scs_cudss needs SCS direct mode')
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
+    if artifacts_dir is None:
+        artifacts_dir = output.parent / 'artifacts'
     if restarts < 1 or max_n < 2:
         raise ValueError('restarts must be positive, max_n must be >= 2')
     if eps <= 0 or max_iters < 1:
@@ -55,6 +64,26 @@ def benchmark(paths, k_values, output, *, solver='SCS', eps=1e-3,
             for k in k_values:
                 if not 2 <= k <= n:
                     raise ValueError(f'Require 2 <= k <= n; got k={k}, n={n}')
+
+                archive = None
+                if save_artifacts:
+                    settings = {
+                        'solver': solver,
+                        'eps': eps if solver == 'SCS' else None,
+                        'max_iters': max_iters if solver == 'SCS' else None,
+                        'scs_indirect': bool(scs_indirect),
+                        'scs_cudss': bool(scs_cudss),
+                        'cpu_threads': cpu_threads,
+                        'psd_repair_rel_tol': psd_repair_rel_tol,
+                        'restarts': restarts,
+                        'seed': seed,
+                        'max_n': max_n,
+                        'sdp_cache_enabled': bool(use_cache),
+                    }
+                    archive = new_archive(
+                        artifacts_dir, new_run_id(), path, n, edges, k,
+                        settings, jsonl_output=output, argv=argv,
+                    )
 
                 start = time.monotonic()
                 loaded = None
@@ -113,6 +142,11 @@ def benchmark(paths, k_values, output, *, solver='SCS', eps=1e-3,
                 solver_info['sdp_original_solve_seconds'] = original_solve_seconds
                 solver_info['sdp_prepare_seconds'] = prep_seconds
                 solver_info['factorization_seconds'] = factor_seconds
+                if archive is not None:
+                    update_manifest(
+                        archive, status="sdp_ready",
+                        solver_info=dict(solver_info),
+                    )
 
                 methods = (
                     ('FJ', 'K-Means2N', 'K-MeansNM') if k == 2
@@ -120,6 +154,8 @@ def benchmark(paths, k_values, output, *, solver='SCS', eps=1e-3,
                 )
                 for method in methods:
                     best = None
+                    method_labels = []
+                    method_scores = []
                     for rep in range(restarts):
                         rng = np.random.default_rng(
                             np.random.SeedSequence([
@@ -140,6 +176,9 @@ def benchmark(paths, k_values, output, *, solver='SCS', eps=1e-3,
                             )
                         elapsed = time.monotonic() - started
                         score = cut_weight(edges, labels)
+                        if archive is not None:
+                            method_labels.append(np.asarray(labels).copy())
+                            method_scores.append(score)
                         entry = {
                             'graph': path.stem,
                             'n': n,
@@ -152,6 +191,9 @@ def benchmark(paths, k_values, output, *, solver='SCS', eps=1e-3,
                             'rounding_seconds': elapsed,
                             'rounding_iterations': iterations,
                             'seed': seed,
+                            'artifact_run_id': archive['manifest']['run_id'] if archive else None,
+                            'partition_archive': str(method_archive_path(archive, method)) if archive else None,
+                            'partition_index': rep if archive else None,
                             'factor_min_eigenvalue_before_clipping': min_before,
                             **solver_info
                         }
@@ -159,8 +201,15 @@ def benchmark(paths, k_values, output, *, solver='SCS', eps=1e-3,
                         file.flush()
                         if best is None or score > best['cut_weight']:
                             best = entry
+                    if archive is not None:
+                        save_method(
+                            archive, method, method_labels, method_scores, k=k,
+                        )
                     print(
                         f"{path.stem} k={k} {method}: best={best['cut_weight']} / "
                         f"{restarts} restarts (SDP cache hit={hit})",
                         flush=True
                     )
+                if archive is not None:
+                    update_manifest(archive, status="complete")
+                    print(f"Experiment archive: {archive['path']}", flush=True)

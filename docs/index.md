@@ -14,6 +14,8 @@ installation
 quickstart
 windows-powershell
 experiments
+experiment-archives
+gset-reference-values
 performance
 gpu-cpu-performance
 ```

@@ -71,13 +71,37 @@ when the graph file and solver settings are unchanged.
 ```bash
 maxkcut --list-solvers
 maxkcut --graphs G11 --k 2 --restarts 10 --output reports/gset/g11-first.jsonl
-maxkcut --graphs G11 --k 2 --restarts 100 --seed 2027 --output reports/gset/g11-second.jsonl
+maxkcut --graphs G11 --k 2 --restarts 20 --seed 2027 --output reports/gset/g11-second.jsonl
 # Separately benchmark SCS iterative KKT mode
 maxkcut --graphs G11 --k 2 --scs-indirect --output reports/gset/g11-indirect.jsonl
 ```
 
 See [the performance guide](docs/performance.md) for bottlenecks, cache safety,
 timings, and the limitations of CVXPY/SCS.
+
+## Reusable experiment archives and published benchmark proofs
+
+The default is **20 rounding restarts per method**, not 100. The JSONL file
+records every cut and numerical diagnostic. Every completed graph/k case
+now additionally saves a self-contained archive of the normalized signed
+graph edges, **every vertex partition** (bit-packed for Max-Cut), the
+input file SHA256, Git commit, Python/package versions, solver parameters
+and summary statistics.
+
+The SDP Gram matrix remains in the existing fingerprinted cache and is
+stored **once**, not once per restart. Future runs can reuse that SDP
+without re-solving; archived partitions can be rescored without any SDP.
+The command prints its archive path. Verify it using:
+
+```powershell
+maxkcut --verify-archive "reports/gset/artifacts/YOUR-RUN-ID/G11-k2"
+```
+
+See [experiment archives](docs/experiment-archives.md) for structure and
+validation, and [proven G-set reference values](docs/gset-reference-values.md).
+Notably, G11=564 was proved optimal in 2026 by a matching feasible cut and
+toroidal upper bound, whereas many other G-set cut values are only
+best-known heuristic results.
 
 ## CPU threading and optional NVIDIA GPU
 

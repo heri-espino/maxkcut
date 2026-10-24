@@ -2,7 +2,9 @@
 from __future__ import annotations
 import argparse
 import json
+import sys
 from pathlib import Path
+from .archive import verify_archive
 from .hardware import hardware_info
 from .io import load_graph, edge_arrays
 from .experiments import benchmark
@@ -16,7 +18,8 @@ def main():
     parser.add_argument('--solver', choices=['SCS', 'CLARABEL', 'MOSEK', 'SDPA'], default='SCS')
     parser.add_argument('--eps', type=float, default=1e-3)
     parser.add_argument('--max-iters', type=int, default=3000)
-    parser.add_argument('--restarts', type=int, default=20)
+    parser.add_argument('--restarts', type=int, default=20,
+                        help='Rounding repetitions PER method; default 20, not 100')
     parser.add_argument('--seed', type=int, default=2026)
     parser.add_argument('--max-n', type=int, default=1000)
     parser.add_argument('--scs-indirect', action='store_true',
@@ -27,6 +30,12 @@ def main():
                         help='Use GPU cuDSS SCS linear backend, ONLY if SCS is custom built with cuDSS and CUDA is available')
     parser.add_argument('--hardware-info', action='store_true',
                         help='Print detected logical CPUs, BLAS pools, and NVIDIA driver visibility')
+    parser.add_argument('--artifacts-dir', type=Path,
+                        help='Directory for compact graph, partition, and provenance archives (default: output parent/artifacts)')
+    parser.add_argument('--no-artifacts', action='store_true',
+                        help='Disable graph/partition/manifest archiving (raw SDP cache is independent)')
+    parser.add_argument('--verify-archive', type=Path,
+                        help='Rescore every saved partition using the archived graph; does not solve an SDP')
     parser.add_argument('--cache-dir', type=Path,
                         default=Path('reports/gset/sdp_cache'),
                         help='Directory for safely fingerprinted SDP matrix cache')
@@ -39,6 +48,9 @@ def main():
     parser.add_argument('--verbose', action='store_true')
     parser.add_argument('--inspect-only', action='store_true', help='Validate and report .mat graph sizes without CVXPY')
     args = parser.parse_args()
+    if args.verify_archive is not None:
+        print(json.dumps(verify_archive(args.verify_archive), indent=2))
+        return
     if args.hardware_info:
         print(json.dumps(hardware_info(), indent=2))
         return
@@ -79,4 +91,6 @@ def main():
               scs_indirect=args.scs_indirect, cache_dir=args.cache_dir,
               use_cache=not args.no_sdp_cache,
               psd_repair_rel_tol=args.psd_repair_rel_tol,
-              cpu_threads=args.cpu_threads, scs_cudss=args.scs_cudss)
+              cpu_threads=args.cpu_threads, scs_cudss=args.scs_cudss,
+              artifacts_dir=args.artifacts_dir, save_artifacts=not args.no_artifacts,
+              argv=list(sys.argv))
