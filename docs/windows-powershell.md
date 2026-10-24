@@ -5,7 +5,7 @@ This page uses **PowerShell**, not Bash. The `maxkcut` CLI is the same on Window
 ## Start in the repository
 
 ```powershell
-cd C:\Users\175199\maxkcut
+cd .\maxkcut
 git pull origin main
 conda activate maxkcut
 python -m pytest -q
@@ -42,7 +42,7 @@ maxkcut --graphs G11 --k 2 `
   --output reports/gset/g11-first.jsonl
 ```
 
-**Do not copy the Bash backslash `\` as a line continuation in PowerShell.** It will be passed to `maxkcut` as a literal argument (e.g. `invalid int value: '\'`), and subsequent lines beginning with `--` will cause PowerShell syntax errors.
+**Do not copy the Bash trailing backslash as a line continuation in PowerShell.** It will be passed to `maxkcut` as a literal argument (e.g. `invalid int value: '\'`), and subsequent lines beginning with `--` will cause PowerShell syntax errors.
 
 ## Change rounding seeds without re-solving the SDP
 
