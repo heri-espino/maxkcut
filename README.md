@@ -30,7 +30,7 @@ maxkcut --graphs G11 --k 2 --restarts 10 --solver SCS \
   --eps 1e-3 --max-iters 3000 --output reports/gset/g11-k2.jsonl
 ```
 
-**Windows PowerShell users:** Bash uses `\\` to continue long commands, but PowerShell does not. Use the one-line command below, or a backtick (`\``) as the last character of each continued line:
+**Windows PowerShell users:** Bash uses a trailing backslash to continue long commands, but PowerShell does not. Use the one-line command below, or a PowerShell backtick as the last character of each continued line:
 
 ```powershell
 maxkcut --graphs G11 --k 2 --solver SCS --eps 1e-3 --max-iters 3000 --restarts 20 --seed 2026 --output reports/gset/g11-first.jsonl
