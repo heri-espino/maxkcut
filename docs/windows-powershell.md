@@ -136,3 +136,26 @@ If you have an NVIDIA GPU, use `nvidia-smi` to identify it. The separate
 cuDSS; normal Conda SCS installations do not guarantee this. It is **not**
 necessarily faster for semidefinite programs. See
 [CPU/GPU performance research](gpu-cpu-performance.md).
+
+## SDPA failed with `Memory Exhausted (bad_alloc)` despite 64 GB RAM
+
+This is a failure of native SDPA memory allocation, **not** evidence that G11
+cannot fit into 64 GB. SDPA's native worker count defaults to the number of
+logical processors. Our `--cpu-threads N` now controls SDPA's documented
+`numThreads` option, not only external BLAS threads.
+
+Check Windows committed memory (read-only):
+
+```powershell
+Get-Counter '\Memory\Committed Bytes','\Memory\Commit Limit' | Select-Object -ExpandProperty CounterSamples | Select-Object Path,@{Name='GiB';Expression={[math]::Round($_.CookedValue/1GB,1)}}
+```
+
+For an **optional one-time** smaller-thread experiment:
+
+```powershell
+maxkcut --graphs G11 --k 2 --solver SDPA --cpu-threads 4 --no-sdp-cache --verbose --restarts 20 --output reports/gset/g11-sdpa-4threads.jsonl
+```
+
+If it still reports `bad_alloc`, stop retrying the same setup. Your SCS
+run already succeeded, and a backend-specific failure does not invalidate
+the rounded cut it produced. See [CPU/GPU performance](gpu-cpu-performance.md).

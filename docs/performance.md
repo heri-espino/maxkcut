@@ -92,7 +92,8 @@ Do not multiply `sdp_seconds` by the number of rounding restarts; it is reported
 
 The command-line tool exposes `--hardware-info`, `--cpu-threads N`, and
 `--scs-cudss`. The first reports detected BLAS and GPU visibility, the
-second sets threadpoolctl limits around the SDP and factorization, and the
+second sets threadpoolctl limits around the SDP and factorization
+(and explicitly sets native SDPA numThreads when SDPA is selected); the
 third requires a nonstandard SCS build with NVIDIA cuDSS. None guarantees
 a faster SDP solve. See the [CPU/GPU Windows guide](gpu-cpu-performance.md)
 before attempting a CUDA backend. Comparisons with differing CPU-thread

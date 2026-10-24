@@ -42,7 +42,10 @@ maxkcut --graphs G11 --k 2 --solver SCS --eps 1e-5 --max-iters 20000 --no-sdp-ca
 ```
 
 This limits thread pools **recognized by threadpoolctl** around the SDP call and
-the NumPy symmetric eigendecomposition. It may speed up Eigen/LAPACK operations
+the NumPy symmetric eigendecomposition. **For `--solver SDPA` only**, the
+same `--cpu-threads N` value is additionally passed to SDPA's native
+`numThreads=N` option. CVXPY documents that SDPA otherwise defaults to
+`multiprocessing.cpu_count()`, which is 32 on this workstation. It may speed up Eigen/LAPACK operations
 if the linked BLAS supports multithreading, but **it cannot force the entire
 SCS implementation to use eight CPU cores**. Some SCS kernels and
 configurations can remain single-threaded. Larger thread counts may be *slower*
@@ -119,3 +122,46 @@ Windows build is unavailable.
   cuDSS-enabled GPU SCS builds and NVIDIA prerequisites.
 - [SCS SDP benchmarks](https://www.cvxgrp.org/scs/benchmarks/index.html) —
   GPU acceleration can be limited by PSD cone eigenprojections.
+
+## SDPA memory allocation errors, even with 64 GB RAM
+
+A native Windows G11 run of `sdpa-python 0.2.3` produced
+`Memory Exhausted (bad_alloc) :: line 776 in sdpa_struct.cpp`.
+The error indicates **a failed native memory allocation**; it does not prove
+that 64 GB of physical memory was all used or that 64 GB is intrinsically too
+small for G11. It could be SDPA's internal formulation, allocation request,
+Windows process memory/commit limit, or a backend-specific issue.
+
+Our previously exposed `--cpu-threads N` only restricted BLAS. It now also
+passes SDPA's documented `numThreads=N`, but **thread reduction does not
+guarantee memory success**. The SDPA Python wheel uses a prebuilt OpenBLAS
+backend, separate from NumPy's detected MKL library.
+
+In **PowerShell**, check actual available memory and the Windows system-wide
+commit charge and limit (before or during an attempt):
+
+```powershell
+Get-Counter '\Memory\Committed Bytes','\Memory\Commit Limit' | Select-Object -ExpandProperty CounterSamples | Select-Object Path,@{Name='GiB';Expression={[math]::Round($_.CookedValue/1GB,1)}}
+```
+
+This is a non-invasive read-only measurement. The commit limit depends on
+physical RAM and page files; low committed memory makes a system-wide
+commit-limit explanation less likely, but still cannot exclude a failed
+solver-specific allocation.
+
+If you decide to try the native SDPA backend **once** with fewer threads,
+use a new results file. No SDP is run automatically:
+
+```powershell
+maxkcut --graphs G11 --k 2 --solver SDPA --cpu-threads 4 --no-sdp-cache --verbose --restarts 20 --output reports/gset/g11-sdpa-4threads.jsonl
+```
+
+If the same `bad_alloc` occurs, **do not repeat it in a loop** or conclude
+more RAM alone is the remedy. Prefer the already working SCS path, examine
+SDPA's canonicalization, and consider a genuinely more memory-efficient
+SDP formulation only as a separate research project. Keep the machine
+responsive and close other memory-intensive processes for experiments.
+
+Official sources: [CVXPY SDPA options](https://www.cvxpy.org/tutorial/solvers/),
+[SDPA Python options](https://sdpa-python.github.io/docs/usage/params.html),
+[Microsoft system commit limit and page files](https://learn.microsoft.com/en-us/troubleshoot/windows-client/performance/how-to-determine-the-appropriate-page-file-size-for-64-bit-versions-of-windows).
