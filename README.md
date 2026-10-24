@@ -47,6 +47,23 @@ print(cut_weight(edges, np.zeros(graph.shape[0], dtype=int)))
 
 Core public API: `load_graph`, `edge_arrays`, `cut_weight`, `solve_sdp`, `factorize`, `round_fj`, `round_spherical_kmeans`, `benchmark`.
 
+## Performance tuning and reproducible SDP caching
+
+The first G11 run saves an SDP Gram matrix in `reports/gset/sdp_cache/`.
+Re-running with a different seed or restart count **reuses the same SDP**
+when the graph file and solver settings are unchanged.
+
+```bash
+maxkcut --list-solvers
+maxkcut --graphs G11 --k 2 --restarts 10 --output reports/gset/g11-first.jsonl
+maxkcut --graphs G11 --k 2 --restarts 100 --seed 2027 --output reports/gset/g11-second.jsonl
+# Separately benchmark SCS iterative KKT mode
+maxkcut --graphs G11 --k 2 --scs-indirect --output reports/gset/g11-indirect.jsonl
+```
+
+See [the performance guide](docs/performance.md) for bottlenecks, cache safety,
+timings, and the limitations of CVXPY/SCS.
+
 ## Documentation and agent instructions
 
 ```bash
