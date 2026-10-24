@@ -23,7 +23,7 @@ def benchmark(paths, k_values, output, *, solver='SCS', eps=1e-3,
               verbose=False, scs_indirect=False, cache_dir=Path('reports/gset/sdp_cache'),
               use_cache=True, psd_repair_rel_tol=1e-3,
               cpu_threads=None, scs_cudss=False,
-              artifacts_dir=Path('reports/gset/artifacts'),
+              artifacts_dir=None,
               save_artifacts=True, argv=None):
     """Benchmark rounders against the same SDP, reusing cached Gram matrices.
 
@@ -44,6 +44,8 @@ def benchmark(paths, k_values, output, *, solver='SCS', eps=1e-3,
         raise ValueError('scs_cudss needs SCS direct mode')
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
+    if artifacts_dir is None:
+        artifacts_dir = output.parent / 'artifacts'
     if restarts < 1 or max_n < 2:
         raise ValueError('restarts must be positive, max_n must be >= 2')
     if eps <= 0 or max_iters < 1:
