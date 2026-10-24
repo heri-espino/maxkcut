@@ -8,12 +8,10 @@
 
 For a graph instance $g$, let $F_{g,\mathrm{KM}}$ and $F_{g,\mathrm{FJ}}$ be the best cut weights found within **identical, specified rounding budgets**. Define
 
-$$
-
+$
 \Delta_g=F_{g,\mathrm{KM}}-F_{g,\mathrm{FJ}}.
 
-$$
-
+$
 The primary endpoint is a **paired comparison** of $\Delta_g$ across independent graph instances. For a relative quantity on nonnegative instances, report $\Delta_g/F_{g,\mathrm{FJ}}$ only if $F_{g,\mathrm{FJ}}>0$. For negative weights or zero baselines, report differences plus separately defined shifted ratios.
 
 Secondary endpoints: AIG to the reported SDP objective (provided it is a validated upper bound), CG with the proper signed shift, wall-clock time, rounding CPU time, objective evaluations, actual number of **nonempty classes**, failure rate, and per-instance variability across seeds.
@@ -39,16 +37,14 @@ A **separate** future experiment may use the existing `G-Set/*.mat` files (prima
 
 Construct symmetric $W$ and Laplacian $L=D-W$ with $D_{ii}=\sum_j w_{ij}$. Solve, independently for each graph and $k$,
 
-$$
-
+$
 \begin{aligned}
 \max_X\quad &\frac{k-1}{2k}\operatorname{Tr}(LX)\\
 \text{subject to}\quad &X=X^\top\succeq0,\ X_{ii}=1,\ 
 X_{ij}\ge -1/(k-1)\quad(i\neq j).
 \end{aligned}
 
-$$
-
+$
 Log solver, version, termination status, time, primal/dual objective, primal/dual residuals, tolerance, and minimum eigenvalue. In exact mathematics, $S_{\mathrm{SDP}}\ge F^\star$. **Numerical caution:** an approximate *primal feasible point* alone does not certify an upper bound on a maximization problem; obtain a suitable **dual bound** or document tolerance limitations before describing an empirical ratio as a certified integrality gap.
 
 Extract a vector factor from $X$:
@@ -98,8 +94,7 @@ The update rule is a concrete implementation of **spherical** $k$-means, not pse
 
 - **Hybrid:** evaluate FJ and $k$-means outputs on the original $W$, return the higher cut. This trivially dominates the realized FJ cut and therefore retains its *expected bound* under the corresponding FJ theorem assumptions, but proves no stronger universal factor.
 - **One-vertex local search:** for vertex $i$ currently in class $a$, moving to class $b\ne a$ changes the cut by
-  $$
-
+  $
   \Delta_{i:a\to b}
   =\sum_{j:c(j)=a}w_{ij}
   -\sum_{j:c(j)=b}w_{ij}.
