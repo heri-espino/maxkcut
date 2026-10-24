@@ -13,9 +13,9 @@ The related [2020 journal article](https://doi.org/10.3390/computation8030075), 
 
 ## Source files
 
-The repository already contains a directory of MATLAB v5 files: `G-Set/G1.mat` through `G-Set/G71.mat` (with some index gaps). The loader in `scripts/gset_benchmark.py` uses `scipy.io.loadmat` and can handle a dense/sparse square weighted adjacency or a single 3-column edge list. It refuses mismatched symmetry, self-loops, invalid weights, and ambiguous candidate matrices.
+The repository already contains a directory of MATLAB v5 files: `G-Set/G1.mat` through `G-Set/G71.mat` (including G68, G69 and G71, which are not part of the canonical G-set enumeration). The loader in `scripts/gset_benchmark.py` uses `scipy.io.loadmat` and can handle a dense/sparse square weighted adjacency or a single 3-column edge list. It refuses mismatched symmetry, self-loops, invalid weights, and ambiguous candidate matrices.
 
-**Important:** these exact MATLAB files have **not** been decoded and inspected during authoring. Run `--inspect-only` first. Verify, for example, G1 is expected to have $n=800$ and $m=19,176$; G11 $n=800,m=1,600$; G22 $n=2,000,m=19,990$, per [G-set reference metadata](https://github.com/KULeuven-MICAS/openising/blob/main/ising/benchmarks/G/README.md). If inspection differs, stop before benchmarking and investigate the input file conventions.
+**Important:** the repository's sequence includes G68/G69/G71 but is missing the canonical G72, G77 and G81 entries. These must not be silently considered equivalent. These exact MATLAB files have **not** been decoded and inspected during authoring. Run `--inspect-only` first. Verify, for example, G1 is expected to have $n=800$ and $m=19,176$; G11 $n=800,m=1,600$; G22 $n=2,000,m=19,990$, per [G-set reference metadata](https://github.com/KULeuven-MICAS/openising/blob/main/ising/benchmarks/G/README.md). If inspection differs, stop before benchmarking and investigate the input file conventions.
 
 ## Installation
 
@@ -71,11 +71,12 @@ An approximate SDP's **primal** score is not automatically a certified upper bou
 
 - **$k=2$** baseline: Goemans–Williamson with one Gaussian random **hyperplane**; this is not two independently normalized random centroids.
 - **$k>2$** baseline: Frieze–Jerrum, choosing the maximum projection onto $k$ independent **unnormalized Gaussian** directions.
-- **$k\ge2$** alternative: **spherical $k$-means**, initialized with $k$ independently sampled and normalized Gaussian centroid directions.
+- **$k=2$ clustering baselines:** **K-Means2N** uses two independent normalized random centroids; **K-MeansNM** initializes opposite centroids, matches the associated GW initial bipartition, and returns the best cut encountered along the clustering trajectory (including the initial one).
+- **$k>2$ alternative:** spherical $k$-means, initialized with $k$ independently sampled and normalized Gaussian centroid directions.
 - Both run from the **same factored SDP solution**; the script uses independent recorded seeds and restarts.
 - Scores are recomputed using the **original weighted edges**, including signed weights.
 
-The k-means implementation uses conventional normalized centroid updates and handles empty centroids. This is a functional reproduction of the rounding idea, not a guarantee of bitwise identity with the original MATLAB initialization, convergence tolerances, or tie-breaking. Chapter 6 explored more two-cluster initializations (especially antipodal K-MeansNM) and local search; those variations are **not implemented in this first version**. They should be added before claiming a full paper-level reproduction.
+The k-means implementation uses conventional normalized centroid updates and handles empty centroids. This is a functional reproduction of the rounding idea, not a guarantee of bitwise identity with the original MATLAB initialization, convergence tolerances, or tie-breaking. Chapter 6 also explores fuzzy c-means, medoids, MST clustering and local search; those variants are **not implemented in this first version**. K-MeansNM and K-Means2N are included. They should be added before claiming a full paper-level reproduction.
 
 ## Recommended staged execution
 
