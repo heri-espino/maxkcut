@@ -72,3 +72,12 @@ Use `--no-sdp-cache` to force a fresh solve, `--scs-indirect` to test SCS's
 indirect linear system backend, or `--list-solvers` to inspect the available
 solvers. **Save to a fresh JSONL file for every run**, because output appends.
 See [performance and library choices](performance.md).
+
+## Running on a multicore workstation or NVIDIA GPU
+
+Try `maxkcut --hardware-info` to list BLAS thread pools and NVIDIA GPU driver
+visibility. `--cpu-threads 8` limits supported BLAS thread pools during the
+SDP solve and Gram factorization but does **not** make every SCS operation
+multicore. GPU-backed SCS requires a separate cuDSS-enabled build; the
+optional `--scs-cudss` flag never silently falls back to the CPU.
+See [CPU/GPU performance guidance](gpu-cpu-performance.md).

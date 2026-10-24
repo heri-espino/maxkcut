@@ -8,6 +8,7 @@ from pathlib import Path
 import numpy as np
 
 from .cache import cache_identity, cache_path, load_cached_sdp, save_cached_sdp
+from .hardware import blas_limit
 from .io import edge_arrays, load_graph
 from .objective import cut_weight
 from .rounding import factorize, round_fj, round_spherical_kmeans
@@ -17,7 +18,8 @@ from .sdp import solve_sdp
 def benchmark(paths, k_values, output, *, solver='SCS', eps=1e-3,
               max_iters=3000, restarts=20, seed=2026, max_n=1000,
               verbose=False, scs_indirect=False, cache_dir=Path('reports/gset/sdp_cache'),
-              use_cache=True, psd_repair_rel_tol=1e-3):
+              use_cache=True, psd_repair_rel_tol=1e-3,
+              cpu_threads=None, scs_cudss=False):
     """Benchmark rounders against the same SDP, reusing cached Gram matrices.
 
     Save raw, solver-produced Gram matrices keyed to input file checksum,
@@ -28,6 +30,11 @@ def benchmark(paths, k_values, output, *, solver='SCS', eps=1e-3,
     Results append to a JSONL file; choose a fresh output path to avoid
     confusing separate executions with independent samples.
     """
+    if cpu_threads is not None and (isinstance(cpu_threads, bool) or
+                                    not isinstance(cpu_threads, int) or cpu_threads < 1):
+        raise ValueError('cpu_threads must be a positive integer')
+    if scs_cudss and (solver != 'SCS' or scs_indirect):
+        raise ValueError('scs_cudss needs SCS direct mode')
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
     if restarts < 1 or max_n < 2:
@@ -55,7 +62,8 @@ def benchmark(paths, k_values, output, *, solver='SCS', eps=1e-3,
                 if use_cache:
                     identity = cache_identity(
                         path, k=k, solver=solver, eps=eps,
-                        max_iters=max_iters, scs_indirect=scs_indirect
+                        max_iters=max_iters, scs_indirect=scs_indirect,
+                        cpu_threads=cpu_threads, scs_cudss=scs_cudss
                     )
                     entry_path = cache_path(path, cache_dir, identity)
                     loaded = load_cached_sdp(entry_path, identity, n=n)
@@ -66,20 +74,24 @@ def benchmark(paths, k_values, output, *, solver='SCS', eps=1e-3,
                     original_solve_seconds = solver_info['sdp_seconds']
                     solver_info['sdp_seconds'] = 0.0
                 else:
-                    x, solver_info = solve_sdp(
-                        a, k, solver, eps, max_iters, verbose=verbose,
-                        scs_indirect=scs_indirect, compute_eigenvalues=False
-                    )
+                    with blas_limit(cpu_threads):
+                        extra_options = {'scs_cudss': True} if scs_cudss else {}
+                        x, solver_info = solve_sdp(
+                            a, k, solver, eps, max_iters, verbose=verbose,
+                            scs_indirect=scs_indirect, compute_eigenvalues=False,
+                            **extra_options,
+                        )
                     solver_info = dict(solver_info)
                     original_solve_seconds = solver_info['sdp_seconds']
                 prep_seconds = time.monotonic() - start
 
                 factor_start = time.monotonic()
-                vectors, min_before, repair_info = factorize(
-                    x,
-                    relative_negative_tolerance=psd_repair_rel_tol,
-                    return_diagnostics=True,
-                )
+                with blas_limit(cpu_threads):
+                    vectors, min_before, repair_info = factorize(
+                        x,
+                        relative_negative_tolerance=psd_repair_rel_tol,
+                        return_diagnostics=True,
+                    )
                 factor_seconds = time.monotonic() - factor_start
                 # Do not persist a new matrix until the numerical validity
                 # threshold has been checked. Original raw X is cached, not the
@@ -89,6 +101,8 @@ def benchmark(paths, k_values, output, *, solver='SCS', eps=1e-3,
                 del x
                 solver_info['min_eigenvalue'] = min_before
                 solver_info.update(repair_info)
+                solver_info['cpu_threads_requested'] = cpu_threads
+                solver_info['scs_cudss_requested'] = bool(scs_cudss)
                 solver_info['cache_hit'] = hit
                 solver_info['cache_path'] = str(entry_path) if entry_path else None
                 solver_info['sdp_original_solve_seconds'] = original_solve_seconds

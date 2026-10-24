@@ -5,7 +5,7 @@ import numpy as np
 from scipy import sparse
 
 def solve_sdp(a, k, solver, eps, max_iters, verbose=False, *,
-              scs_indirect=False, compute_eigenvalues=True):
+              scs_indirect=False, compute_eigenvalues=True, scs_cudss=False):
     """Solve the Goemans–Williamson / Frieze–Jerrum convex SDP.
 
     Parameters
@@ -23,6 +23,10 @@ def solve_sdp(a, k, solver, eps, max_iters, verbose=False, *,
     scs_indirect : bool
         Use SCS's sparse iterative KKT solver. Not necessarily faster for SDPs;
         benchmark it explicitly against the direct solver.
+    scs_cudss : bool
+        Request SCS's optional CUDA/cuDSS sparse direct linear backend.
+        Requires a specially built SCS package and NVIDIA GPU/CUDA libraries;
+        does not automatically accelerate SDP cone eigenprojections.
     compute_eigenvalues : bool
         If False, skip the expensive PSD eigenvalue diagnostic. In a benchmark
         that immediately calls `factorize`, reuse that eigendecomposition instead.
@@ -39,6 +43,8 @@ def solve_sdp(a, k, solver, eps, max_iters, verbose=False, *,
         raise RuntimeError('Install CVXPY first: python -m pip install -r requirements.txt') from exc
     if k < 2:
         raise ValueError("k must be at least 2.")
+    if scs_cudss and (solver != "SCS" or scs_indirect):
+        raise ValueError("--scs-cudss requires SCS direct mode (no --scs-indirect)")
     if scs_indirect and solver != "SCS":
         raise ValueError("scs_indirect is only supported with SCS.")
     installed = cp.installed_solvers()
@@ -56,8 +62,21 @@ def solve_sdp(a, k, solver, eps, max_iters, verbose=False, *,
     kwargs = {'verbose': verbose}
     if solver == 'SCS':
         kwargs.update(eps=eps, max_iters=max_iters, use_indirect=bool(scs_indirect))
+        if scs_cudss:
+            kwargs['cudss'] = True
     start = time.monotonic()
-    value = problem.solve(solver=solver, **kwargs)
+    try:
+        value = problem.solve(solver=solver, **kwargs)
+    except Exception as exc:
+        if scs_cudss:
+            raise RuntimeError(
+                'SCS/cuDSS GPU solve failed. This requires an NVIDIA GPU, '
+                'CUDA/cuDSS and an SCS build linked against cuDSS; the '
+                'ordinary conda-forge scs package may not include it. '
+                'See docs/gpu-cpu-performance.md. Original error: '
+                f'{type(exc).__name__}: {exc}'
+            ) from exc
+        raise
     seconds = time.monotonic() - start
     if problem.status not in (cp.OPTIMAL, cp.OPTIMAL_INACCURATE) or x.value is None:
         raise RuntimeError(f'SDP solver status: {problem.status}')
@@ -80,6 +99,7 @@ def solve_sdp(a, k, solver, eps, max_iters, verbose=False, *,
         'solver': solver,
         'sdp_seconds': seconds,
         'scs_indirect': bool(scs_indirect) if solver == 'SCS' else None,
+        'scs_cudss': bool(scs_cudss) if solver == 'SCS' else None,
         'solver_iterations': int(stats.num_iters) if stats.num_iters is not None else None,
         'solver_setup_seconds': float(stats.setup_time) if stats.setup_time is not None else None,
         'solver_internal_seconds': float(stats.solve_time) if stats.solve_time is not None else None,

@@ -79,6 +79,27 @@ maxkcut --graphs G11 --k 2 --scs-indirect --output reports/gset/g11-indirect.jso
 See [the performance guide](docs/performance.md) for bottlenecks, cache safety,
 timings, and the limitations of CVXPY/SCS.
 
+## CPU threading and optional NVIDIA GPU
+
+Your G11 SDP uses dense semidefinite-cone projections. The number of logical
+processors does not imply SCS automatically uses them all. Check hardware
+visibility and use a controlled BLAS thread limit:
+
+```powershell
+maxkcut --hardware-info
+maxkcut --graphs G11 --k 2 --solver SCS --eps 1e-5 --max-iters 20000 --cpu-threads 8 --no-sdp-cache --restarts 20 --output reports/gset/g11-cpu8.jsonl
+```
+
+`--cpu-threads` affects recognized BLAS/LAPACK thread pools, **not** every
+solver kernel, and may be slower with too many threads. A separate
+`--scs-cudss` flag requests an optional **CUDA/cuDSS-enabled custom SCS build**
+for compatible NVIDIA GPUs; standard Conda SCS does not guarantee this
+backend. It is not an automatic GPU speedup, particularly for SDP cone
+eigenprojections.
+
+See the [CPU/GPU performance guide](docs/gpu-cpu-performance.md) and
+[Windows PowerShell guide](docs/windows-powershell.md).
+
 ## Documentation and agent instructions
 
 ```bash

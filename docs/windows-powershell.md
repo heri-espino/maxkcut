@@ -119,3 +119,20 @@ convergence. You can opt into a strict PSD rejection check using
 the run. For (k>2), projection onto PSD and unit-vector rescaling **may not**
 preserve the Frieze–Jerrum pairwise lower bounds, so the repaired Gram matrix
 must not be used as an SDP feasibility certificate.
+
+## Workstation CPU/GPU options
+
+A machine with 32 logical processors and a GPU will **not** automatically
+use them all during SCS's PSD cone projection. Check which BLAS backend is
+linked, then try a controlled 8-thread solve:
+
+```powershell
+maxkcut --hardware-info
+maxkcut --graphs G11 --k 2 --solver SCS --eps 1e-5 --max-iters 20000 --no-sdp-cache --cpu-threads 8 --restarts 20 --output reports/gset/g11-cpu8.jsonl
+```
+
+If you have an NVIDIA GPU, use `nvidia-smi` to identify it. The separate
+`--scs-cudss` flag only works if your SCS Python package is compiled with
+cuDSS; normal Conda SCS installations do not guarantee this. It is **not**
+necessarily faster for semidefinite programs. See
+[CPU/GPU performance research](gpu-cpu-performance.md).

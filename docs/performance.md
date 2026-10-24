@@ -88,6 +88,17 @@ Each per-restart JSONL record includes:
 
 Do not multiply `sdp_seconds` by the number of rounding restarts; it is reported redundantly in each row so that self-contained records retain provenance.
 
+## CPU/GPU resource controls
+
+The command-line tool exposes `--hardware-info`, `--cpu-threads N`, and
+`--scs-cudss`. The first reports detected BLAS and GPU visibility, the
+second sets threadpoolctl limits around the SDP and factorization, and the
+third requires a nonstandard SCS build with NVIDIA cuDSS. None guarantees
+a faster SDP solve. See the [CPU/GPU Windows guide](gpu-cpu-performance.md)
+before attempting a CUDA backend. Comparisons with differing CPU-thread
+counts or GPU configuration have independent cache identities; use
+`--no-sdp-cache` when measuring actual solver runtime.
+
 ## Libraries and algorithmic tradeoffs
 
 - **NumPy:** fast dense BLAS operations, RNGs and spherical centroid updates; a general-purpose data-science dataframe is unnecessary for core rounding.
