@@ -10,7 +10,7 @@ This project is early-stage research infrastructure, **not** a mathematically ce
 
 ## Must-read paths
 
-- `docs/index.md`, `docs/architecture.md`, `docs/experiments.md`, `docs/research.md`: documentation site, design, experimental protocol, sources.
+- `docs/index.md`, `docs/architecture.md`, `docs/experiments.md`, `docs/experiment-archives.md`, `docs/gset-reference-values.md`, `docs/research.md`: documentation site, design, experimental protocol, sources.
 - `notes/background/README.md` and `notes/background/{01..05}-*.md`: theory and prior-art map.
 - `notes/experiments/gset-cvxpy-reproduction.md`: reproduction limits and sample commands.
 - `src/maxkcut/`: **all production Python code**.
@@ -63,6 +63,21 @@ When contributing a new experiment, **add reusable numerical routines under `src
 
 ## Data provenance, claims, and citations
 
+- Persist the **normalized weighted graph** and all rounded partitions
+  using the default `src/maxkcut/archive.py` mechanism, plus graph SHA256,
+  Git SHA, versions, input settings and solver diagnostics. Never overwrite
+  finished archive directories; do not save one giant full Gram matrix per
+  restart. Failed/incomplete archives must not be treated as successes.
+- The **default remains 20 restarts per method**, not 100. Statistical
+  inference must use all scores, not just maxima, and distinguish matched
+  GW/K-MeansNM starts from independent K-Means2N starts. Repeated restarts
+  on one graph do not constitute independent G-set instances.
+- Canonical G11 optimum **564** has a matching, theoretically justified
+  upper bound in Glass and Feder (2026), Table 1
+  (https://arxiv.org/html/2606.28478). Other G-set reference numbers
+  must be labeled as proven optimum, best-known feasible cut or upper
+  bound as appropriate. Verify identity of local weighted graph before
+  applying the published result.
 - Maintain immutable original `G-Set/*.mat` input files. Verify identifiers, sizes and hashes before publishing results. Some checked-in graph identifiers do not match the canonical G-set enumeration; document, don't silently rename.
 - Ground a claim in the original dissertation/paper or in a **reproducible experimental artifact**. Cite sections, equations and PDF pages. Do not claim a new theorem from benchmark plots.
 - For **new** benchmark results record git commit SHA, command line, Conda export, solver/version/termination status, CPU/RAM/time, graph ID, number of edges, (k), seed, restarts and preprocessing.
