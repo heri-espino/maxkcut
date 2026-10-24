@@ -88,6 +88,21 @@ sphinx-build -b html docs docs/_build/html -W --keep-going
 
 When responding to a user's terminal logs, identify their shell before providing copy/paste commands. **PowerShell does not use Bash backslash continuation**. For PowerShell, provide one-line commands or use a backtick as the last character on each continued line. Keep `docs/windows-powershell.md` up to date whenever CLI flags or benchmark commands change.
 
+## Numerical hardware/accelerator policy
+
+- Use `--hardware-info` before advising CPU/GPU flags; a GPU without a
+  model/driver identification does not establish NVIDIA CUDA support.
+- `--cpu-threads` controls only threadpoolctl-recognized BLAS libraries.
+  Do not claim it parallelizes the entire SCS algorithm.
+- `--scs-cudss` is an explicitly requested **optional** SCS GPU linear-system
+  backend; it requires a custom CUDA/cuDSS-linked SCS package. Do not
+  auto-install CUDA, cuDSS or expensive GPU dependencies for regular users.
+  Do not claim a GPU speedup until equivalent-fidelity SDP benchmarks exist.
+- CPU-thread count and GPU mode are part of the cache identity; when timing
+  backends use `--no-sdp-cache` and separate JSONL output names.
+- Keep GPU-enabled convex SDP and nonconvex low-rank Burer-Monteiro methods
+  separate, with different scientific labels and guarantees.
+
 ## Workflow authorization and scope
 
 - **Never** launch a large graph SDP, numerical figure generation, or paper/PDF build as an automatic push/PR job. Heavy work requires `workflow_dispatch`, explicit operator selection and bounded inputs/resources. Lightweight tests/lint are allowed.
