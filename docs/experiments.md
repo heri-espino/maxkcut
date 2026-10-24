@@ -43,3 +43,11 @@ No fabricated trial counts, timings, p-values, solvers, or claimed 'optimal' val
 ## GitHub Actions policy
 
 Heavy optimizations and figure/PDF generation require **manual `workflow_dispatch`**. Small tests may run automatically when added later, but do not introduce expensive push-triggered workflows. Do not open many concurrent G-set SDP jobs on a shared host.
+
+## Efficient repeated rounding
+
+Use the SDP cache instead of recomputing the same 800×800 cone problem when
+comparing many random initializations. New cache entries are keyed by graph
+checksum, $k$, solver/version and numerical settings; they do not change the
+mathematical experiment. Save each batch into its own JSONL output file and
+log whether the SDP came from cache. See [performance](performance.md).

@@ -8,6 +8,7 @@ maxkcut/
 ├── src/maxkcut/
 │   ├── __init__.py               # stable public API
 │   ├── __main__.py               # python -m maxkcut
+│   ├── cache.py                  # SHA256/solver-fingerprinted SDP matrix reuse
 │   ├── cli.py                    # argument parsing, inspecting graphs
 │   ├── io.py                     # MATLAB matrices -> sparse weighted graph
 │   ├── objective.py              # exact weighted cut evaluator

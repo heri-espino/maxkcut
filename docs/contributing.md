@@ -24,7 +24,7 @@ Branch from up-to-date `main`, keep changes scoped and include:
 - effects on compute cost/solver memory and reproducibility;
 - updated Sphinx pages and experiment notes when applicable.
 
-Leave large runs under manual GitHub Actions invocation. PRs must not be merged without the user's explicit instruction.
+Leave large runs under manual GitHub Actions invocation. The user has requested automatic merge after creating PRs. Review the changed files and available checks first, then merge if permitted; never override branch protections or report unrun tests as passing.
 
 ## Repository data
 
