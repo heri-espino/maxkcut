@@ -17,7 +17,7 @@ from .sdp import solve_sdp
 def benchmark(paths, k_values, output, *, solver='SCS', eps=1e-3,
               max_iters=3000, restarts=20, seed=2026, max_n=1000,
               verbose=False, scs_indirect=False, cache_dir=Path('reports/gset/sdp_cache'),
-              use_cache=True):
+              use_cache=True, psd_repair_rel_tol=1e-3):
     """Benchmark rounders against the same SDP, reusing cached Gram matrices.
 
     Save raw, solver-produced Gram matrices keyed to input file checksum,
@@ -34,6 +34,8 @@ def benchmark(paths, k_values, output, *, solver='SCS', eps=1e-3,
         raise ValueError('restarts must be positive, max_n must be >= 2')
     if eps <= 0 or max_iters < 1:
         raise ValueError('eps and max_iters must be positive')
+    if not np.isfinite(psd_repair_rel_tol) or psd_repair_rel_tol < 0:
+        raise ValueError('psd_repair_rel_tol must be nonnegative and finite')
 
     with output.open('a', encoding='utf8') as file:
         for path in paths:
@@ -70,15 +72,23 @@ def benchmark(paths, k_values, output, *, solver='SCS', eps=1e-3,
                     )
                     solver_info = dict(solver_info)
                     original_solve_seconds = solver_info['sdp_seconds']
-                    if use_cache:
-                        save_cached_sdp(entry_path, identity, x, solver_info)
                 prep_seconds = time.monotonic() - start
 
                 factor_start = time.monotonic()
-                vectors, min_before = factorize(x)
+                vectors, min_before, repair_info = factorize(
+                    x,
+                    relative_negative_tolerance=psd_repair_rel_tol,
+                    return_diagnostics=True,
+                )
                 factor_seconds = time.monotonic() - factor_start
+                # Do not persist a new matrix until the numerical validity
+                # threshold has been checked. Original raw X is cached, not the
+                # postprocessed Gram matrix from the repaired vectors.
+                if use_cache and not hit:
+                    save_cached_sdp(entry_path, identity, x, solver_info)
                 del x
                 solver_info['min_eigenvalue'] = min_before
+                solver_info.update(repair_info)
                 solver_info['cache_hit'] = hit
                 solver_info['cache_path'] = str(entry_path) if entry_path else None
                 solver_info['sdp_original_solve_seconds'] = original_solve_seconds
