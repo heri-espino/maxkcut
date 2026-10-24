@@ -3,20 +3,99 @@ from __future__ import annotations
 import numpy as np
 from .objective import cut_weight
 
-def factorize(x):
-    """PSD eigendecomposition with documented, small-negative-eigenvalue clipping."""
-    x = (x + x.T) / 2
-    eigenvalues, q = np.linalg.eigh(x)
+def factorize(x, *, relative_negative_tolerance=1e-3,
+              return_diagnostics=False):
+    """Factor a nearly-PSD numerical Gram matrix into unit row vectors.
+
+    SCS and other first-order SDP solvers often return *approximately* PSD
+    matrices. Small negative eigenvalues are clipped to zero (projection onto
+    the PSD cone), and the resulting vectors are normalized to unit length.
+    This is a feasible Gram representation for k=2, not an assertion that the
+    raw SDP iterate was feasible or that its primal objective is an upper bound.
+
+    A *large* negative eigenvalue remains an error. The acceptance threshold
+    uses |lambda_min| / max(1, lambda_max), so it is invariant under a change
+    in the number of nodes (for a unit-diagonal matrix lambda_max >= 1).
+
+    For k>2 the PSD projection and renormalization need not preserve all the
+    Frieze-Jerrum pairwise lower bounds. Returned vectors are useful for
+    rounding but must not be presented as a certified feasible SDP solution.
+
+    Parameters
+    ----------
+    x : array_like
+        Approximately symmetric SDP Gram matrix.
+    relative_negative_tolerance : float, optional
+        Largest allowed relative negative eigenvalue (default 1e-3). Set to
+        zero for strict numerical PSD checking.
+    return_diagnostics : bool, optional
+        Return a third dictionary containing the magnitude of repairs.
+
+    Returns
+    -------
+    vectors, min_eigenvalue : ndarray, float
+        Unit row vectors and smallest eigenvalue *before* clipping.
+    diagnostics : dict, optional
+        Returned only if return_diagnostics=True. Records the number and
+        magnitude of negative eigenvalues and whether a repair was made.
+    """
+    import warnings
+
+    matrix = np.asarray(x, dtype=float)
+    if (matrix.ndim != 2 or matrix.shape[0] != matrix.shape[1]
+            or not np.isfinite(matrix).all()):
+        raise ValueError("Gram matrix must be finite and square")
+    if not np.isfinite(relative_negative_tolerance) or relative_negative_tolerance < 0:
+        raise ValueError("relative_negative_tolerance must be nonnegative and finite")
+
+    sym = (matrix + matrix.T) / 2
+    eigenvalues, q = np.linalg.eigh(sym)
     min_eigenvalue = float(eigenvalues[0])
-    scale = max(1., float(np.max(np.abs(eigenvalues))))
-    if min_eigenvalue < -1e-5 * scale:
-        raise ValueError(f'SDP output is substantially non-PSD: {min_eigenvalue}')
+    scale = max(1.0, float(eigenvalues[-1]))
+    relative_negative = max(0.0, -min_eigenvalue / scale)
+    if relative_negative > relative_negative_tolerance:
+        raise ValueError(
+            "SDP output is substantially non-PSD: "
+            f"lambda_min={min_eigenvalue:.9g}, "
+            f"relative_violation={relative_negative:.9g}, "
+            f"allowed={relative_negative_tolerance:.9g}. "
+            "Try --eps 1e-5 --max-iters 20000 --no-sdp-cache."
+        )
+
+    # Numerical negativity at the scale of floating point roundoff is not
+    # treated as a noteworthy solver defect, but is still clipped.
+    count_negative = int(np.count_nonzero(eigenvalues < 0))
+    notable = relative_negative > 1e-10
+    if notable:
+        warnings.warn(
+            "Numerically indefinite SDP matrix: clipped negative "
+            f"eigenvalues (lambda_min={min_eigenvalue:.9g}, "
+            f"relative={relative_negative:.3g}). "
+            "The reported primal SDP objective is NOT a certified upper bound. "
+            "Consider a tighter solver tolerance.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+
     clipped = np.maximum(eigenvalues, 0)
     vectors = q * np.sqrt(clipped)[None, :]
     norms = np.linalg.norm(vectors, axis=1)
     if np.any(norms < 1e-10):
-        raise ValueError('Zero-length vector after PSD repair')
+        raise ValueError("Zero-length SDP vector after PSD projection")
     vectors = vectors / norms[:, None]
+    diagnostics = {
+        "psd_projection_applied": bool(notable),
+        "psd_negative_eigenvalue_count": count_negative,
+        "psd_negative_eigenvalue_sum": float(-np.sum(eigenvalues[eigenvalues < 0])),
+        "psd_relative_negative_eigenvalue": float(relative_negative),
+        "psd_original_max_eigenvalue": float(eigenvalues[-1]),
+        "psd_original_max_diagonal_error": float(
+            np.max(np.abs(np.diag(matrix) - 1))
+        ),
+        "psd_repair_tolerance": float(relative_negative_tolerance),
+    }
+    if return_diagnostics:
+        return vectors, min_eigenvalue, diagnostics
     return vectors, min_eigenvalue
 
 def round_fj(vectors, k, rng):
