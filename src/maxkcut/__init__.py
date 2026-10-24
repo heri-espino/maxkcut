@@ -7,7 +7,9 @@ from .objective import cut_weight
 from .rounding import factorize, round_fj, round_spherical_kmeans
 from .sdp import solve_sdp
 from .experiments import benchmark
+from .archive import load_method, verify_archive
 
 __version__ = "0.1.0"
 __all__ = ["load_graph", "edge_arrays", "cut_weight", "factorize",
-           "round_fj", "round_spherical_kmeans", "solve_sdp", "benchmark"]
+           "round_fj", "round_spherical_kmeans", "solve_sdp", "benchmark",
+           "load_method", "verify_archive"]
