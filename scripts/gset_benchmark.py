@@ -104,14 +104,31 @@ def round_fj(vectors, k, rng):
     return np.argmax(vectors @ centers.T, axis=1)
 
 
-def round_spherical_kmeans(vectors, k, rng, max_iter=100):
+def round_spherical_kmeans(vectors, k, rng, max_iter=100, *, antipodal=False,
+                           edges=None, keep_best=False):
+    """Spherical k-means; antipodal initialization reproduces K-MeansNM at k=2.
+
+    If keep_best, retain the highest graph cut over every clustering iteration,
+    including the initial assignment. This is key for GW baseline retention.
+    """
+    if antipodal and k != 2:
+        raise ValueError('Antipodal initialization applies only to k=2')
+    if keep_best and edges is None:
+        raise ValueError('Tracking the best cut requires the original graph edges')
     centers = rng.standard_normal((k, vectors.shape[1]))
+    if antipodal:
+        centers[1] = -centers[0]
     centers /= np.linalg.norm(centers, axis=1)[:, None]
     previous = None
+    best_labels, best_score = None, float('-inf')
     for iteration in range(1, max_iter + 1):
         labels = np.argmax(vectors @ centers.T, axis=1)
+        if keep_best:
+            score = cut_weight(edges, labels)
+            if score > best_score:
+                best_labels, best_score = labels.copy(), score
         if previous is not None and np.array_equal(labels, previous):
-            return labels, iteration
+            return (best_labels if keep_best else labels), iteration
         previous = labels.copy()
         for c in range(k):
             members = vectors[labels == c]
@@ -121,7 +138,7 @@ def round_spherical_kmeans(vectors, k, rng, max_iter=100):
                 center = np.sum(members, axis=0)
                 norm = np.linalg.norm(center)
                 centers[c] = center / norm if norm > 1e-12 else vectors[rng.integers(len(vectors))]
-    return labels, max_iter
+    return (best_labels if keep_best else labels), max_iter
 
 
 def solve_sdp(a, k, solver, eps, max_iters, verbose=False):
@@ -170,16 +187,21 @@ def benchmark(paths, k_values, output, *, solver='SCS', eps=1e-3,
                     raise ValueError(f'Require 2 <= k <= n; got k={k}, n={n}')
                 x, solver_info = solve_sdp(a, k, solver, eps, max_iters, verbose=verbose)
                 vectors, min_before = factorize(x)
-                for method in ('FJ', 'spherical_kmeans'):
+                methods = ('FJ', 'K-Means2N', 'K-MeansNM') if k == 2 else ('FJ', 'spherical_kmeans')
+                for method in methods:
                     best = None
                     for rep in range(restarts):
-                        rng = np.random.default_rng(np.random.SeedSequence([seed, int(path.stem[1:]), k, rep, 0 if method=='FJ' else 1]))
+                        rng = np.random.default_rng(np.random.SeedSequence([seed, int(path.stem[1:]), k, rep, 0 if method in ('FJ', 'K-MeansNM') else 1]))
                         started = time.monotonic()
                         if method == 'FJ':
                             labels = round_fj(vectors, k, rng)
                             iterations = 1
                         else:
-                            labels, iterations = round_spherical_kmeans(vectors, k, rng)
+                            labels, iterations = round_spherical_kmeans(
+                                vectors, k, rng,
+                                antipodal=(method == 'K-MeansNM'),
+                                edges=edges if method == 'K-MeansNM' else None,
+                                keep_best=(method == 'K-MeansNM'))
                         elapsed = time.monotonic() - started
                         score = cut_weight(edges, labels)
                         entry = {'graph': path.stem, 'n': n, 'edges': int(len(edges[0])), 'k': k,
