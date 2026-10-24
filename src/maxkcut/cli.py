@@ -25,6 +25,8 @@ def main():
                         help='Directory for safely fingerprinted SDP matrix cache')
     parser.add_argument('--no-sdp-cache', action='store_true',
                         help='Re-solve the SDP instead of reading/writing cached matrices')
+    parser.add_argument('--psd-repair-rel-tol', type=float, default=1e-3,
+                        help='Maximum tolerable negative Gram eigenvalue relative to spectral scale (default: 1e-3)')
     parser.add_argument('--list-solvers', action='store_true',
                         help='Show locally installed CVXPY solvers and exit')
     parser.add_argument('--verbose', action='store_true')
@@ -39,6 +41,8 @@ def main():
         return
     if args.scs_indirect and args.solver != 'SCS':
         parser.error('--scs-indirect requires --solver SCS')
+    if args.psd_repair_rel_tol < 0 or not __import__('math').isfinite(args.psd_repair_rel_tol):
+        parser.error('--psd-repair-rel-tol must be nonnegative and finite')
     if args.eps <= 0 or args.max_iters < 1:
         parser.error('--eps and --max-iters must be positive')
     names = sorted(args.gset_dir.glob('G*.mat')) if args.graphs == ['ALL'] else [args.gset_dir / (s if s.endswith('.mat') else s + '.mat') for s in args.graphs]
@@ -59,4 +63,5 @@ def main():
               max_iters=args.max_iters, restarts=args.restarts, seed=args.seed,
               max_n=args.max_n, verbose=args.verbose,
               scs_indirect=args.scs_indirect, cache_dir=args.cache_dir,
-              use_cache=not args.no_sdp_cache)
+              use_cache=not args.no_sdp_cache,
+              psd_repair_rel_tol=args.psd_repair_rel_tol)
