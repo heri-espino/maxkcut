@@ -65,8 +65,7 @@ print(labels, diagnostics["solver_status"])
 ## Avoid unnecessary repeated SDP solves
 
 The SDP matrix is cached by input checksum and solver settings. Different random
-rounding seeds reuse the expensive matrix: `maxkcut --graphs G11 --k 2
---restarts 100 --seed 2027 --output reports/gset/g11-rounding-2027.jsonl`.
+rounding seeds reuse the expensive matrix: `maxkcut --graphs G11 --k 2 --restarts 20 --seed 2027 --output reports/gset/g11-rounding-2027.jsonl`.
 
 Use `--no-sdp-cache` to force a fresh solve, `--scs-indirect` to test SCS's
 indirect linear system backend, or `--list-solvers` to inspect the available
@@ -81,3 +80,14 @@ SDP solve and Gram factorization but does **not** make every SCS operation
 multicore. GPU-backed SCS requires a separate cuDSS-enabled build; the
 optional `--scs-cudss` flag never silently falls back to the CPU.
 See [CPU/GPU performance guidance](gpu-cpu-performance.md).
+
+## Verify research archives
+
+Every completed experiment now saves one graph snapshot (signed weights),
+all rounded partitions and a JSON provenance manifest under
+`<output-parent>/artifacts/<run-id>/<graph>-k<k>/`.
+Use `maxkcut --verify-archive PATH` to recompute **every** saved cut
+from its vertex partition and graph snapshot without calling the SDP solver.
+See [archiving and reproducibility](experiment-archives.md) and the
+[reference table](gset-reference-values.md) distinguishing certified
+optima from unproved best-known cuts.
