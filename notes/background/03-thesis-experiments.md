@@ -48,28 +48,23 @@ Define $F=F(c)$, the cut returned by a rounding method, and $S=S_{\mathrm{SDP}}$
 
 For **nonnegative weights**:
 
-$$
-
+$
 \operatorname{AIG}(c)=\frac{F}{S},\qquad
 \operatorname{CG}(c)=\frac{F}{\sum_{i<j}w_{ij}}.
 
-$$
-
+$
 TH21 calls the first quantity **Average Integer Gap (AIG)**, even though it is expressed as a ratio rather than the usual absolute or relative “integrality gap.” Larger is better here; if the SDP is a reliable upper bound, $0\le F/S\le1$ for nonnegative-weight instances. CG expresses the fraction of total edge weight cut, **not** a certified ratio to the unknown integer optimum.
 
 For **signed weights** the thesis uses
 
-$$
-
+$
 W_-=\sum_{i<j}\min(w_{ij},0),\qquad
 W_+=\sum_{i<j}\max(w_{ij},0)
 
-$$
-
+$
 and shifts the ratios:
 
-$$
-
+$
 \boxed{
 \operatorname{AIG}_{\pm}
 =\frac{F-W_-}{S-W_-},\qquad
@@ -77,18 +72,15 @@ $$
 =\frac{F-W_-}{W_+-W_-}.
 }
 
-$$
-
+$
 These require nonzero denominators. $W_-$ is a **lower bound**, not an achievable cut value in general; $W_+$ is an **upper bound** for a signed-weight cut (in a simple graph, choose at most all positive edges). Therefore large or small CG values cannot be interpreted as approximation guarantees. For signed instances the source specifically notes that CG can be misleading even if a rounded solution is close to the SDP relaxation.
 
 ### An important logical distinction
 
-$$
-
+$
 F(c)\ \le\ F^\star\ \le\ S_{\mathrm{SDP}}
 
-$$
-
+$
 when the relaxation is valid and accurately solved. AIG near 1 indicates a **small observed relaxation-to-candidate gap**. It does not by itself establish that the same bound will hold on other graphs, or that the rounding method has a worst-case approximation factor.
 
 ## 4. What Figure 26 actually reports (PDF p. 99)
