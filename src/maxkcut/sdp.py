@@ -46,7 +46,7 @@ def solve_sdp(a, k, solver, eps, max_iters, verbose=False, *,
         raise ValueError(f"Solver {solver} is not installed. Installed: {installed}")
     n = a.shape[0]
     degrees = np.asarray(a.sum(axis=1)).ravel()
-    laplacian = sparse.diags(degrees) - a
+    laplacian = sparse.diags(degrees, dtype=float) - a
     x = cp.Variable((n, n), PSD=True)
     constraints = [cp.diag(x) == 1]
     if k > 2:

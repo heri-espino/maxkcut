@@ -30,6 +30,14 @@ maxkcut --graphs G11 --k 2 --restarts 10 --solver SCS \
   --eps 1e-3 --max-iters 3000 --output reports/gset/g11-k2.jsonl
 ```
 
+**Windows PowerShell users:** Bash uses a trailing backslash to continue long commands, but PowerShell does not. Use the one-line command below, or a PowerShell backtick as the last character of each continued line:
+
+```powershell
+maxkcut --graphs G11 --k 2 --solver SCS --eps 1e-3 --max-iters 3000 --restarts 20 --seed 2026 --output reports/gset/g11-first.jsonl
+```
+
+See the [Windows PowerShell guide](docs/windows-powershell.md) for the complete run, caching, solver comparison and result inspection.
+
 The default `--max-n 1000` guard prevents unexpectedly large runs. The legacy entry point `python scripts/gset_benchmark.py` still works once the environment is active. Expensive GitHub Actions experiments remain **manual-only**.
 
 ## Import the library

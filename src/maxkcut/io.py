@@ -1,6 +1,7 @@
 """Load and validate undirected weighted graphs from MATLAB v5 files."""
 from __future__ import annotations
 from pathlib import Path
+from inspect import signature
 import numpy as np
 from scipy import sparse
 from scipy.io import loadmat
@@ -19,7 +20,13 @@ def load_graph(path: Path) -> sparse.csr_matrix:
     Refuse ambiguous candidate matrices, nonzero diagonal and asymmetric weights.
     A triangular adjacency is symmetrized; a symmetric adjacency is not doubled.
     """
-    data = loadmat(path, simplify_cells=True)
+    # Since SciPy 1.18, loadmat warns when the default sparse return type is
+    # left unspecified. Sparse arrays are supported below because we normalize
+    # to csr_matrix. Older supported SciPy releases lack this parameter.
+    load_options = {"simplify_cells": True}
+    if "spmatrix" in signature(loadmat).parameters:
+        load_options["spmatrix"] = False
+    data = loadmat(path, **load_options)
     candidates = [(key, value) for key, value in _matrix_candidates(data)
                   if value.shape[0] > 1 and value.shape[1] > 1]
     square = [(key, value) for key, value in candidates if value.shape[0] == value.shape[1]]

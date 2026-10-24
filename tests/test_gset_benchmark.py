@@ -98,3 +98,37 @@ def test_module_cli_inspection(monkeypatch, capsys, tmp_path):
     output = capsys.readouterr().out
     assert '"graph": "G9"' in output
     assert '"edges": 1' in output
+
+
+
+def test_loader_requests_sparse_array_when_supported(monkeypatch, tmp_path):
+    """Current SciPy should not rely on the deprecated sparse-type default."""
+    from maxkcut import io
+
+    calls = []
+
+    def fake_loadmat(file, *, simplify_cells, spmatrix):
+        calls.append((simplify_cells, spmatrix))
+        return {"A": sparse.csr_array([[0, 2], [2, 0]])}
+
+    monkeypatch.setattr(io, "loadmat", fake_loadmat)
+    matrix = io.load_graph(tmp_path / "G9.mat")
+    assert calls == [(True, False)]
+    assert sparse.isspmatrix_csr(matrix)
+    assert matrix[0, 1] == 2
+
+
+def test_loader_preserves_support_for_old_scipy_signature(monkeypatch, tmp_path):
+    """Earlier SciPy releases have no explicit spmatrix keyword."""
+    from maxkcut import io
+
+    calls = []
+
+    def fake_loadmat(file, *, simplify_cells):
+        calls.append(simplify_cells)
+        return {"A": sparse.csr_matrix([[0, 2], [2, 0]])}
+
+    monkeypatch.setattr(io, "loadmat", fake_loadmat)
+    matrix = io.load_graph(tmp_path / "G9.mat")
+    assert calls == [True]
+    assert matrix.shape == (2, 2)

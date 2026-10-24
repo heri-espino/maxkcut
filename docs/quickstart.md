@@ -20,6 +20,14 @@ maxkcut --graphs G11 --k 2 --restarts 10 \
   --output reports/gset/g11-k2.jsonl
 ```
 
+**Windows PowerShell:** the trailing backslash shown in Bash examples is **not** a PowerShell line continuation. Run the command on one line instead:
+
+```powershell
+maxkcut --graphs G11 --k 2 --restarts 10 --solver SCS --eps 1e-3 --max-iters 3000 --output reports/gset/g11-k2.jsonl
+```
+
+For multi-line PowerShell commands, use a backtick as the final character on each continued line. See [Windows PowerShell instructions](windows-powershell.md).
+
 The `--max-n` guard defaults to 1000 vertices. Change it explicitly before attempting an instance larger than this, understanding that the solver may run out of memory.
 
 For $k>2$ the SDP additionally imposes $X_{ij}\ge-1/(k-1)$.
