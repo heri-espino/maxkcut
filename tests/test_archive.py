@@ -39,10 +39,10 @@ def test_two_way_roundtrip_preserves_all_labels_and_signed_cut(tmp_path):
         np.array([1, 0, 1]),
         np.array([0, 0, 0]),
     ]
-    scores = [2., 2., 0.]
+    scores = [1., 5., 0.]
     summary = save_method(archive, "FJ", labels, scores, k=2)
-    assert summary["best_cut"] == 2.
-    assert summary["best_restart"] == 0
+    assert summary["best_cut"] == 5.
+    assert summary["best_restart"] == 1
     assert summary["restarts"] == 3
     assert summary["sample_std_cut"] is not None
     saved, raw_scores = load_method(method_archive_path(archive, "FJ"))
