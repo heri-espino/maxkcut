@@ -1,6 +1,6 @@
 # G-set SDP reproduction: experimental runbook
 
-**Status:** implementation and synthetic tests are committed; the full G-set SDPs have **not yet been executed or validated against the checked-in graph files**. The development environment did not have CVXPY and package installation was blocked by DNS, so no G-set cut scores are claimed here.
+**Status:** implementation and synthetic tests are committed; the full G-set SDPs have **not yet been executed or validated against the checked-in graph files**. The initial development environment could not run CVXPY, so no G-set cut scores are claimed here. The package refactor does not itself constitute a benchmark run.
 
 ## Why this experiment?
 
@@ -13,7 +13,7 @@ The related [2020 journal article](https://doi.org/10.3390/computation8030075), 
 
 ## Source files
 
-The repository already contains a directory of MATLAB v5 files: `G-Set/G1.mat` through `G-Set/G71.mat` (including G68, G69 and G71, which are not part of the canonical G-set enumeration). The loader in `scripts/gset_benchmark.py` uses `scipy.io.loadmat` and can handle a dense/sparse square weighted adjacency or a single 3-column edge list. It refuses mismatched symmetry, self-loops, invalid weights, and ambiguous candidate matrices.
+The repository already contains a directory of MATLAB v5 files: `G-Set/G1.mat` through `G-Set/G71.mat` (including G68, G69 and G71, which are not part of the canonical G-set enumeration). The loader in `src/maxkcut/io.py` (exposed through `maxkcut.load_graph` and the backwards-compatible CLI script) uses `scipy.io.loadmat` and can handle a dense/sparse square weighted adjacency or a single 3-column edge list. It refuses mismatched symmetry, self-loops, invalid weights, and ambiguous candidate matrices.
 
 **Important:** the repository's sequence includes G68/G69/G71 but is missing the canonical G72, G77 and G81 entries. These must not be silently considered equivalent. These exact MATLAB files have **not** been decoded and inspected during authoring. Run `--inspect-only` first. Verify, for example, G1 is expected to have $n=800$ and $m=19,176$; G11 $n=800,m=1,600$; G22 $n=2,000,m=19,990$, per [G-set reference metadata](https://github.com/KULeuven-MICAS/openising/blob/main/ising/benchmarks/G/README.md). If inspection differs, stop before benchmarking and investigate the input file conventions.
 
@@ -22,10 +22,10 @@ The repository already contains a directory of MATLAB v5 files: `G-Set/G1.mat` t
 Python 3.11+ is recommended. From the repository root:
 
 ```bash
-conda create -n maxkcut python=3.12 -y
+conda env create -f environment.yml
 conda activate maxkcut
-python -m pip install -r requirements-dev.txt
 python -m pytest tests -q
+sphinx-build -b html docs docs/_build/html -W --keep-going
 ```
 
 Or use any virtual environment with `numpy`, `scipy`, `cvxpy`, and a PSD-capable conic solver (the default is `SCS`).
@@ -35,7 +35,7 @@ CVXPY is the **modeling language**, not the solver. Available solvers depend on 
 ### Verify the G-set files without solving an SDP
 
 ```bash
-python scripts/gset_benchmark.py --graphs G11 G1 G22 --inspect-only
+maxkcut --graphs G11 G1 G22 --inspect-only
 python scripts/gset_benchmark.py --graphs ALL --inspect-only
 ```
 
@@ -120,7 +120,7 @@ python scripts/gset_benchmark.py --graphs G22 --k 2 \
   --output reports/gset/g22-k2.jsonl
 ```
 
-The script refuses graphs with $n>1000$ by default. The $n=2000$ problem has $2{,}001{,}000$ independent symmetric matrix entries before solver overhead. Avoid opening several SDPs simultaneously. An SDP cone's memory and factorization requirements can far exceed the matrix storage alone, and runtime is solver/hardware-dependent.
+The CLI refuses graphs with $n>1000$ by default. The $n=2000$ problem has $2{,}001{,}000$ independent symmetric matrix entries before solver overhead. Avoid opening several SDPs simultaneously. An SDP cone's memory and factorization requirements can far exceed the matrix storage alone, and runtime is solver/hardware-dependent.
 
 ### Stage 4: controlled comparisons
 
@@ -130,7 +130,7 @@ The script appends every restart to JSONL (not only maxima). **Use distinct outp
 
 ## Running GitHub Actions
 
-A single **manual-only** workflow is added: `.github/workflows/gset-sdp-manual.yml`. Use **Actions → G-set SDP benchmark (manual) → Run workflow**, select one graph and $k$. It runs tests and the requested SDP and uploads a JSONL artifact. The workflow is **not** triggered by pushes or pull requests, honoring the project's policy that heavyweight numerical runs must be explicitly launched.
+The repository provides a **manual-only** workflow: `.github/workflows/gset-sdp-manual.yml`. Use **Actions → G-set SDP benchmark (manual) → Run workflow**, select one graph and $k$. It runs tests and the requested SDP and uploads a JSONL artifact. The workflow is **not** triggered by pushes or pull requests, honoring the project's policy that heavyweight numerical runs must be explicitly launched.
 
 Default job timeout: 35 minutes. The GitHub-hosted runner might run out of memory, or a large instance might exceed the time cap. Workflow existence does **not** imply a solve has completed, or that it can reliably solve G22.
 
