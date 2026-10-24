@@ -14,7 +14,7 @@ This directory is a **source-grounded reading notebook**, not a claim of new res
 
 | Key | Reference | Location in supplied sources |
 | --- | --- | --- |
-| **[TH21]** | Ángel Eduardo Rodríguez Fernández (2021), *On the Study of Fitness Landscapes and the Max-Cut Problem*, doctoral dissertation, Universität Leipzig. | Supplied PDF `2021_Fernandez_OnTheStudyOfFitnessLandscapesA_Qucosa-UBL.pdf`; **chapter 7: PDF pages 87–102 = printed pp. 77–92**. Chapter 8: PDF pages 105–107 = printed pp. 95–97. |
+| **[TH21]** | Ángel Eduardo Rodríguez Fernández (2021), *On the Study of Fitness Landscapes and the Max-Cut Problem*, doctoral dissertation, Universität Leipzig. [Persistent library identifier](https://nbn-resolving.org/urn:nbn:de:bsz:15-qucosa2-769667); [MPI publication record](https://www.mis.mpg.de/publications/2021). | Supplied PDF `2021_Fernandez_OnTheStudyOfFitnessLandscapesA_Qucosa-UBL.pdf`; **chapter 7: PDF pages 87–102 = printed pp. 77–92**. Chapter 8: PDF pages 105–107 = printed pp. 95–97. |
 | **[RF20]** | Rodríguez-Fernández, González-Torres, Menchaca-Méndez, and Stadler (2020), “Clustering Improves the Goemans–Williamson Approximation for the Max-Cut Problem,” *Computation* **8**(3), 75. DOI: [10.3390/computation8030075](https://doi.org/10.3390/computation8030075). | Supplied PDF `computation-08-00075-v2.pdf`; 12 pages. The experiments are for **Max-Cut, $k=2$**. |
 | **[FKP22]** | Felzenszwalb, Klivans, and Paul (2022), “Clustering with Semidefinite Programming and Fixed Point Iteration,” *JMLR* **23**, paper 21-0402. [Paper](https://jmlr.org/papers/v23/21-0402.html). | Supplied PDF `21-0402.pdf`; 23 pages. A **different SDP-rounding algorithm** relevant to general $k$. |
 
