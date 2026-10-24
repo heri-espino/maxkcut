@@ -10,7 +10,7 @@ Stages:
 
 1. `load_graph`: read MATLAB v5 data with SciPy; validate symmetry.
 2. `solve_sdp`: CVXPY model and conic solver (normally dominates).
-3. `factorize`: one dense symmetric eigendecomposition for Gram vectors and minimum-eigenvalue diagnostics.
+3. `factorize`: one dense symmetric eigendecomposition for Gram vectors, minimum-eigenvalue diagnostics and controlled repair of small numerical PSD violations.
 4. `round_fj` / `round_spherical_kmeans`: fast NumPy projection and clustering.
 5. `cut_weight`: exact scoring on the original sparse graph edges.
 
@@ -32,7 +32,7 @@ maxkcut --graphs G11 --k 2 --restarts 100 --seed 2027 \
 
 The cache key includes the **SHA256 of the original .mat bytes**, $k$, solver choice/version, CVXPY version, solver tolerances and SCS linear solver mode. It never silently reuses the Gram matrix for a different file/settings. Raw matrices are saved with `numpy.savez` and loaded with `allow_pickle=False`. Reads revalidate shape and finiteness; **the numerical output still requires PSD/feasibility checks**.
 
-A cached solution does *not* imply an exact solution, certified dual upper bound, or convergence. Inspect `solver_status`, `min_eigenvalue` and `max_diagonal_error`.
+A cached solution does *not* imply an exact solution, certified dual upper bound, or convergence. Small negative eigenvalues from an approximate SDP may be clipped for **rounding only**. The original defect and projection metrics are logged; `--psd-repair-rel-tol 0` requests a strict rejection check. See [PowerShell troubleshooting](windows-powershell.md) for the G11 example. Inspect `solver_status`, `min_eigenvalue` and `max_diagonal_error`.
 
 Opt out:
 
