@@ -65,3 +65,23 @@ def test_small_sdp_triangle():
     assert info['solver_status'] in ('optimal', 'optimal_inaccurate')
     assert abs(info['sdp_objective_primal'] - 2.25) < 1e-2
     assert np.allclose(np.diag(x), 1., atol=1e-3)
+
+
+def test_kmeans_nm_retains_matching_gw_initial_cut():
+    # The same Gaussian seed is used for GW and the antipodal 2-means start.
+    v = np.eye(5)
+    edges = (np.array([0, 0, 1, 2]), np.array([1, 3, 4, 4]),
+             np.array([3.0, 2.0, -1.0, 4.0]))
+    seed = 2345
+    gw = mod.round_fj(v, 2, np.random.default_rng(seed))
+    improved, iterations = mod.round_spherical_kmeans(
+        v, 2, np.random.default_rng(seed),
+        antipodal=True, edges=edges, keep_best=True)
+    assert mod.cut_weight(edges, improved) >= mod.cut_weight(edges, gw)
+    assert 1 <= iterations <= 100
+
+
+def test_antipodal_rejects_general_k():
+    with pytest.raises(ValueError, match='k=2'):
+        mod.round_spherical_kmeans(
+            np.eye(3), 3, np.random.default_rng(1), antipodal=True)
