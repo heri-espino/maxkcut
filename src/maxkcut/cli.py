@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from .hardware import hardware_info
 from .io import load_graph, edge_arrays
 from .experiments import benchmark
 
@@ -20,6 +21,12 @@ def main():
     parser.add_argument('--max-n', type=int, default=1000)
     parser.add_argument('--scs-indirect', action='store_true',
                         help='Use SCS iterative sparse KKT solver (benchmark against direct)')
+    parser.add_argument('--cpu-threads', type=int,
+                        help='Limit recognized BLAS/LAPACK CPU thread pools during the SDP and eigendecomposition; benchmark 4/8/16')
+    parser.add_argument('--scs-cudss', action='store_true',
+                        help='Use GPU cuDSS SCS linear backend, ONLY if SCS is custom built with cuDSS and CUDA is available')
+    parser.add_argument('--hardware-info', action='store_true',
+                        help='Print detected logical CPUs, BLAS pools, and NVIDIA driver visibility')
     parser.add_argument('--cache-dir', type=Path,
                         default=Path('reports/gset/sdp_cache'),
                         help='Directory for safely fingerprinted SDP matrix cache')
@@ -32,6 +39,9 @@ def main():
     parser.add_argument('--verbose', action='store_true')
     parser.add_argument('--inspect-only', action='store_true', help='Validate and report .mat graph sizes without CVXPY')
     args = parser.parse_args()
+    if args.hardware_info:
+        print(json.dumps(hardware_info(), indent=2))
+        return
     if args.list_solvers:
         try:
             import cvxpy as cp
@@ -39,6 +49,10 @@ def main():
             parser.error(f'CVXPY is not installed: {exc}')
         print(json.dumps({'installed_solvers': cp.installed_solvers()}))
         return
+    if args.cpu_threads is not None and args.cpu_threads < 1:
+        parser.error('--cpu-threads must be positive')
+    if args.scs_cudss and (args.solver != 'SCS' or args.scs_indirect):
+        parser.error('--scs-cudss requires --solver SCS without --scs-indirect')
     if args.scs_indirect and args.solver != 'SCS':
         parser.error('--scs-indirect requires --solver SCS')
     if args.psd_repair_rel_tol < 0 or not __import__('math').isfinite(args.psd_repair_rel_tol):
@@ -64,4 +78,5 @@ def main():
               max_n=args.max_n, verbose=args.verbose,
               scs_indirect=args.scs_indirect, cache_dir=args.cache_dir,
               use_cache=not args.no_sdp_cache,
-              psd_repair_rel_tol=args.psd_repair_rel_tol)
+              psd_repair_rel_tol=args.psd_repair_rel_tol,
+              cpu_threads=args.cpu_threads, scs_cudss=args.scs_cudss)
