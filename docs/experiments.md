@@ -36,7 +36,16 @@ Keep separate columns for **cut weight**, **SDP primal objective**, **solver-rep
 
 ## Artifacts
 
-Store uncommitted raw outputs under `reports/` (ignored by Git). Each research note in `notes/experiments/` should identify the exact command, commit, inputs, status, environment and any paths to saved artifacts, together with mathematical definitions of plotted quantities. Link figures from `notes/` if curated for a PR and reasonably sized.
+Store uncommitted raw outputs under `reports/` (ignored by Git).
+By default, the library also writes a graph/k case archive with the original
+signed edge list, graph SHA256, run parameters/versions/commit, **every**
+rounded partition and score. The SDP Gram is reused from the separate
+cache, not stored per restart. A `started` or `sdp_ready` archive is
+incomplete, not a successful experiment. Use `maxkcut --verify-archive`
+to independently rescore every archived partition. See
+[experiment archive format](experiment-archives.md).
+For published optimality labels, see
+[proven versus best-known G-set cuts](gset-reference-values.md). Each research note in `notes/experiments/` should identify the exact command, commit, inputs, status, environment and any paths to saved artifacts, together with mathematical definitions of plotted quantities. Link figures from `notes/` if curated for a PR and reasonably sized.
 
 No fabricated trial counts, timings, p-values, solvers, or claimed 'optimal' values.
 
