@@ -25,8 +25,8 @@ This is a companion explanation to the **authoritative [AGENTS.md](https://githu
 
 1. State the exact primal objective and feasible region. Any nonconvex Burer–Monteiro rank-limited approach is a *different method*, not an exact SDP reproduction.
 2. Record installed solver/version, tolerances and SDP dual feasibility where available.
-3. Numerically validate symmetry, minimum eigenvalue, diagonal constraints and $k>2$ off-diagonal bound after any projection.
-4. Leave `--max-n` safeguards enabled; add explicit controls for memory and iteration limits.
+3. Numerically validate symmetry, minimum eigenvalue, diagonal constraints and $k>2$ off-diagonal bound after any projection. When changing the optimization formulation or its interpretation, **bump `CACHE_FORMAT_VERSION` in `src/maxkcut/cache.py`** and add invalidation tests; graph checksum alone cannot detect a changed model equation.
+4. Leave `--max-n` safeguards enabled; add explicit controls for memory and iteration limits. Benchmark SCS direct versus `--scs-indirect` rather than assuming either faster.
 5. Do not label approximate primal objective as a certified upper bound.
 
 ### Add a new graph family
