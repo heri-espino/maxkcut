@@ -76,6 +76,11 @@ def benchmark(paths, k_values, output, *, solver='SCS', eps=1e-3,
                 else:
                     with blas_limit(cpu_threads):
                         extra_options = {'scs_cudss': True} if scs_cudss else {}
+                        # Unlike BLAS, SDPA has its own native worker pool.
+                        # A user-selected --cpu-threads limit must be passed
+                        # to SDPA's documented numThreads option as well.
+                        if solver == 'SDPA' and cpu_threads is not None:
+                            extra_options['sdpa_num_threads'] = cpu_threads
                         x, solver_info = solve_sdp(
                             a, k, solver, eps, max_iters, verbose=verbose,
                             scs_indirect=scs_indirect, compute_eigenvalues=False,
