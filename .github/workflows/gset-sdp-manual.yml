@@ -34,27 +34,30 @@ jobs:
     timeout-minutes: 35
     permissions:
       contents: read
+    defaults:
+      run:
+        shell: bash -l {0}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: conda-incubator/setup-miniconda@v3
         with:
-          python-version: "3.12"
-          cache: pip
-      - name: Install
-        run: pip install -r requirements-dev.txt
-      - name: Unit tests
-        run: python -m pytest tests -q
-      - name: Run selected instance (SCS)
-        shell: bash
+          activate-environment: maxkcut
+          environment-file: environment.yml
+          auto-update-conda: false
+      - name: Test installed package
         run: |
-          python scripts/gset_benchmark.py \
-            --graphs '${{ inputs.graph }}' \
-            --k '${{ inputs.k }}' \
-            --max-n '${{ inputs.max_n }}' \
+          python -c 'import maxkcut; print(maxkcut.__version__)'
+          python -m pytest tests -q
+      - name: Inspect graph before solve
+        run: maxkcut --graphs '${{ inputs.graph }}' --inspect-only
+      - name: Run selected SDP (SCS; explicit manual dispatch only)
+        run: |
+          maxkcut --graphs '${{ inputs.graph }}' \
+            --k '${{ inputs.k }}' --max-n '${{ inputs.max_n }}' \
             --restarts '${{ inputs.restarts }}' \
             --max-iters 3000 --eps 1e-3 \
             --output reports/gset/runs.jsonl
-      - name: Upload benchmark data
+      - name: Upload benchmark results
         if: always()
         uses: actions/upload-artifact@v4
         with:
