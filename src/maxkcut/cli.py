@@ -12,15 +12,35 @@ def main():
     parser.add_argument('--gset-dir', type=Path, default=Path('G-Set'))
     parser.add_argument('--k', type=int, nargs='+', default=[2])
     parser.add_argument('--output', type=Path, default=Path('reports/gset/runs.jsonl'))
-    parser.add_argument('--solver', choices=['SCS', 'CLARABEL', 'MOSEK'], default='SCS')
+    parser.add_argument('--solver', choices=['SCS', 'CLARABEL', 'MOSEK', 'SDPA'], default='SCS')
     parser.add_argument('--eps', type=float, default=1e-3)
     parser.add_argument('--max-iters', type=int, default=3000)
     parser.add_argument('--restarts', type=int, default=20)
     parser.add_argument('--seed', type=int, default=2026)
     parser.add_argument('--max-n', type=int, default=1000)
+    parser.add_argument('--scs-indirect', action='store_true',
+                        help='Use SCS iterative sparse KKT solver (benchmark against direct)')
+    parser.add_argument('--cache-dir', type=Path,
+                        default=Path('reports/gset/sdp_cache'),
+                        help='Directory for safely fingerprinted SDP matrix cache')
+    parser.add_argument('--no-sdp-cache', action='store_true',
+                        help='Re-solve the SDP instead of reading/writing cached matrices')
+    parser.add_argument('--list-solvers', action='store_true',
+                        help='Show locally installed CVXPY solvers and exit')
     parser.add_argument('--verbose', action='store_true')
     parser.add_argument('--inspect-only', action='store_true', help='Validate and report .mat graph sizes without CVXPY')
     args = parser.parse_args()
+    if args.list_solvers:
+        try:
+            import cvxpy as cp
+        except ImportError as exc:
+            parser.error(f'CVXPY is not installed: {exc}')
+        print(json.dumps({'installed_solvers': cp.installed_solvers()}))
+        return
+    if args.scs_indirect and args.solver != 'SCS':
+        parser.error('--scs-indirect requires --solver SCS')
+    if args.eps <= 0 or args.max_iters < 1:
+        parser.error('--eps and --max-iters must be positive')
     names = sorted(args.gset_dir.glob('G*.mat')) if args.graphs == ['ALL'] else [args.gset_dir / (s if s.endswith('.mat') else s + '.mat') for s in args.graphs]
     for name in names:
         if not name.is_file():
@@ -37,4 +57,6 @@ def main():
         parser.error('--restarts must be positive')
     benchmark(names, args.k, args.output, solver=args.solver, eps=args.eps,
               max_iters=args.max_iters, restarts=args.restarts, seed=args.seed,
-              max_n=args.max_n, verbose=args.verbose)
+              max_n=args.max_n, verbose=args.verbose,
+              scs_indirect=args.scs_indirect, cache_dir=args.cache_dir,
+              use_cache=not args.no_sdp_cache)
