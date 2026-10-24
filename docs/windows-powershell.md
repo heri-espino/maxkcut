@@ -79,3 +79,43 @@ Each line is one JSON record for one rounding restart. Fields include cut weight
 - If you want solver iteration output, add `--verbose`, but expect substantial terminal logging.
 
 See the [performance guide](performance.md) for solver strategies and the [G-set reproduction runbook](https://github.com/heri-espino/maxkcut/blob/main/notes/experiments/gset-cvxpy-reproduction.md) for scientific interpretation.
+
+## If SCS reports a slightly negative SDP eigenvalue
+
+An SDP solver can return a near-PSD *numerical* Gram matrix even when it reports
+`optimal` or `optimal_inaccurate`. A real G11/SCS run reported
+`lambda_min = -0.000837374814667048` at `--eps 1e-3`, after which the
+previous `factorize` routine aborted before any rounding took place.
+
+The library now clips *small* negative eigenvalues to zero and normalizes
+the resulting vectors. This gives well-defined vectors for randomized rounding;
+it **does not** certify the raw SDP as feasible, guarantee any approximation
+ratio, or validate its primal objective as an upper bound.
+
+Every successful record includes original `min_eigenvalue`, the relative
+negative violation, how many eigenvalues were clipped, the clipping sum and
+`psd_projection_applied`. The default rejection threshold is `1e-3`
+relative to the larger of 1 and the maximum eigenvalue.
+
+Once you have updated `main`, this command can reuse the previously
+cached *raw* approximate Gram matrix without another lengthy SDP solve:
+
+```powershell
+maxkcut --graphs G11 --k 2 --solver SCS --eps 1e-3 --max-iters 3000 --restarts 20 --seed 2026 --output reports/gset/g11-after-repair.jsonl
+```
+
+The original matrix is retained in the cache for independent verification; the
+postprocessed Gram representation is used only for rounding. If its defect
+exceeds the threshold, the command still raises an error. To rerun **SCS**
+at tighter accuracy rather than accepting that approximation, use a fresh solve:
+
+```powershell
+maxkcut --graphs G11 --k 2 --solver SCS --eps 1e-5 --max-iters 20000 --no-sdp-cache --restarts 20 --seed 2026 --output reports/gset/g11-stricter.jsonl
+```
+
+A tighter tolerance generally requires more computation and does not guarantee
+convergence. You can opt into a strict PSD rejection check using
+`--psd-repair-rel-tol 0`, but even roundoff-level negativity can then stop
+the run. For (k>2), projection onto PSD and unit-vector rescaling **may not**
+preserve the Frieze–Jerrum pairwise lower bounds, so the repaired Gram matrix
+must not be used as an SDP feasibility certificate.
