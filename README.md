@@ -97,6 +97,12 @@ for compatible NVIDIA GPUs; standard Conda SCS does not guarantee this
 backend. It is not an automatic GPU speedup, particularly for SDP cone
 eigenprojections.
 
+The same `--cpu-threads N` flag now also sets SDPA's native
+`numThreads=N` option. This matters for Windows users who saw
+`Memory Exhausted (bad_alloc)` despite 64 GB RAM: limiting native workers
+may reduce resource demands but cannot guarantee a successful SDP solve.
+See the [SDPA/Windows troubleshooting section](docs/windows-powershell.md).
+
 See the [CPU/GPU performance guide](docs/gpu-cpu-performance.md) and
 [Windows PowerShell guide](docs/windows-powershell.md).
 
