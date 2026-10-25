@@ -26,7 +26,8 @@ tests/             fast, deterministic unit tests; small numerical smoke tests
 notes/background/  sources, derivations, prior art; cite exact pages
 notes/experiments/ research questions, commands, metrics, figures and reproducibility logs
 docs/              Sphinx + Furo + MyST; includes API and agent docs
-G-Set/             input graph files; preserve raw data and provenance
+data/              canonical complete 71 G-set original text instances
+G-Set/             legacy MATLAB graphs; preserve raw data and provenance
 reports/           generated/ignored output, not a source of truth for published results
 .github/workflows/ heavy work is manual-only
 ```
@@ -78,6 +79,15 @@ When contributing a new experiment, **add reusable numerical routines under `src
   must be labeled as proven optimum, best-known feasible cut or upper
   bound as appropriate. Verify identity of local weighted graph before
   applying the published result.
+- `data/G*.txt` is now the **canonical complete 71-instance G-set**,
+  including G81; the legacy `G-Set/*.mat` remains for past experiments.
+  Both CLIs default to `data/` but honor `--gset-dir G-Set`. Before
+  claiming that old G11 cuts apply to canonical G11, compare all weighted
+  edges with `maxkcut-sweep --compare-inputs`.
+- Published Glass–Feder Table 1 covers only 17 toroidal graphs. Never
+  label a best-known cut as a proven optimum unless its independent valid
+  upper bound coincides. The automatic comparison.csv must distinguish
+  absent, best-known, proven, size mismatches and apparent bound violations.
 - Maintain immutable original `G-Set/*.mat` input files. Verify identifiers, sizes and hashes before publishing results. Some checked-in graph identifiers do not match the canonical G-set enumeration; document, don't silently rename.
 - Ground a claim in the original dissertation/paper or in a **reproducible experimental artifact**. Cite sections, equations and PDF pages. Do not claim a new theorem from benchmark plots.
 - For **new** benchmark results record git commit SHA, command line, Conda export, solver/version/termination status, CPU/RAM/time, graph ID, number of edges, (k), seed, restarts and preprocessing.
