@@ -11,6 +11,9 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from maxkcut.archive import new_archive, new_run_id, save_method, update_manifest
+from maxkcut.io import edge_arrays, load_graph
+from maxkcut.objective import cut_weight
 from maxkcut.study_compare import (
     UNSOLVED_THESIS_GRAPHS, compare_saved_runs, full_sdp_preflight,
     write_study_comparison,
@@ -194,3 +197,124 @@ def test_preflight_seven_uses_header_and_not_dense_sdp(tmp_path):
     assert all(x["one_dense_float64_gram_gib"] > 2.9 for x in plan)
     assert all("VERY_LARGE" in x["message"] for x in plan)
     assert not (tmp_path / "reports").exists()
+
+
+def _write_audited_cuda_run(path, graph_path, labels, *, complete=True):
+    """Append one fully audited CUDA-run block, with correct archived scores."""
+    graph = load_graph(graph_path)
+    edges = edge_arrays(graph)
+    run = new_archive(
+        path.parent / "artifacts", new_run_id(), graph_path,
+        graph.shape[0], edges, 2,
+        {"rank": 2, "epochs": 100, "optimizer_starts": 1},
+        jsonl_output=path,
+    )
+    samples = []
+    for method in (
+        "GW_torchlowrank", "K-Means2N_torchlowrank",
+        "K-MeansNM_torchlowrank",
+    ):
+        values = [cut_weight(edges, labels)] * 2
+        save_method(run, method, [labels, labels], values, k=2)
+        for rep, score in enumerate(values):
+            samples.append({
+                "graph": graph_path.stem, "n": graph.shape[0], "k": 2,
+                "method": method, "restart": rep, "cut_weight": score,
+                "artifact_run_id": run["manifest"]["run_id"],
+                "device": "cuda", "rank": 2,
+            })
+    if complete:
+        update_manifest(run, status="complete")
+    with path.open("a", encoding="utf8") as stream:
+        for row in samples:
+            stream.write(json.dumps(row) + "\\n")
+    return run["manifest"]["run_id"]
+
+
+def test_append_only_cuda_selects_latest_verified_run_not_maximum_cut(tmp_path):
+    data = tmp_path / "data"
+    data.mkdir()
+    graph_path = data / "G11.txt"
+    graph_path.write_text("3 2\\n1 2 1\\n2 3 -1\\n", encoding="utf8")
+    cuda_path = tmp_path / "all71-cuda-baseline.jsonl"
+    # First complete run has best cut 1.
+    run_one = _write_audited_cuda_run(
+        cuda_path, graph_path, np.array([0, 1, 1]),
+    )
+    # More recent complete run has lower best cut 0; do NOT cherry-pick run one.
+    run_two = _write_audited_cuda_run(
+        cuda_path, graph_path, np.array([0, 1, 0]),
+    )
+    # Most recent (third) run was interrupted and must NOT be selected.
+    _write_audited_cuda_run(
+        cuda_path, graph_path, np.array([0, 1, 1]), complete=False,
+    )
+    rows = compare_saved_runs([], cuda_path, data)
+    assert len(rows) == 1
+    row = rows[0]
+    assert run_one != run_two
+    assert row["cuda_best_cut"] == 0.
+    assert row["cuda_run_id"] == run_two
+    assert row["cuda_candidate_runs"] == 3
+    assert row["cuda_selection_policy"] == "latest_complete"
+    assert row["graph_identity"] == "VERIFIED_CANONICAL"
+    assert row["sdp_status"] == "NOT_RUN"
+
+
+def test_duplicate_cuda_without_any_valid_complete_archive_fails(tmp_path):
+    data = tmp_path / "data"
+    data.mkdir()
+    graph = data / "G11.txt"
+    graph.write_text("3 2\\n1 2 1\\n2 3 -1\\n", encoding="utf8")
+    output = tmp_path / "cuda.jsonl"
+    _write_audited_cuda_run(
+        output, graph, np.array([0, 1, 1]), complete=False,
+    )
+    _write_audited_cuda_run(
+        output, graph, np.array([0, 1, 0]), complete=False,
+    )
+    with pytest.raises(ValueError, match="none has a complete verified archive"):
+        compare_saved_runs([], output, data)
+
+
+def test_compare_only_reuses_existing_full_sdp_records_without_solvers(
+    tmp_path, monkeypatch
+):
+    import maxkcut.sdp_batch_cli as cli
+    import sys
+
+    data = tmp_path / "data"
+    data.mkdir()
+    (data / "G11.txt").write_text(
+        "3 2\\n1 2 1\\n2 3 -1\\n", encoding="utf8"
+    )
+    full = _fake_run(tmp_path, "sdp-graph.jsonl", "G11", {
+        "FJ": [1], "K-Means2N": [2], "K-MeansNM": [3],
+    }, run_id="full")
+    cuda = _fake_run(tmp_path, "cuda-graph.jsonl", "G11", {
+        "GW_torchlowrank": [1], "K-Means2N_torchlowrank": [2],
+        "K-MeansNM_torchlowrank": [2],
+    }, run_id="gpu")
+    out = tmp_path / "batch"
+    (out / "cases").mkdir(parents=True)
+    (out / "cases" / "G11.json").write_text(
+        json.dumps({"graph": "G11", "status": "complete",
+                    "source_jsonl": str(full)}),
+        encoding="utf8",
+    )
+    def no_solver(*args, **kwargs):
+        raise AssertionError("compare-only must never run convex SDP")
+    monkeypatch.setattr(cli, "run_full_sdp_batch", no_solver)
+    monkeypatch.setattr(sys, "argv", [
+        "maxkcut-sdp-batch", "--compare-only",
+        "--gset-dir", str(data),
+        "--output-dir", str(out),
+        "--cuda-results", str(cuda),
+    ])
+    cli.main()
+    assert (out / "sdp-vs-cuda.csv").is_file()
+    with (out / "sdp-vs-cuda.csv").open(newline="", encoding="utf8") as stream:
+        values = list(csv.DictReader(stream))
+    assert len(values) == 1
+    assert values[0]["sdp_best_cut"] == "3.0"
+    assert values[0]["cuda_best_cut"] == "2.0"
