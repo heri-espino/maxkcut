@@ -20,7 +20,7 @@ This project is early-stage research infrastructure, **not** a mathematically ce
 ## Directory contract
 
 ```text
-src/maxkcut/       reusable importable algorithms (no experiment scripts here)
+src/maxkcut/       reusable importable algorithms including sparse local search and sweep
 scripts/           thin, backwards-compatible entry points only
 tests/             fast, deterministic unit tests; small numerical smoke tests
 notes/background/  sources, derivations, prior art; cite exact pages
@@ -83,6 +83,13 @@ When contributing a new experiment, **add reusable numerical routines under `src
 - For **new** benchmark results record git commit SHA, command line, Conda export, solver/version/termination status, CPU/RAM/time, graph ID, number of edges, (k), seed, restarts and preprocessing.
 - Do not describe a solver's `optimal_inaccurate` response as a certified optimum.
 - Do not silently drop failed instances, use different SDP solutions to compare rounding methods, or compare unmatched compute budgets without disclosure.
+- For all-corpus runs, use `maxkcut-sweep` as a **sparse heuristic
+  baseline**, not `maxkcut --graphs ALL` (which would attempt many
+  dense SDP solves). A five-restart, 20-sweep, soft 60-second-per-graph
+  bounded pass is appropriate for initial exploration, not formal
+  statistical significance. Results are resumable and retain every
+  restart/partition. Do not conflate local-search cuts with GW/FJ
+  or K-Means rounding over SDP Gram vectors.
 - Use **one PR per coherent research task**. Preserve the old results when running new experiments, and label proposed variants distinctly.
 
 ## Build / test / documentation steps
