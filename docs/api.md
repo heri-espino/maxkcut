@@ -54,6 +54,24 @@ The package exposes stable **research entry points** at the top level. Each func
 :members:
 ```
 
+## Optional CUDA low-rank Max-Cut (k=2 only)
+
+```{automodule} maxkcut.lowrank
+:members:
+```
+
+```{automodule} maxkcut.lowrank_cache
+:members:
+```
+
+```{automodule} maxkcut.lowrank_experiments
+:members:
+```
+
+```{automodule} maxkcut.lowrank_cli
+:members:
+```
+
 ## CLI
 
 ```{automodule} maxkcut.cli
