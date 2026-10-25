@@ -337,7 +337,11 @@ def run_sweep(gset_dir: Path, output_dir: Path, *,
                 archive_path=str(archive["path"].resolve()),
             )
             _write_trials_atomic(output_dir / "trials" / f"{n_graph}.jsonl", trials)
-            counts[status] += 1
+            # Per-case manifests use status="complete" while the public
+            # aggregate summary deliberately uses the key "completed".
+            # Do not turn a successful persisted run into a failed one
+            # merely because the display counter has a different name.
+            counts["completed" if status == "complete" else "budget_limited"] += 1
             print(
                 f"{n_graph}: {status}, best={summary['best_cut']}, "
                 f"{len(scores)}/{restarts} restarts "
