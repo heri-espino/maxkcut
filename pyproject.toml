@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "maxkcut"
+version = "0.1.0"
+description = "Reproducible semidefinite Max-k-Cut rounding experiments"
+readme = "README.md"
+requires-python = ">=3.11"
+keywords = ["max-k-cut", "semidefinite-programming", "rounding", "clustering", "graphs"]
+dependencies = ["numpy>=1.26", "scipy>=1.11", "cvxpy>=1.5", "threadpoolctl>=3.4"]
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+docs = ["sphinx>=8,<10", "furo>=2024.8", "myst-parser>=4", "sphinx-copybutton>=0.5"]
+dev = ["pytest>=8", "sphinx>=8,<10", "furo>=2024.8", "myst-parser>=4", "sphinx-copybutton>=0.5"]
+
+[project.scripts]
+maxkcut = "maxkcut.cli:main"
+maxkcut-sweep = "maxkcut.sweep_cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["maxkcut*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

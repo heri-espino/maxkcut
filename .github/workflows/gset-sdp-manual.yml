@@ -1,0 +1,66 @@
+name: G-set SDP benchmark (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      graph:
+        description: G-set instance (start with G11 or G1)
+        required: true
+        default: G11
+        type: choice
+        options: [G11, G1, G6, G14, G22, G43]
+      k:
+        description: Number of partitions
+        required: true
+        default: "2"
+        type: choice
+        options: ["2", "3", "4", "5"]
+      max_n:
+        description: Largest allowed number of vertices
+        required: true
+        default: "1000"
+        type: choice
+        options: ["1000", "2000"]
+      restarts:
+        description: Restarts per rounding method
+        required: true
+        default: "10"
+        type: choice
+        options: ["1", "10", "20"]
+
+jobs:
+  solve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: read
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          activate-environment: maxkcut
+          environment-file: environment.yml
+          auto-update-conda: false
+      - name: Test installed package
+        run: |
+          python -c 'import maxkcut; print(maxkcut.__version__)'
+          python -m pytest tests -q
+      - name: Inspect graph before solve
+        run: maxkcut --graphs '${{ inputs.graph }}' --inspect-only
+      - name: Run selected SDP (SCS; explicit manual dispatch only)
+        run: |
+          maxkcut --graphs '${{ inputs.graph }}' \
+            --k '${{ inputs.k }}' --max-n '${{ inputs.max_n }}' \
+            --restarts '${{ inputs.restarts }}' \
+            --max-iters 3000 --eps 1e-3 \
+            --output reports/gset/runs.jsonl
+      - name: Upload benchmark results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gset-${{ inputs.graph }}-k${{ inputs.k }}-results
+          path: reports/gset/
+          if-no-files-found: warn
