@@ -20,6 +20,7 @@ from .archive import (
     load_method, new_archive, new_run_id, save_method, update_manifest,
     verify_archive,
 )
+from .comparison import write_comparison
 from .io import edge_arrays, load_graph
 from .local_search import random_flip_restart
 
@@ -148,6 +149,7 @@ def _write_summary(output_dir: Path) -> None:
             writer.writeheader()
             writer.writerows(rows)
         temporary.replace(target)
+        write_comparison(target)
     finally:
         temporary.unlink(missing_ok=True)
 
@@ -349,6 +351,7 @@ def run_sweep(gset_dir: Path, output_dir: Path, *,
 
     _write_summary(output_dir)
     result = {"graphs_requested": len(paths), **counts,
+              "comparison_csv": str((output_dir / "comparison.csv").resolve()),
               "summary_csv": str((output_dir / "summary.csv").resolve())}
     print(json.dumps(result, indent=2), flush=True)
     return result
