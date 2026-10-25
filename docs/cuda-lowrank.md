@@ -100,7 +100,6 @@ full SDP comparison. The 20 roundings do not require 20 GPU optimizations.
 Inspect the saved cuts and diagnostics:
 
 ```powershell
-Import-Csv reports/gset/g11-torch-cuda.jsonl
 Get-Content reports/gset/g11-torch-cuda.jsonl -Tail 1 | ConvertFrom-Json | Select-Object backend,device,gpu_name,method,cut_weight,rank,optimizer_seconds,original_optimizer_seconds,factor_cache_hit
 ```
 
@@ -108,13 +107,17 @@ Note that JSONL is newline-delimited JSON, not CSV; use the second
 `Get-Content | ConvertFrom-Json` command for these files.
 
 To **reuse the optimized factor without repeating GPU optimization**
-for a different rounding budget/seed (same optimizer seed, graph, device,
-rank, epochs and other optimizer settings), keep the training seed the
-same and use a new JSONL filename. The cache key includes optimizer seed,
-so changing `--seed` generates a new factor. To compare just rounding
-seeds later while reusing one factor, a separate rounding-seed option will
-be useful; until then, changing `--seed` intentionally starts a new
-optimizer run.
+for a different rounding budget/seed, retain the original `--seed`
+(which controls the optimizer and its cache key), change
+`--rounding-seed` or `--restarts`, and use a new JSONL filename:
+
+```powershell
+maxkcut-gpu --graphs G11 --device cuda --rank 32 --epochs 200 --optimizer-starts 2 --seed 2026 --rounding-seed 2027 --restarts 40 --output reports/gset/g11-cuda-extra-rounds.jsonl
+```
+
+The factor is loaded from cache; only the new roundings are computed.
+If you change `--seed`, the optimizer produces (and caches) an independent
+factor run.
 
 Each experiment archives:
 - exact canonical graph SHA256, normalized sparse signed weights;
