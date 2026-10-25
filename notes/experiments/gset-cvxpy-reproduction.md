@@ -283,3 +283,22 @@ does not erase the seven previously excluded thesis instances:
 G55, G56, G60, G61, G70, G77 and G81 remain targets for suitable
 scalable *convex* SDP numerical methods. Details:
 `docs/full-sdp-batch.md`.
+
+## 2026-10-25: first 71-graph full SDP batch completed to n<=1000
+
+The user ran the real `maxkcut-sdp-batch` on 71 canonical files,
+with `--max-n 1000 --seconds-per-graph 600 --total-seconds 3600
+--cpu-threads 8 --restarts 20`. Results: **30/30 attempted SDPs
+complete**, 41 skipped by size cap, 0 failures, 0 timeouts, total
+wall **952.579 seconds**. Outputs are saved under
+`reports/gset/full-sdp-batch/` on the user's workstation. This
+does not prove any integer Max-Cut optimum or solve any of the seven
+originally excluded large convex SDPs.
+
+A post-batch comparison failed due to duplicate archived runs for G1
+in the user's append-only `all71-cuda-baseline.jsonl`, NOT because
+SDP failed. The study comparator now selects the latest complete
+archived CUDA run per graph without mixing restarts or cherry-picking
+the largest cut. A `--compare-only` flag rebuilds the comparison
+CSV from the saved SDP results without launching any numerical solver.
+The selected CUDA run ID and candidate count are recorded for audit.

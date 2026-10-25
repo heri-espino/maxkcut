@@ -14,12 +14,49 @@ from .sdp_batch import inventory, run_full_sdp_batch
 from .study_compare import write_study_comparison
 
 
+def _compare_saved_runs(output_dir: Path, cuda: Path,
+                        gset_dir: Path):
+    """Rebuild the CSV from previously saved completed cases only."""
+    case_dir = Path(output_dir) / "cases"
+    if not case_dir.is_dir():
+        raise FileNotFoundError(
+            f"No full SDP cases directory: {case_dir}"
+        )
+    paths = []
+    for case_file in case_dir.glob("G*.json"):
+        case = json.loads(case_file.read_text(encoding="utf8"))
+        if case.get("status") == "complete":
+            paths.append(Path(case["source_jsonl"]))
+    output = Path(output_dir) / "sdp-vs-cuda.csv"
+    rows = write_study_comparison(paths, cuda, gset_dir, output)
+    duplicate_graphs = [
+        r for r in rows if (r["cuda_candidate_runs"] or 0) > 1
+    ]
+    print(
+        f"Saved {len(rows)} graph comparisons, "
+        f"{len(paths)} successful full SDPs: {output}",
+        flush=True,
+    )
+    if duplicate_graphs:
+        print(
+            f"CUDA source had multiple archived runs for "
+            f"{len(duplicate_graphs)} graphs; selected latest complete "
+            "verified run per graph. Audit cuda_run_id, "
+            "cuda_candidate_runs and cuda_selection_policy columns.",
+            flush=True,
+        )
+    return rows
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--gset-dir", type=Path, default=Path("data"))
     parser.add_argument("--graphs", nargs="+", default=["ALL"])
     parser.add_argument("--output-dir", type=Path,
                         default=Path("reports/gset/full-sdp-batch"))
+    parser.add_argument("--compare-only", action="store_true",
+                        help="Regenerate sdp-vs-cuda.csv from completed saved cases; "
+                             "never launch a convex SDP subprocess")
     parser.add_argument("--dry-run", action="store_true",
                         help="Print graph sizes and dense matrix memory floors; never run SDP")
     parser.add_argument("--max-n", type=int, default=1000,
@@ -54,6 +91,14 @@ def main() -> None:
                         help="Retry failed/timed-out cases; successful graph archives "
                              "are still independently verified before skipping")
     args = parser.parse_args()
+    if args.compare_only:
+        if args.no_compare:
+            parser.error("--compare-only and --no-compare are incompatible")
+        if not args.cuda_results.is_file():
+            parser.error(f"CUDA results JSONL does not exist: {args.cuda_results}")
+        return _compare_saved_runs(
+            args.output_dir, args.cuda_results, args.gset_dir
+        )
     rows = inventory(args.gset_dir, args.graphs)
     if args.dry_run:
         print(json.dumps({
@@ -84,17 +129,19 @@ def main() -> None:
 
     if not args.no_compare:
         if args.cuda_results.is_file():
-            cases_dir = args.output_dir / "cases"
-            paths = []
-            for case_file in cases_dir.glob("G*.json"):
-                case = json.loads(case_file.read_text(encoding="utf8"))
-                if case.get("status") == "complete":
-                    paths.append(Path(case["source_jsonl"]))
-            target = args.output_dir / "sdp-vs-cuda.csv"
-            comparisons = write_study_comparison(
-                paths, args.cuda_results, args.gset_dir, target,
-            )
-            print(f"Saved {len(comparisons)} graph comparisons: {target}")
+            try:
+                _compare_saved_runs(
+                    args.output_dir, args.cuda_results, args.gset_dir
+                )
+            except (ValueError, OSError, KeyError) as exc:
+                # The completed numerical results are already durable.
+                # A corrupted/incomplete comparison must not claim the
+                # entire SDP batch failed or require rerunning solvers.
+                print(
+                    f"Comparison not generated: {type(exc).__name__}: {exc}. "
+                    "Full SDP results are safe; run --compare-only after fixing.",
+                    flush=True,
+                )
         else:
             print(f"CUDA baseline not present ({args.cuda_results}); "
                   "retained full SDP summary only.")

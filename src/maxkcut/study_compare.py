@@ -18,6 +18,7 @@ from pathlib import Path
 
 import numpy as np
 
+from .archive import load_method, verify_archive
 from .io import edge_arrays, load_graph
 from .references import reference_for_graph
 
@@ -48,11 +49,67 @@ COLUMNS = (
     "cuda_percent_of_proven_optimum",
     "sdp_percent_of_proven_optimum",
     "paper_assessment", "sdp_source", "cuda_source",
+    "sdp_run_id", "cuda_run_id", "cuda_candidate_runs", "cuda_selection_policy",
 )
 
-def _load_jsonl(path: Path, *, expected: tuple[str, ...]) -> dict:
+def _complete_archived_run(entry: dict, expected: tuple[str, ...]) -> bool:
+    """Require a verified complete archive and matching JSONL score order.
+
+    Only used to disambiguate multiple runs in an append-only CUDA JSONL.
+    It is deliberately not a best-score selection; corrupted, interrupted
+    and partially written runs must not replace a previous valid run.
+    """
+    folder = _archive_folder(entry)
+    manifest_file = folder / "manifest.json"
+    if not manifest_file.is_file():
+        return False
+    try:
+        manifest = json.loads(manifest_file.read_text(encoding="utf8"))
+        if (manifest.get("status") != "complete"
+                or manifest.get("graph") != entry["sample"]["graph"]
+                or int(manifest.get("n", -1)) != entry["n"]
+                or set(manifest.get("methods", {})) != set(expected)):
+            return False
+        counts = {len(entry["methods"][method]) for method in expected}
+        if len(counts) != 1 or 0 in counts:
+            return False
+        verified = verify_archive(folder)
+        if verified["status"] != "complete":
+            return False
+        for method in expected:
+            # A partial or malformed run must not be treated as complete even
+            # when its JSONL happens to have the expected number of rows.
+            if entry["restart_ids"][method] != set(
+                range(len(entry["methods"][method]))
+            ):
+                return False
+            archived_scores = load_method(
+                folder / manifest["methods"][method]["partition_file"]
+            )[1]
+            if (len(archived_scores) != len(entry["methods"][method])
+                    or not np.allclose(
+                        archived_scores, entry["methods"][method],
+                        rtol=0, atol=1e-8,
+                    )):
+                return False
+        return True
+    except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError):
+        return False
+
+
+def _load_jsonl(path: Path, *, expected: tuple[str, ...],
+                duplicate_policy: str = "reject") -> dict:
+    """Load one run per graph, or deterministically select latest complete.
+
+    `latest_complete` is intended only for append-only CUDA files.
+    It audits every candidate against its independently rescored archive.
+    The most recently appended valid completed run is chosen, NOT the
+    run with the largest cut, and its individual restarts remain intact.
+    """
+    if duplicate_policy not in ("reject", "latest_complete"):
+        raise ValueError("Unknown duplicate_policy")
     path = Path(path)
-    records = {}
+    groups = {}
     with path.open("r", encoding="utf8") as handle:
         for line_number, line in enumerate(handle, 1):
             if not line.strip():
@@ -82,18 +139,57 @@ def _load_jsonl(path: Path, *, expected: tuple[str, ...]) -> dict:
                     f"{path}:{line_number}: missing archive run identifier; "
                     "run with the default artifact archiving enabled"
                 )
-            entry = records.setdefault(graph, {
+            candidates = groups.setdefault(graph, {})
+            entry = candidates.setdefault(run_id, {
                 "n": int(row["n"]), "run_id": run_id,
-                "methods": {name: [] for name in expected}, "sample": row,
-                "source": str(path),
+                "methods": {name: [] for name in expected},
+                "restart_ids": {name: set() for name in expected},
+                "sample": row, "source": str(path), "last_line": line_number,
             })
-            if entry["n"] != int(row["n"]) or entry["run_id"] != run_id:
+            if entry["n"] != int(row["n"]):
+                raise ValueError(f"{path}: inconsistent graph size for {graph}/{run_id}")
+            rep = row.get("restart")
+            if rep is None:
+                raise ValueError(f"{path}:{line_number}: missing restart index")
+            if rep in entry["restart_ids"][method]:
                 raise ValueError(
-                    f"{path}: multiple runs for {graph}; supply a single "
-                    "run per graph per input file to avoid mixing budgets"
+                    f"{path}:{line_number}: duplicate restart {rep} "
+                    f"for {graph}/{run_id}/{method}"
                 )
+            entry["restart_ids"][method].add(rep)
             entry["methods"][method].append(cut)
-    return records
+            entry["last_line"] = line_number
+
+    selected = {}
+    for graph, candidates in groups.items():
+        if len(candidates) == 1:
+            entry = next(iter(candidates.values()))
+        elif duplicate_policy == "reject":
+            raise ValueError(
+                f"{path}: multiple runs for {graph}; supply a single "
+                "run per graph per input file to avoid mixing budgets"
+            )
+        else:
+            ordered = sorted(
+                candidates.values(),
+                key=lambda entry: entry["last_line"], reverse=True,
+            )
+            entry = next(
+                (item for item in ordered
+                 if _complete_archived_run(item, expected)),
+                None,
+            )
+            if entry is None:
+                raise ValueError(
+                    f"{path}: {len(candidates)} runs for {graph}, but none "
+                    "has a complete verified archive and matching JSONL cuts"
+                )
+        entry["candidate_runs"] = len(candidates)
+        entry["selection_policy"] = (
+            duplicate_policy if len(candidates) > 1 else "single_run"
+        )
+        selected[graph] = entry
+    return selected
 
 
 def _graph_fingerprint(n: int, edges: tuple) -> str:
@@ -195,7 +291,10 @@ def compare_saved_runs(
     evaluated with the same named clustering algorithms. The full SDP primal
     score is explicitly not called a certified upper bound.
     """
-    cuda = _load_jsonl(cuda_jsonl, expected=CUDA_METHODS)
+    cuda = _load_jsonl(
+        cuda_jsonl, expected=CUDA_METHODS,
+        duplicate_policy="latest_complete",
+    )
     sdp = {}
     for path in sdp_jsonl:
         for graph, entry in _load_jsonl(path, expected=SDP_METHODS).items():
@@ -322,6 +421,10 @@ def compare_saved_runs(
             "paper_assessment": paper_assessment,
             "sdp_source": a["source"] if a else None,
             "cuda_source": b["source"] if b else None,
+            "sdp_run_id": a["run_id"] if a else None,
+            "cuda_run_id": b["run_id"] if b else None,
+            "cuda_candidate_runs": b["candidate_runs"] if b else None,
+            "cuda_selection_policy": b["selection_policy"] if b else None,
         }
         output.append(row)
     return output

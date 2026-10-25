@@ -157,3 +157,56 @@ default has 20 roundings. **Those are deliberately different compute
 budgets**, so do not use differences in best cuts as a controlled
 method superiority claim without matched budgets and uncertainty
 analysis.
+
+## 2026-10-25: completed Stage 1 and append-only CUDA comparison repair
+
+The user ran the default n<=1000 full convex SCS SDP batch
+over the entire canonical 71-graph list. **Thirty of thirty attempted
+SDPs completed successfully**, 41 larger graphs were size-skipped,
+0 failed and 0 timed out, with total invocation elapsed time
+**952.58 seconds**. This was a real solver run on the user's
+Windows machine. The archived per-graph best rounded cuts remain
+in `reports/gset/full-sdp-batch/summary.csv`.
+
+After this numerical success, the optional CUDA CSV comparison raised
+`ValueError: ... all71-cuda-baseline.jsonl: multiple runs for G1`.
+The CUDA JSONL is **append-only** and contains multiple distinct
+archived runs for at least G1. The error occurred *after* the full
+SDP batch was saved. **No SDP needs recomputing to recover the CSV.**
+
+The comparison now chooses the **latest complete, independently
+verified** archived CUDA run for each graph when its JSONL has multiple
+runs. The choice is based on append order and archive validity, **not
+cut score** (no silent cherry-picking), and never merges rounding
+restarts between different runs. Each resulting CSV row records
+`cuda_run_id`, `cuda_candidate_runs` and
+`cuda_selection_policy` so operators can audit the policy.
+The original strict one-run-per-graph SDP requirement is unchanged.
+
+After updating the local checkout, run the **comparison-only** command
+in PowerShell. It **never launches SDP or CUDA optimization**:
+
+```powershell
+git pull --ff-only origin main
+python -m pip install -e .
+python -m pytest -q
+maxkcut-sdp-batch --compare-only --output-dir reports/gset/full-sdp-batch --cuda-results reports/gset/all71-cuda-baseline.jsonl
+Import-Csv reports/gset/full-sdp-batch/summary.csv | Group-Object status | Format-Table Name,Count
+Import-Csv reports/gset/full-sdp-batch/sdp-vs-cuda.csv | Where-Object {$_.sdp_best_cut -ne ''} | Format-Table graph,graph_identity,sdp_best_cut,cuda_best_cut,sdp_minus_cuda_cut,paper_cut,sdp_status
+```
+
+The comparison remains a preliminary descriptive contrast: full SDP
+used **20 rounding restarts per method** and the CUDA baseline used
+**5 restarts**, with a different relaxation and optimization budget.
+A proper scientific comparison must match rounding budgets and verify
+same graph identity, report per-method distributions, solver convergence
+and timings, and distinguish proven optima from best-known cuts.
+
+For a single n=2000 pilot *after reviewing the summary*:
+
+```powershell
+maxkcut-sdp-batch --graphs G32 --max-n 2000 --allow-large --seconds-per-graph 1200 --total-seconds 1300 --cpu-threads 8 --restarts 20 --output-dir reports/gset/full-sdp-g32-pilot
+```
+
+This is still the original **CPU convex SDP**. It may time out or
+consume more RAM than the raw Gram matrix. It is not a CUDA solve.
