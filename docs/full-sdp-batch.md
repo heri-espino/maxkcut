@@ -210,3 +210,69 @@ maxkcut-sdp-batch --graphs G32 --max-n 2000 --allow-large --seconds-per-graph 12
 
 This is still the original **CPU convex SDP**. It may time out or
 consume more RAM than the raw Gram matrix. It is not a CUDA solve.
+
+## Continuing the original completed SDP batch with NO wall-clock limit
+
+The first real Windows run successfully solved **30 canonical convex SDPs**
+(G1–G21, G43–G47, G51–G54; n=800–1000), with **41 graphs
+skipped by n<=1000**, in 952.579 seconds. All saved archives and
+`summary.csv` are preserved in
+`reports/gset/full-sdp-batch/`. The optional CUDA comparison is
+already working, and all 30 matched graph identities.
+
+The operator requested letting remaining graph computations run
+**without any artificial wall-clock deadline**. The batch runner now
+supports `--no-wall-limit`; it removes both per-graph and total
+subprocess timeouts. It **does not** remove the solver's own
+`--max-iters` stopping criterion (default 3000), the max-n safety
+guard, available RAM restrictions, or the possibility of numerical
+failure.
+
+The same output directory can now resume when only the wall-time
+policy or maximum accepted n changes; the old solver configuration,
+rounding restarts, seed, thread count, input directory and archived
+numerical evidence are unchanged. Existing complete cases are checked
+against their saved graph SHA and independently rescored partitions.
+Both the old and new execution policies are stored in
+`plan.json`; each new graph case records its own `runtime_policy`.
+
+**Stage 2: automatically skip the 30 completed graphs, and attempt
+only newly eligible 2000-vertex cases with no timeouts:**
+
+```powershell
+git pull --ff-only origin main
+conda activate maxkcut-cuda
+python -m pip install -e .
+python -m pytest -q
+maxkcut-sdp-batch --max-n 2000 --allow-large --no-wall-limit --cpu-threads 8 --restarts 20 --output-dir reports/gset/full-sdp-batch
+```
+
+**Stage 3** after checking the medium-sized logs, advance to n<=3000
+with the SAME output directory:
+
+```powershell
+maxkcut-sdp-batch --max-n 3000 --allow-large --no-wall-limit --cpu-threads 8 --restarts 20 --output-dir reports/gset/full-sdp-batch
+```
+
+**Do not blindly advance to n=20000 on a 64 GB RAM machine.**
+Allowing a solver to run indefinitely cannot prevent memory exhaustion
+or numerical failure. If attempting a single larger graph deliberately,
+both `--allow-large` and `--acknowledge-huge-risk` are required
+for n>3000, and the batch still processes one graph per subprocess.
+For example, a 5000-vertex G55 full convex SDP is an explicit,
+high-risk trial, **not** a guaranteed result; large PSD cone
+projections may need many times the 0.186 GiB single-Gram floor:
+
+```powershell
+maxkcut-sdp-batch --graphs G55 --max-n 5000 --allow-large --acknowledge-huge-risk --no-wall-limit --cpu-threads 8 --restarts 20 --output-dir reports/gset/full-sdp-batch
+```
+
+If any run returns `optimal_inaccurate`, report the status and
+feasibility diagnostics honestly; numerical SDP status does **not**
+prove integer Max-Cut optimality. The `sdp-vs-cuda.csv` is generated
+from saved partitions after each normal batch completion.
+
+For stopping a no-wall batch, use **Ctrl+C** in PowerShell. Already
+completed per-graph archives remain stored; an interrupted in-progress
+graph can be attempted again on a later invocation. The operation is
+synchronous, requiring the local Python/PowerShell process to stay open.
