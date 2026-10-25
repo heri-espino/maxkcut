@@ -284,3 +284,27 @@ recompute that graph under the same plan. A successful `summary.csv`
 and `comparison.csv` appear in the selected output directory. The
 latter compares only the 17 toroidal instances documented in
 Glass–Feder (2026), not all 71.
+
+## Use NVIDIA CUDA without WSL or administrator privileges
+
+For your RTX 4500 Ada with an NVIDIA driver reporting CUDA 13.2, we added
+**an optional PyTorch GPU low-rank optimizer**. It is a *different
+nonconvex Max-Cut solver* (k=2 only) that still runs our established
+GW/K-Means rounders on the resulting vectors. It is **not** the original
+full-rank SDP solved on a GPU.
+
+From the repository root, create a separate CUDA Conda environment and
+install the official prebuilt Windows CUDA PyTorch wheel:
+
+```powershell
+conda env create -f environment.yml -n maxkcut-cuda
+conda activate maxkcut-cuda
+python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cu132
+python -m pytest -q
+maxkcut-gpu --device-info
+maxkcut-gpu --graphs G11 --device cuda --rank 32 --epochs 200 --optimizer-starts 2 --restarts 20 --seed 2026 --output reports/gset/g11-torch-cuda.jsonl
+```
+
+The CUDA check refuses silent CPU fallback. To change just random rounding
+seeds and **reuse the saved factor**, keep `--seed 2026` and add
+`--rounding-seed 2027`. See [full CUDA guide](cuda-lowrank.md).
