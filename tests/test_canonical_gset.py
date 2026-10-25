@@ -146,3 +146,28 @@ def test_txt_baseline_produces_saved_comparison_without_sdp(tmp_path):
     assert rows[0]["assessment"] == "GRAPH_SIZE_MISMATCH_check_identity"
     assert rows[0]["paper_cut"] == "564"
     assert write_comparison(output / "summary.csv").is_file()
+
+
+def test_filename_discovery_regression_for_canonical_and_legacy(tmp_path):
+    """Both extensions must match; reject unrelated files and keep numeric order.
+
+    Regression for accidental double escaping in the regular expression,
+    which made *every* G-set input invisible on Windows and other systems.
+    """
+    for name in ["G81.txt", "G2.txt", "G11.mat"]:
+        (tmp_path / name).write_text("not parsed during discovery", encoding="utf8")
+    for name in ["G9.csv", "README.md", "prefixG4.txt", "G0.txt.bak"]:
+        (tmp_path / name).write_text("ignore", encoding="utf8")
+    found = discover_graphs(tmp_path)
+    assert [path.name for path in found] == [
+        "G2.txt", "G11.mat", "G81.txt"
+    ]
+
+
+def test_discovery_reports_missing_directory_distinctly(tmp_path):
+    with pytest.raises(FileNotFoundError, match="directory does not exist"):
+        discover_graphs(tmp_path / "missing")
+    (tmp_path / "empty").mkdir()
+    with pytest.raises(FileNotFoundError, match="No G-set"):
+        discover_graphs(tmp_path / "empty")
+
