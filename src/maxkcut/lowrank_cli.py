@@ -35,7 +35,10 @@ def main():
     parser.add_argument("--log-every", type=int, default=10)
     parser.add_argument("--restarts", type=int, default=20,
                         help="GW/K-Means rounding repetitions per method")
-    parser.add_argument("--seed", type=int, default=2026)
+    parser.add_argument("--seed", type=int, default=2026,
+                        help="Seed for optimization; changes the factor cache key")
+    parser.add_argument("--rounding-seed", type=int,
+                        help="Independent rounding seed, defaults to --seed; does not affect factor cache")
     parser.add_argument("--max-n", type=int, default=1000,
                         help="Explicitly raise for larger G-set instances")
     parser.add_argument("--output", type=Path,
@@ -56,6 +59,8 @@ def main():
         parser.error("--rank and --epochs must be positive, --max-n >= 2")
     if args.optimizer_starts < 1 or args.restarts < 1 or args.log_every < 1:
         parser.error("--optimizer-starts, --restarts and --log-every must be positive")
+    if args.rounding_seed is not None and args.rounding_seed < 0:
+        parser.error("--rounding-seed must be nonnegative")
     if args.seed < 0:
         parser.error("--seed must be nonnegative")
     paths = discover_graphs(args.gset_dir, args.graphs)
@@ -67,7 +72,8 @@ def main():
         paths, args.output, device=args.device, rank=args.rank,
         epochs=args.epochs, optimizer_starts=args.optimizer_starts,
         learning_rate=args.learning_rate, log_every=args.log_every,
-        restarts=args.restarts, seed=args.seed, max_n=args.max_n,
+        restarts=args.restarts, seed=args.seed,
+        rounding_seed=args.rounding_seed, max_n=args.max_n,
         factor_cache_dir=args.factor_cache_dir,
         use_factor_cache=not args.no_factor_cache,
         save_artifacts=not args.no_artifacts,
