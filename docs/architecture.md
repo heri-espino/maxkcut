@@ -12,6 +12,9 @@ maxkcut/
 │   ├── archive.py                # compact graph/partition/reproducibility snapshots
 │   ├── cache.py                  # SHA256/solver-fingerprinted SDP matrix reuse
 │   ├── cli.py                    # argument parsing, inspecting graphs
+│   ├── local_search.py          # fast signed sparse one-flip baseline
+│   ├── sweep.py                 # sequential resumable 71-graph orchestrator
+│   ├── sweep_cli.py             # maxkcut-sweep CLI
 │   ├── io.py                     # MATLAB matrices -> sparse weighted graph
 │   ├── objective.py              # exact weighted cut evaluator
 │   ├── sdp.py                    # semidefinite relaxation via CVXPY
@@ -41,6 +44,18 @@ load_graph(...) -> sparse W -> edge_arrays(W) -> cut_weight(...)
 ```
 
 The graph objective is always scored in `objective.py`, never substituted with k-means inertia. Spherical k-means only provides a *rounding heuristic*.
+
+The optional full-corpus **heuristic** branch is separate:
+
+```text
+G-Set/*.mat -> sparse W -> random spins -> positive one-flip gains
+                                      -> exact weighted cut evaluation
+                                      -> bit-packed partition archive
+                                      -> per-graph CSV/JSONL and safe resume
+```
+
+It does **not** use CVXPY, solve an SDP, or assert Goemans-Williamson
+approximation guarantees.
 
 ## Module boundaries
 
