@@ -128,6 +128,44 @@ Notably, G11=564 was proved optimal in 2026 by a matching feasible cut and
 toroidal upper bound, whereas many other G-set cut values are only
 best-known heuristic results.
 
+## Native Windows CUDA low-rank Max-Cut (optional)
+
+The original full SDP + GW/K-Means thesis experiment remains under
+`maxkcut`. A separate `maxkcut-gpu` command uses **optional PyTorch CUDA**
+for a *nonconvex rank-restricted vector Max-Cut optimization*, then feeds
+its vectors into the same thesis-inspired GW/K-Means2N/K-MeansNM rounding
+functions. This is a **different optimizer**, not a GPU port of the
+full convex CVXPY/SCS SDP. It forms **no dense n-by-n Gram matrix**,
+works with the original signed graph weights, and is supported only
+for **k=2**. Its vector objective is **not** a certified SDP bound.
+
+Your RTX 4500 Ada can use a precompiled Windows CUDA PyTorch wheel without
+WSL, administrator privileges or the standalone `nvcc` compiler.
+Keep your current Conda environment intact and install a separate GPU one:
+
+```powershell
+conda env create -f environment.yml -n maxkcut-cuda
+conda activate maxkcut-cuda
+python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cu132
+python -m pytest -q
+maxkcut-gpu --device-info
+maxkcut-gpu --graphs G11 --device cuda --rank 32 --epochs 200 --optimizer-starts 2 --restarts 20 --seed 2026 --output reports/gset/g11-torch-cuda.jsonl
+```
+
+The default device is `cuda` and the program **refuses to run** if a
+CUDA-enabled PyTorch installation is unavailable. `--device cpu` is
+an explicit CPU testing option, not an automatic fallback.
+
+To reuse the saved rank-r factors but try a new set of K-Means/GW
+rounding seeds, pass the same optimization `--seed` and a different
+`--rounding-seed`. All graph weights, vector factors, original
+optimizer histories, exact cut scores, and partitions are archived.
+Use `--max-n 20000` explicitly to try large canonical graphs such
+as G81; `--graphs ALL` requires `--allow-all` to prevent accidental
+large batches.
+
+See [the CUDA setup, mathematics and reproducible benchmark guide](docs/cuda-lowrank.md).
+
 ## CPU threading and optional NVIDIA GPU
 
 Your G11 SDP uses dense semidefinite-cone projections. The number of logical
