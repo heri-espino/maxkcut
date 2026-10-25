@@ -191,3 +191,19 @@ verifies and skips completed cases. See `docs/full-gset-sweep.md`.
 Run the existing SDP/GW/K-Means pipeline separately on feasible small
 G-set instances, preserving matched problem data and distinct method
 labels. **No 71-graph benchmark has been executed by the authoring agent.**
+
+## 2026-10-24 canonical data/ correction
+
+The repository now contains 71 canonical original-format `data/G*.txt`
+files (G1–G67, G70, G72, G77 and G81), **not** only the legacy 71
+`G-Set/*.mat` files. Therefore the previous claim that G81 was absent
+applies only to the old directory, not the full canonical input. Both
+CLIs now default to `data/`. Use `maxkcut-sweep --compare-inputs`
+for an exact signed-edge audit against the legacy directory. The G11
+cut 546 was produced using an older MAT run; do not claim its ratio
+against canonical G11 is verified until the input comparison succeeds.
+
+The full-corpus first pass produces `comparison.csv` with the 17
+Glass–Feder Table 1 instances labeled either proven optimum or unproved
+best-known cut. There are no measurements reported here from an executed
+full 71-instance run. A status is only a result after actual execution.
