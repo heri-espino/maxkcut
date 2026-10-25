@@ -302,3 +302,24 @@ archived CUDA run per graph without mixing restarts or cherry-picking
 the largest cut. A `--compare-only` flag rebuilds the comparison
 CSV from the saved SDP results without launching any numerical solver.
 The selected CUDA run ID and candidate count are recorded for audit.
+
+
+## 2026-10-25: unlimited wall-time staged full convex SDP continuation
+
+Following the 30/30 completed n<=1000 original full convex CVXPY/SCS
+SDPs, the user requested removing per-graph and overall wall-clock
+timeouts for as-yet unsolved graphs. The experimental runner now
+accepts `--no-wall-limit` and permits same-directory continuation
+when only execution time budgets and n cutoff change, retaining
+the old solver settings and archived successful partition evidence.
+Example: `maxkcut-sdp-batch --max-n 2000 --allow-large
+--no-wall-limit --cpu-threads 8 --restarts 20
+--output-dir reports/gset/full-sdp-batch`.
+It continues only eligible uncompleted graphs, and automatically
+produces the verified SDP-versus-CUDA report after normal completion.
+
+This change removes **time limits only**. It does NOT turn the
+sparse/nonconvex CUDA solver into a full SDP, eliminate finite SCS
+max-iterations, or guarantee that very large dense convex SDPs fit
+in 64 GB. The seven excluded thesis instances remain an eventual,
+separately controlled research target.
