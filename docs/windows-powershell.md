@@ -402,3 +402,28 @@ despite a roughly 3 GiB raw matrix. The optional automatic
 `sdp-vs-cuda.csv` joins to your already saved CUDA 71-graph baseline.
 Large cases need explicit opt-in and a separate, researched numerical
 solver plan. See [safe full SDP batch guide](full-sdp-batch.md).
+
+## Existing full-SDP data: fix append-only CUDA comparison
+
+The user completed **30 full convex SDP solves** (n<=1000) in
+`reports/gset/full-sdp-batch/`. The optional comparison failed
+*after* saving those successful runs because
+`all71-cuda-baseline.jsonl` contains multiple runs for G1.
+The solver outputs remain intact.
+
+The updated comparison selects the **latest complete verified CUDA
+archive per graph**, never mixes optimizer settings or rounding trials
+between runs, and records selection provenance in the CSV. To
+regenerate the comparison **without any new SDP solves**, copy each
+command below separately in PowerShell:
+
+```powershell
+git pull --ff-only origin main
+python -m pip install -e .
+maxkcut-sdp-batch --compare-only --output-dir reports/gset/full-sdp-batch --cuda-results reports/gset/all71-cuda-baseline.jsonl
+Import-Csv reports/gset/full-sdp-batch/summary.csv | Group-Object status | Format-Table Name,Count
+Import-Csv reports/gset/full-sdp-batch/sdp-vs-cuda.csv | Where-Object {$_.sdp_best_cut -ne ''} | Format-Table graph,graph_identity,sdp_best_cut,cuda_best_cut,sdp_minus_cuda_cut,paper_cut,sdp_status
+```
+
+Do not paste Markdown headings or concatenate two distinct
+PowerShell commands on the same line.
