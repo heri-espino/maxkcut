@@ -23,7 +23,7 @@ from maxkcut.lowrank_experiments import benchmark_lowrank
 def test_vector_objective_signed_edges_and_unit_factors():
     edges = (np.array([0, 1]), np.array([1, 2]),
              np.array([3., -2.]))
-    v = np.array([[1., 0.], [-1., 0.], [1., 0.]])
+    v = np.array([[1., 0.], [-1., 0.], [-1., 0.]])
     # positive edge is cut (3), negative edge is uncut (0)
     assert lowrank_objective(edges, v) == pytest.approx(3.)
 
