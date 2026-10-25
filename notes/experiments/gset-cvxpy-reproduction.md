@@ -261,3 +261,25 @@ workstation by the authoring agent.** The study runner is an offline
 comparison and safety inspection tool only. Any new measured SDP
 results must come from actual saved runs and independently verified
 archives. See `docs/full-sdp-comparison.md`.
+
+## 2026-10-25: verified canonical G11 full-SDP result
+
+The user ran the original full convex CVXPY/SCS SDP for canonical G11
+and joined it to the previously run CUDA low-rank result. Exact
+normalized archived graph identity was `VERIFIED_CANONICAL`.
+The best rounded cut was **546** (full SDP; solver status
+`optimal`) versus **536** (CUDA low-rank, rank 64, 500 epochs,
+4 optimizer starts and 20 rounding restarts); the proven G11 Max-Cut
+optimum is **564**. A solver status `optimal` concerns the
+*continuous relaxation*, not the exact discrete Max-Cut optimum.
+
+Next, the user requested full SDP attempts on all 71 G-set graphs.
+`maxkcut-sdp-batch` provides resource-capped one-graph-per-process
+attempts with per-graph failure/timeout/skip reasons, archive validation
+and CSV comparisons. It has a safe n<=1000 default and separate
+operator authorizations for n>1000 and n>3000. **No new 71-graph
+full-SDP batch has been executed by the authoring agent.** This
+does not erase the seven previously excluded thesis instances:
+G55, G56, G60, G61, G70, G77 and G81 remain targets for suitable
+scalable *convex* SDP numerical methods. Details:
+`docs/full-sdp-batch.md`.
