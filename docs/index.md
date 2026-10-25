@@ -20,6 +20,7 @@ canonical-data-comparison
 gset-reference-values
 performance
 gpu-cpu-performance
+cuda-lowrank
 ```
 
 ```{toctree}
