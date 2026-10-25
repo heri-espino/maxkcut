@@ -79,6 +79,10 @@ def main() -> None:
                         help="Child-process wall time limit per graph")
     parser.add_argument("--total-seconds", type=float, default=3600.,
                         help="Overall run wall budget; continuing later is supported")
+    parser.add_argument("--no-wall-limit", action="store_true",
+                        help="Remove BOTH per-graph and total wall-clock timeouts. "
+                             "Does NOT remove SCS iteration limits, graph-size "
+                             "safeguards, or protect against running out of RAM")
     parser.add_argument("--max-graphs", type=int,
                         help="Optional prefix test; e.g. first two graphs")
     parser.add_argument("--cuda-results", type=Path, default=Path(
@@ -115,6 +119,13 @@ def main() -> None:
             ],
         }, indent=2))
         return
+    if args.no_wall_limit and (
+        args.seconds_per_graph != 600. or args.total_seconds != 3600.
+    ):
+        parser.error(
+            "--no-wall-limit cannot be combined with explicit "
+            "--seconds-per-graph or --total-seconds settings"
+        )
     outcome = run_full_sdp_batch(
         args.gset_dir, args.output_dir, names=args.graphs,
         max_n=args.max_n, allow_large=args.allow_large,
@@ -122,8 +133,12 @@ def main() -> None:
         solver=args.solver, eps=args.eps, max_iters=args.max_iters,
         restarts=args.restarts, seed=args.seed,
         cpu_threads=args.cpu_threads, scs_indirect=args.scs_indirect,
-        seconds_per_graph=args.seconds_per_graph,
-        total_seconds=args.total_seconds, max_graphs=args.max_graphs,
+        seconds_per_graph=(
+            None if args.no_wall_limit else args.seconds_per_graph
+        ),
+        total_seconds=(
+            None if args.no_wall_limit else args.total_seconds
+        ), max_graphs=args.max_graphs,
         retry_failed=args.retry_failed,
     )
 

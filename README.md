@@ -148,6 +148,22 @@ maxkcut-sdp-batch --dry-run
 maxkcut-sdp-batch --max-n 1000 --seconds-per-graph 600 --total-seconds 3600 --cpu-threads 8 --restarts 20 --output-dir reports/gset/full-sdp-batch
 ```
 
+To continue the **remaining unsolved SDP graphs with no artificial
+wall-clock timeout**, keep the original archive directory, preserve
+solver/seed/restart settings, and increase the n cap gradually:
+
+```powershell
+maxkcut-sdp-batch --max-n 2000 --allow-large --no-wall-limit --cpu-threads 8 --restarts 20 --output-dir reports/gset/full-sdp-batch
+```
+
+The first 30 successful SDP cases are independently verified then
+skipped; only newly eligible graphs run. The current implementation
+still has **SCS's numerical max iteration cap of 3000** and the
+machine's physical RAM limit. Raising `--max-n` beyond 3000 requires
+`--acknowledge-huge-risk`: a huge dense PSD cone may exhaust RAM even
+if there is no time limit. See
+[unlimited-time full-SDP continuation](docs/full-sdp-batch.md).
+
 The same command resumes verified successes. If your CUDA JSONL is
 append-only and contains multiple archived runs of the same graph,
 the comparison deterministically selects the latest **complete and

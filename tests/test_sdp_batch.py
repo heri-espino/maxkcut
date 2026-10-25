@@ -200,3 +200,104 @@ def test_timeout_captured_and_only_retried_when_explicit(
     assert third["timeout"] == 1 and len(calls) == 2
     assert (target / "runs" / "G1" / "attempt-001").is_dir()
     assert (target / "runs" / "G1" / "attempt-002").is_dir()
+
+
+def test_no_wall_limit_continues_existing_finished_batch_and_new_medium_cases(
+    monkeypatch, tmp_path
+):
+    small = _create_graph(tmp_path, "G1", 3)
+    medium = _create_graph(tmp_path, "G32", 2000)
+    target = tmp_path / "full-sdp-batch"
+    invocations = []
+
+    def fake_run(command, *, stdout, stderr, timeout, check):
+        assert stderr == subprocess.STDOUT and check is False
+        graph = Path(command[command.index("--graphs") + 1])
+        jsonl = Path(command[command.index("--output") + 1])
+        invocations.append((graph.name, timeout))
+        _write_complete_sdp_archive(
+            small if graph.stem == "G1" else medium,
+            jsonl, restarts=2,
+        )
+        return subprocess.CompletedProcess(command, 0)
+
+    monkeypatch.setattr(
+        "maxkcut.archive._git_metadata",
+        lambda: {"commit": None, "dirty": None},
+    )
+    monkeypatch.setattr(batch.subprocess, "run", fake_run)
+
+    first = batch.run_full_sdp_batch(
+        small.parent, target, restarts=2,
+        max_n=1000, seconds_per_graph=10., total_seconds=120.,
+    )
+    assert first["complete"] == 1
+    assert first["skipped_size"] == 1
+    assert invocations == [("G1.txt", pytest.approx(10., abs=1.))]
+
+    resumed = batch.run_full_sdp_batch(
+        small.parent, target, restarts=2,
+        max_n=2000, allow_large=True,
+        seconds_per_graph=None, total_seconds=None,
+    )
+    assert resumed["complete"] == 1
+    assert resumed["skipped_verified"] == 1
+    assert resumed["skipped_size"] == 0
+    assert invocations[-1] == ("G32.txt", None)
+    assert len(invocations) == 2
+    plan = json.loads((target / "plan.json").read_text())
+    assert len(plan["execution_policies"]) == 2
+    assert plan["execution_policies"][-1]["unlimited_wall_time"] is True
+    saved = json.loads((target / "cases" / "G32.json").read_text())
+    assert saved["runtime_policy"]["unlimited_wall_time"] is True
+
+    again = batch.run_full_sdp_batch(
+        small.parent, target, restarts=2,
+        max_n=2000, allow_large=True,
+        seconds_per_graph=None, total_seconds=None,
+    )
+    assert again["skipped_verified"] == 2
+    assert len(invocations) == 2
+    with pytest.raises(ValueError, match="new --output-dir"):
+        batch.run_full_sdp_batch(
+            small.parent, target, restarts=2,
+            max_n=2000, allow_large=True,
+            seconds_per_graph=None, total_seconds=None,
+            max_iters=999,
+        )
+
+
+def test_unlimited_timeout_helper_and_reject_invalid_time_settings():
+    assert batch._timeout_seconds(None, None) is None
+    assert batch._timeout_seconds(12., None) == 12.
+    assert batch._timeout_seconds(None, 4.) == 4.
+    assert batch._timeout_seconds(12., 4.) == 4.
+    with pytest.raises(ValueError, match="positive or None"):
+        batch.run_full_sdp_batch(
+            Path("does-not-need-to-exist"), Path("not-created"),
+            seconds_per_graph=0.,
+        )
+
+
+def test_cli_no_wall_limit_passes_none_without_running_solver(monkeypatch, tmp_path):
+    import maxkcut.sdp_batch_cli as cli
+    import sys
+    graph = _create_graph(tmp_path, "G32", 2000)
+    observed = {}
+
+    def fake_batch(*args, **kwargs):
+        observed.update(kwargs)
+        return {"complete": 0}
+
+    monkeypatch.setattr(cli, "run_full_sdp_batch", fake_batch)
+    monkeypatch.setattr(sys, "argv", [
+        "maxkcut-sdp-batch", "--graphs", graph.stem,
+        "--gset-dir", str(graph.parent),
+        "--no-wall-limit", "--no-compare",
+        "--max-n", "2000", "--allow-large",
+        "--output-dir", str(tmp_path / "runs"),
+    ])
+    cli.main()
+    assert observed["seconds_per_graph"] is None
+    assert observed["total_seconds"] is None
+    assert observed["max_n"] == 2000

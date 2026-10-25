@@ -254,3 +254,25 @@ When responding to a user's terminal logs, identify their shell before providing
 Read instructions → inspect the current branch/files → state the mathematical invariant being changed → create a feature branch → implement reusable module and test → run fast tests → update notes/docs → review diff for provenance and surprising compute → open PR → inspect checks and merge if permitted and the user has not opted out.
 
 **For additional explanation and task templates**, see `docs/agent-guide.md`.
+
+
+## Unlimited wall-time full convex SDP continuation (2026-10-25)
+
+- `maxkcut-sdp-batch --no-wall-limit` explicitly disables both
+  per-graph and global **wall-clock** timeouts while retaining
+  the original **full convex SDP** under CPU CVXPY/SCS.
+  Never conflate this with an unlimited SCS iteration budget;
+  `--max-iters` remains a separate numerical termination condition.
+- The first batch saved 30 complete canonical n<=1000 SDPs
+  and 41 size-skipped graphs. Under the same output directory,
+  changing ONLY execution time limits or the max-n safety gate
+  permits verified resume; the original solver parameters, input
+  checksum, archived partitions and rounding settings must remain
+  identical. Record each invocation's execution policy without
+  rewriting prior provenance.
+- For n>1000 explicit `--allow-large` is still mandatory;
+  for n>3000 `--acknowledge-huge-risk` is also required.
+  No timeout is NOT a RAM limit; massive PSD cone eigendecompositions
+  can exhaust the user's 64 GB Windows memory or crash the system.
+  Prefer staged n<=2000 then n<=3000, and individually inspected
+  large SDP attempts. Never automatically launch >3000 PSD cones.

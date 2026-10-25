@@ -427,3 +427,30 @@ Import-Csv reports/gset/full-sdp-batch/sdp-vs-cuda.csv | Where-Object {$_.sdp_be
 
 Do not paste Markdown headings or concatenate two distinct
 PowerShell commands on the same line.
+
+## Continue 41 unsolved full-SDP graphs with unlimited wall time
+
+The first study attempted and completed **all 30 n<=1000 full SDPs**.
+The existing `reports/gset/full-sdp-batch/` also has 41 explicit
+size-skips. `--no-wall-limit` removes per-graph and overall
+timeouts and permits **same-folder verified resume** with a higher
+`--max-n` (only the numerical solver settings remain fixed).
+No CUDA low-rank substitution takes place.
+
+```powershell
+git pull --ff-only origin main
+python -m pip install -e .
+python -m pytest -q
+maxkcut-sdp-batch --max-n 2000 --allow-large --no-wall-limit --cpu-threads 8 --restarts 20 --output-dir reports/gset/full-sdp-batch
+```
+
+The 30 verified complete results are skipped. As always, **unlimited
+wall time is not unlimited RAM**: avoid auto-launching n=5000–20000
+dense convex SDPs on 64 GB Windows without a deliberate resource plan.
+The SDP solver's `--max-iters 3000` numerical iteration stopping
+condition still applies. After n=2000 cases, n=3000 can be attempted
+using the same directory and parameters:
+
+```powershell
+maxkcut-sdp-batch --max-n 3000 --allow-large --no-wall-limit --cpu-threads 8 --restarts 20 --output-dir reports/gset/full-sdp-batch
+```
