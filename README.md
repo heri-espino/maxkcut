@@ -148,6 +148,18 @@ maxkcut-sdp-batch --dry-run
 maxkcut-sdp-batch --max-n 1000 --seconds-per-graph 600 --total-seconds 3600 --cpu-threads 8 --restarts 20 --output-dir reports/gset/full-sdp-batch
 ```
 
+The same command resumes verified successes. If your CUDA JSONL is
+append-only and contains multiple archived runs of the same graph,
+the comparison deterministically selects the latest **complete and
+independently verified** run per graph (not the highest-cut run).
+The comparison CSV records `cuda_run_id`, `cuda_candidate_runs`
+and `cuda_selection_policy`. To regenerate an interrupted post-batch
+CSV comparison **without rerunning any SDP**, use:
+
+```powershell
+maxkcut-sdp-batch --compare-only --output-dir reports/gset/full-sdp-batch --cuda-results reports/gset/all71-cuda-baseline.jsonl
+```
+
 The same command resumes verified successes. If
 `reports/gset/all71-cuda-baseline.jsonl` exists, the batch also writes
 an archive-verified comparison `sdp-vs-cuda.csv`; it separately saves
