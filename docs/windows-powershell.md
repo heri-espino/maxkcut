@@ -252,3 +252,35 @@ A failed `--compare-inputs` invocation will not create
 `input_comparison.csv`; an immediate `Import-Csv` of that missing
 output will then also fail. Only inspect the CSV after the generating
 command completes successfully.
+
+## October 2026: test sweep succeeded internally but printed `KeyError: 'complete'`
+
+A second bookkeeping bug caused a successfully completed graph to be
+misreported as failed. The run manifest uses `status="complete"`, whereas
+the batch summary counter is intentionally called `"completed"`. The
+old code did `counts[status] += 1` and raised `KeyError: 'complete'`
+after writing the partition archive. The exception handler then
+incorrectly marked the case failed. Fixed in PR #13.
+
+After updating, first rerun the **lightweight test suite**; the user's
+previous run was **54 passed and 4 failed**, all four due to this issue:
+
+```powershell
+git pull --ff-only origin main
+python -m pytest -q
+```
+
+Your local `data/` already contained **71** `G*.txt` files. A fresh
+canonical first pass can now process two graphs, then resume for all 71:
+
+```powershell
+maxkcut-sweep --max-graphs 2 --output-dir reports/gset/canonical-first-pass
+maxkcut-sweep --output-dir reports/gset/canonical-first-pass
+```
+
+Do not delete previous archives automatically. The runner saves each
+run separately; when a previous record was marked `failed`, it will
+recompute that graph under the same plan. A successful `summary.csv`
+and `comparison.csv` appear in the selected output directory. The
+latter compares only the 17 toroidal instances documented in
+Glass–Feder (2026), not all 71.
