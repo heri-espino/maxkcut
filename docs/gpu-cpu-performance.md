@@ -165,3 +165,14 @@ responsive and close other memory-intensive processes for experiments.
 Official sources: [CVXPY SDPA options](https://www.cvxpy.org/tutorial/solvers/),
 [SDPA Python options](https://sdpa-python.github.io/docs/usage/params.html),
 [Microsoft system commit limit and page files](https://learn.microsoft.com/en-us/troubleshoot/windows-client/performance/how-to-determine-the-appropriate-page-file-size-for-64-bit-versions-of-windows).
+
+## Optional GPU vector optimization without building custom SCS
+
+A new, explicitly separated `maxkcut-gpu` command uses PyTorch on CUDA to
+optimize a low-rank Max-Cut vector formulation, using the sparse signed
+adjacency. This genuinely moves optimizer arithmetic to the NVIDIA GPU
+but **is not** the same full convex CVXPY SDP and cannot claim its
+certificates. It sends the resulting vectors into the original GW and
+spherical K-Means CPU rounding routines. No WSL, admin, NVCC, or custom
+cuDSS SCS build is needed when using a compatible precompiled Windows CUDA
+PyTorch wheel. See [the GPU low-rank guide](cuda-lowrank.md).
