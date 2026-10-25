@@ -155,11 +155,19 @@ def test_full_gpu_benchmark_archive_and_reuse_without_real_optimizer(
     second_output = tmp_path / "run2.jsonl"
     benchmark_lowrank([graph_path], first_output, **options)
     benchmark_lowrank([graph_path], second_output, **options)
+    third_output = tmp_path / "run3-new-rounds.jsonl"
+    benchmark_lowrank(
+        [graph_path], third_output, rounding_seed=2027, **options
+    )
     assert len(calls) == 1
 
     rows1 = [json.loads(x) for x in first_output.read_text().splitlines()]
     rows2 = [json.loads(x) for x in second_output.read_text().splitlines()]
     assert len(rows1) == len(rows2) == 6
+    rows3 = [json.loads(x) for x in third_output.read_text().splitlines()]
+    assert len(rows3) == 6
+    assert all(r["factor_cache_hit"] for r in rows3)
+    assert all(r["rounding_seed"] == 2027 for r in rows3)
     assert all(r["is_full_convex_sdp"] is False for r in rows1)
     assert all(r["sdp_upper_bound_certified"] is False for r in rows1)
     assert all(r["factor_cache_hit"] is False for r in rows1)
@@ -175,7 +183,7 @@ def test_full_gpu_benchmark_archive_and_reuse_without_real_optimizer(
         assert nm >= gw
 
     case_dir = list((tmp_path / "artifacts").glob("*/G11-k2"))
-    assert len(case_dir) == 2
+    assert len(case_dir) == 3
     for directory in case_dir:
         assert (directory / "lowrank_factors.npz").is_file()
         verified = verify_archive(directory)
