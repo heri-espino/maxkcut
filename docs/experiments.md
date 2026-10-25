@@ -81,3 +81,17 @@ When producing a scientific comparison, rerun with stricter SCS tolerances
 and record whether rounding scores are stable. For $k>2$, vector
 renormalization may violate the Frieze–Jerrum lower bounds, although labels
 still constitute a valid discrete partition.
+
+## Two-stage G-set research workflow
+
+The entire checked-in corpus (G1–G71) can be examined and subjected to
+an inexpensive, bounded **sparse one-flip local-search baseline** using
+`maxkcut-sweep`. It saves each graph's cut assignments and scores and is
+fully resumable. It **must not** be reported as an SDP, GW, or spherical
+K-Means experiment; it uses no SDP and produces no certified upper bound.
+See [full-corpus first-pass protocol](full-gset-sweep.md).
+
+Only after that baseline should we spend solver time on a manageable
+SDP subset, retaining the existing `maxkcut` results and caching each
+Gram matrix. Do not assume that trial counts on the initial heuristic
+baseline supply statistical significance for SDP rounding algorithms.

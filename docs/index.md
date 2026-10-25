@@ -15,6 +15,7 @@ quickstart
 windows-powershell
 experiments
 experiment-archives
+full-gset-sweep
 gset-reference-values
 performance
 gpu-cpu-performance
