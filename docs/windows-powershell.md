@@ -377,3 +377,28 @@ plan. The new `--preflight-seven` only inspects text headers and does not
 run any SDP. It reports the memory needed for ONE dense X matrix, **not**
 the full peak CVXPY solver RAM. See
 [the full SDP study protocol](full-sdp-comparison.md).
+
+## Bounded full convex SDP attempts on all 71 G-set instances
+
+G11 is a confirmed archive-verified canonical full-SDP vs CUDA test:
+**546** full SDP best rounded cut vs **536** CUDA low-rank best; G11
+optimal Max-Cut is **564**. To attempt the original convex SDP across
+the whole G-set **without running 71 dense matrices in one process**:
+
+```powershell
+git pull --ff-only origin main
+python -m pip install -e .
+python -m pytest -q
+maxkcut-sdp-batch --dry-run
+maxkcut-sdp-batch --max-n 1000 --seconds-per-graph 600 --total-seconds 3600 --cpu-threads 8 --restarts 20 --output-dir reports/gset/full-sdp-batch
+```
+
+Re-run the same batch command to resume. Each case is processed in a
+separate CPU subprocess, with saved stdout/errors, timeout, solver status,
+all partitions and an independent archive verification before skipping.
+By default n > 1000 is **skipped with a reason**, not attempted or
+claimed solved; full SDP on G81 (n=20,000) can overwhelm 64 GB RAM
+despite a roughly 3 GiB raw matrix. The optional automatic
+`sdp-vs-cuda.csv` joins to your already saved CUDA 71-graph baseline.
+Large cases need explicit opt-in and a separate, researched numerical
+solver plan. See [safe full SDP batch guide](full-sdp-batch.md).

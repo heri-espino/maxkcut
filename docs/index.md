@@ -22,6 +22,7 @@ performance
 gpu-cpu-performance
 cuda-lowrank
 full-sdp-comparison
+full-sdp-batch
 ```
 
 ```{toctree}

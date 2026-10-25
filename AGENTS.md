@@ -189,6 +189,29 @@ When responding to a user's terminal logs, identify their shell before providing
   actual limitations and partial completion rather than asserting
   the thesis's unsolved convex SDPs were resolved.
 
+## Resumable G-set full convex SDP batch
+
+- `maxkcut-sdp-batch` attempts the **original CVXPY/SCS full convex
+  SDP**, one bounded subprocess per graph, with exact checksum-backed
+  archive verification and persisted per-graph success, failure, timeout
+  or size-skip. A completed CUDA low-rank feasible cut is *not*
+  evidence of the convex SDP having been solved.
+- Safe default graph cap is n <= 1000. Raising above 1000 requires
+  `--allow-large`; above 3000 requires another
+  `--acknowledge-huge-risk` because 64 GB Windows RAM may not
+  accommodate dense PSD cone internals. Wall timeouts do not cap peak RAM.
+- Large jobs are **never** launched automatically in GitHub Actions.
+  CPU full-SDP cost can be orders of magnitude higher than low-rank CUDA
+  cost. A batch selecting all 71 canonical graphs will report some as
+  `skipped_size`, not fake success. Never remove these safety guards.
+- Per-graph artifacts, original SDP numeric status, actual CPU duration,
+  source graph SHA, all roundings and solver diagnostics must remain
+  auditable. The offline comparison with CUDA requires normalized
+  weighted graph identity.
+- The user's existing confirmed G11 comparison: full SDP best rounded
+  cut 546, CUDA low-rank strong best 536, canonical proven optimum 564;
+  full SDP solver said `optimal` (not proof of integer Max-Cut optimum).
+
 ## Workflow authorization and scope
 
 - **Never** launch a large graph SDP, numerical figure generation, or paper/PDF build as an automatic push/PR job. Heavy work requires `workflow_dispatch`, explicit operator selection and bounded inputs/resources. Lightweight tests/lint are allowed.

@@ -82,6 +82,16 @@ The package exposes stable **research entry points** at the top level. Each func
 :members:
 ```
 
+## Resource-bounded full convex SDP G-set batch
+
+```{automodule} maxkcut.sdp_batch
+:members:
+```
+
+```{automodule} maxkcut.sdp_batch_cli
+:members:
+```
+
 ## CLI
 
 ```{automodule} maxkcut.cli

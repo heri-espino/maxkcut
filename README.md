@@ -128,6 +128,36 @@ Notably, G11=564 was proved optimal in 2026 by a matching feasible cut and
 toroidal upper bound, whereas many other G-set cut values are only
 best-known heuristic results.
 
+## Safely attempt the convex SDP across all 71 G-set graphs
+
+G11 is now **verified on identical canonical input**: full convex
+CVXPY/SCS SDP + Ángel clustering best cut 546 (numerical solver
+`optimal`), versus CUDA nonconvex low-rank best 536, and the published
+G11 optimum 564. To *attempt* every eligible full convex SDP without
+launching huge numerical matrices in one process, the new
+`maxkcut-sdp-batch` command runs each graph in a separate **CPU**
+subprocess with bounded runtime and verified resume. It does **not**
+silently replace the full SDP with CUDA low-rank. It reports larger
+instances as **skipped**, never as solved.
+
+```powershell
+git pull --ff-only origin main
+python -m pip install -e .
+python -m pytest -q
+maxkcut-sdp-batch --dry-run
+maxkcut-sdp-batch --max-n 1000 --seconds-per-graph 600 --total-seconds 3600 --cpu-threads 8 --restarts 20 --output-dir reports/gset/full-sdp-batch
+```
+
+The same command resumes verified successes. If
+`reports/gset/all71-cuda-baseline.jsonl` exists, the batch also writes
+an archive-verified comparison `sdp-vs-cuda.csv`; it separately saves
+`summary.csv`, cases, solver logs and full partitions. The 64 GB
+Windows PC should **not** attempt all 20,000-vertex dense full SDPs
+blindly. `--allow-large` is needed to raise n > 1000; n > 3000
+requires an additional explicit `--acknowledge-huge-risk`. Neither
+a wall timeout nor these flags guarantees protection from RAM exhaustion.
+Read [the full SDP batch safety and comparison guide](docs/full-sdp-batch.md).
+
 ## Full convex SDP versus CUDA low-rank comparison
 
 The original `maxkcut` command **already solves the full convex SDP**
