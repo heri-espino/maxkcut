@@ -15,10 +15,12 @@ dependencies = ["numpy>=1.26", "scipy>=1.11", "cvxpy>=1.5", "threadpoolctl>=3.4"
 test = ["pytest>=8"]
 docs = ["sphinx>=8,<10", "furo>=2024.8", "myst-parser>=4", "sphinx-copybutton>=0.5"]
 dev = ["pytest>=8", "sphinx>=8,<10", "furo>=2024.8", "myst-parser>=4", "sphinx-copybutton>=0.5"]
+gpu = ["torch>=2.10"]
 
 [project.scripts]
 maxkcut = "maxkcut.cli:main"
 maxkcut-sweep = "maxkcut.sweep_cli:main"
+maxkcut-gpu = "maxkcut.lowrank_cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

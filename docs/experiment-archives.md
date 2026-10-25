@@ -64,3 +64,18 @@ To disable optional archive creation use --no-artifacts. To redirect the archive
 For the canonical G11 graph, **564 has been proved optimal**: a feasible cut of 564 matches the independent toroidal planar-relaxation upper bound of 564. See [G-set proven optima and other references](gset-reference-values.md), based on Glass and Feder (2026), Table 1: https://arxiv.org/html/2606.28478
 
 Our G11 run obtained a cut of 546, which is 96.81% of that optimum **conditional on matching the local .mat graph to the canonical input**. The archive preserves graph SHA256, signed edges and structural diagnostics to enable that identity check.
+
+## Optional CUDA/CPU low-rank factor cache
+
+The `maxkcut-gpu` runner uses a **distinct** cache in
+`reports/gset/lowrank_cache/`. Unlike the original SDP cache (raw dense
+X), it stores the best **rank-r factors** in compact float32 NPZ files
+with `allow_pickle=False`, an input graph SHA256 and all optimizer settings,
+CUDA runtime/Torch versions, device, GPU name, optimizer seed and history.
+The per-run experiment archive also stores `lowrank_factors.npz` once,
+plus the existing signed graph snapshot and **every** rounded cut partition.
+
+This solver is a nonconvex approximation and its vector objective must not
+be treated as an SDP certificate. A different `--rounding-seed` can reuse
+**the same optimized factor** without GPU re-training if graph and optimizer
+settings remain unchanged. See [CUDA setup and protocol](cuda-lowrank.md).

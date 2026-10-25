@@ -207,3 +207,30 @@ The full-corpus first pass produces `comparison.csv` with the 17
 Glass–Feder Table 1 instances labeled either proven optimum or unproved
 best-known cut. There are no measurements reported here from an executed
 full 71-instance run. A status is only a result after actual execution.
+
+## Optional GPU low-rank branch (2026-10-24, implementation only)
+
+A separate Python/PyTorch CUDA path was added under
+`src/maxkcut/lowrank.py`, accessible by `maxkcut-gpu`. This is **not**
+a GPU reimplementation of CVXPY's full SDP: it optimizes
+`X=VV.T, ||V_i||=1` using sparse graph-times-factor operations,
+rank-r projected Adam and multiple independent optimizer starts.
+Only Max-Cut k=2 is supported. GPU performs factor optimization;
+existing GW / K-Means2N / K-MeansNM rounders then operate on CPU.
+The relaxation objective is only a nonconvex primal heuristic value,
+NOT a certified upper bound; all rounded partitions are scored using
+the original signed weighted graph.
+
+Repeatable experiment command (needs separately installed CUDA PyTorch):
+
+```powershell
+maxkcut-gpu --graphs G11 --device cuda --rank 32 --epochs 200 --optimizer-starts 2 --restarts 20 --seed 2026 --output reports/gset/g11-torch-cuda.jsonl
+```
+
+A distinct float32 factor cache and full experiment archives preserve
+all seeds, optimizer history, factors, signed graph edges, cut partitions
+and software/GPU metadata. The CPU tests do not establish an RTX 4500 Ada
+runtime advantage. This branch must remain an explicit experimental
+comparison against the thesis full-SDP+rounding pipeline. See
+`docs/cuda-lowrank.md`. **No real GPU G11/G81 solve was performed by the
+authoring agent.**

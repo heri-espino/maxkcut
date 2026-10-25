@@ -138,6 +138,35 @@ When responding to a user's terminal logs, identify their shell before providing
 - Keep GPU-enabled convex SDP and nonconvex low-rank Burer-Monteiro methods
   separate, with different scientific labels and guarantees.
 
+## Optional PyTorch CUDA low-rank research backend
+
+- `src/maxkcut/lowrank.py` uses optional PyTorch with an explicit
+  `cuda` or `cpu` device and **no silent CPU fallback**. It solves a
+  rank-restricted, **nonconvex Max-Cut (k=2)** vector problem, **not**
+  the full CVXPY/SCS SDP. It does not certify an SDP upper bound, and
+  must NOT be used directly for k>2 without the Frieze-Jerrum
+  pairwise constraints.
+- `maxkcut-gpu` is its separate CLI. Use `--device cpu` for tiny tests;
+  never initiate expensive GPU or full-G-set runs in automatic workflows.
+- The GPU runs graph-times-factor sparse products and Adam updates, but
+  existing thesis GW/K-Means rounding is CPU/NumPy after optimization.
+  No dense n-by-n X must be constructed by this backend.
+- Store one rank-r float32 factor, all optimization-start histories,
+  signed graph weights and **every** rounded partition in archives.
+  Distinct factor caches are keyed to input SHA256, optimizer settings,
+  Torch/CUDA version and optimizer seed. `--rounding-seed` must not
+  invalidate the factor cache.
+- Report `GW_torchlowrank`, `K-Means2N_torchlowrank` and
+  `K-MeansNM_torchlowrank` **separately** from the same names evaluated
+  on full SDP vectors. Compare exact cut weights, runtime and device
+  on identical graphs under disclosed budgets. Do not claim a speedup
+  without measuring the actual RTX 4500 Ada GPU.
+- Keep torch an **optional dependency**; ordinary environment, package
+  imports, docs and small tests must not require a CUDA installation.
+  PyTorch Windows CUDA wheels can be installed user-locally into a
+  separate Conda environment; do not auto-install gigabytes of CUDA
+  packages as part of the standard environment.
+
 ## Workflow authorization and scope
 
 - **Never** launch a large graph SDP, numerical figure generation, or paper/PDF build as an automatic push/PR job. Heavy work requires `workflow_dispatch`, explicit operator selection and bounded inputs/resources. Lightweight tests/lint are allowed.
