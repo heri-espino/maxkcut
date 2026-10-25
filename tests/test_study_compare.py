@@ -95,6 +95,9 @@ def test_full_sdp_and_cuda_comparison_checks_exact_graph_identity(tmp_path):
     assert item["sdp_minus_cuda_cut"] == 1.
     assert item["sdp_vs_cuda_optimizer_time_ratio_uncached"] == 5.5
     assert item["reference_status"] == "proven_optimum"
+    assert item["cuda_rank"] == 2
+    assert item["cuda_epochs"] == 100
+    assert item["cuda_optimizer_starts"] == 1
     # A synthetic 3-vertex G11 must never receive paper optimum ratios.
     assert item["paper_assessment"] == "UNVERIFIED_GRAPH_IDENTITY_OR_SIZE"
     assert item["cuda_percent_of_proven_optimum"] is None
