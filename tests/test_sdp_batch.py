@@ -115,6 +115,7 @@ def test_batch_runs_subprocess_and_resume_skips_verified_success(
         _write_complete_sdp_archive(graph, jsonl, restarts=2)
         return subprocess.CompletedProcess(command, 0)
 
+    monkeypatch.setattr("maxkcut.archive._git_metadata", lambda: {"commit": None, "dirty": None})
     monkeypatch.setattr(batch.subprocess, "run", fake_run)
     options = {
         "restarts": 2, "seconds_per_graph": 10.,
