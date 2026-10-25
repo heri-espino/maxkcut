@@ -15,6 +15,7 @@ from .comparison import compare_rows, write_comparison
 from .graph_compare import compare_directories
 from .lowrank import optimize_torch_lowrank, torch_device_info, lowrank_objective
 from .lowrank_experiments import benchmark_lowrank
+from .study_compare import compare_saved_runs, write_study_comparison, full_sdp_preflight
 
 __version__ = "0.1.0"
 __all__ = ["load_graph", "edge_arrays", "cut_weight", "factorize",
@@ -23,4 +24,5 @@ __all__ = ["load_graph", "edge_arrays", "cut_weight", "factorize",
            "random_flip_restart", "discover_graphs", "inspect_gset", "run_sweep",
            "reference_for_graph", "compare_rows", "write_comparison",
            "compare_directories", "optimize_torch_lowrank", "torch_device_info",
-           "lowrank_objective", "benchmark_lowrank"]
+           "lowrank_objective", "benchmark_lowrank", "compare_saved_runs",
+           "write_study_comparison", "full_sdp_preflight"]

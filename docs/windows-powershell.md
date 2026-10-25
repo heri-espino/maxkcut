@@ -352,3 +352,28 @@ CUDA result is 506/564 (89.72% of the proven G11 optimum), below the
 earlier full-SDP K-Means result 546/564 (96.81%). These runs have
 different budgets; no speedup or statistical superiority has yet been
 measured.
+
+## Full convex SDP versus the existing CUDA low-rank experiment
+
+The `maxkcut` command uses the actual CVXPY **convex SDP**, followed by
+the three existing GW/K-Means clustering methods. It does not use the
+CUDA low-rank solver. You can directly contrast saved experiments using
+`maxkcut-sdp-compare`, which checks normalized graph snapshots against
+canonical `data/Gxx.txt` and refuses unverified quality deltas:
+
+```powershell
+git pull --ff-only origin main
+conda activate maxkcut-cuda
+python -m pip install -e .
+python -m pytest -q
+maxkcut-sdp-compare --preflight-seven
+maxkcut --graphs G11 --gset-dir data --k 2 --solver SCS --eps 1e-3 --max-iters 3000 --cpu-threads 8 --restarts 20 --seed 2026 --output reports/gset/g11-fullsdp.jsonl
+maxkcut-sdp-compare --sdp reports/gset/g11-fullsdp.jsonl --cuda reports/gset/g11-cuda-strong.jsonl --output reports/gset/g11-sdp-vs-cuda.csv
+Import-Csv reports/gset/g11-sdp-vs-cuda.csv | Format-Table graph,graph_identity,sdp_best_cut,cuda_best_cut,sdp_minus_cuda_cut,sdp_status
+```
+
+Only attempt n>1000 **full SDP** experiments with a bounded resource
+plan. The new `--preflight-seven` only inspects text headers and does not
+run any SDP. It reports the memory needed for ONE dense X matrix, **not**
+the full peak CVXPY solver RAM. See
+[the full SDP study protocol](full-sdp-comparison.md).

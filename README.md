@@ -128,6 +128,35 @@ Notably, G11=564 was proved optimal in 2026 by a matching feasible cut and
 toroidal upper bound, whereas many other G-set cut values are only
 best-known heuristic results.
 
+## Full convex SDP versus CUDA low-rank comparison
+
+The original `maxkcut` command **already solves the full convex SDP**
+with CVXPY/SCS. A new lightweight `maxkcut-sdp-compare` command compares
+its archived G-set cut results against an existing `maxkcut-gpu` CUDA
+low-rank run **only after verifying identical normalized weighted graph
+snapshots**. It reports the three GW/K-Means methods separately, per-method
+best and mean cuts, numerical SDP solver status, cache-independent
+optimization durations, published G-set references and conditional proven
+optimality gaps. Graphs with no successful full SDP remain `NOT_RUN`.
+
+From **Windows PowerShell** in the repository root:
+
+```powershell
+git pull --ff-only origin main
+python -m pip install -e .
+maxkcut-sdp-compare --preflight-seven
+maxkcut --graphs G11 --gset-dir data --k 2 --solver SCS --eps 1e-3 --max-iters 3000 --cpu-threads 8 --restarts 20 --seed 2026 --output reports/gset/g11-fullsdp.jsonl
+maxkcut-sdp-compare --sdp reports/gset/g11-fullsdp.jsonl --cuda reports/gset/g11-cuda-strong.jsonl --output reports/gset/g11-sdp-vs-cuda.csv
+```
+
+The **seven graph instances omitted by the thesis** are
+G55, G56, G60, G61, G70, G77, G81. The preflight command reports each
+graph's n and single dense-Gram RAM **lower bound**. Do not blindly use
+`--max-n 20000` with the full CVXPY SDP on a 64 GB RAM workstation:
+semidefinite-cone eigenprojections and temporary allocations are much
+larger than a single n-by-n matrix. CUDA low-rank cuts are **not** full
+convex SDP solves. Read [the full SDP comparison protocol](docs/full-sdp-comparison.md).
+
 ## Native Windows CUDA low-rank Max-Cut (optional)
 
 The original full SDP + GW/K-Means thesis experiment remains under

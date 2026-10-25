@@ -167,6 +167,28 @@ When responding to a user's terminal logs, identify their shell before providing
   separate Conda environment; do not auto-install gigabytes of CUDA
   packages as part of the standard environment.
 
+## Full convex SDP versus CUDA study
+
+- The unchanged `maxkcut` CVXPY/SCS solver creates a full n-by-n
+  convex PSD variable and runs the original three GW/K-Means rounders.
+  Its primal SDP objective and `optimal_inaccurate` status are **not**
+  proofs of optimality or certified dual upper bounds.
+- `maxkcut-sdp-compare` is an **offline comparison and preflight tool**:
+  it never launches a solver, checks normalized signed graph snapshots
+  against canonical `data/Gxx.txt`, and marks missing full SDPs
+  `NOT_RUN`. Preserve separate solver families and per-restart
+  metrics, solver status, and actual solver wall-clock time.
+- Seven previously excluded dissertation instances are G55, G56,
+  G60, G61, G70, G77, G81. Inspect dimensions first with
+  `--preflight-seven`. Do not launch a high-n dense CVXPY PSD
+  experiment merely because one n-by-n matrix fits in system RAM.
+  Large PSD cone eigenprojections and canonicalization can exceed
+  available memory; retain the default full-SDP `--max-n 1000` guard.
+- The CUDA low-rank approach is a separate **nonconvex** approximation,
+  not a solved full convex SDP on those seven cases. Document
+  actual limitations and partial completion rather than asserting
+  the thesis's unsolved convex SDPs were resolved.
+
 ## Workflow authorization and scope
 
 - **Never** launch a large graph SDP, numerical figure generation, or paper/PDF build as an automatic push/PR job. Heavy work requires `workflow_dispatch`, explicit operator selection and bounded inputs/resources. Lightweight tests/lint are allowed.

@@ -21,6 +21,7 @@ gset-reference-values
 performance
 gpu-cpu-performance
 cuda-lowrank
+full-sdp-comparison
 ```
 
 ```{toctree}

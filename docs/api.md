@@ -72,6 +72,16 @@ The package exposes stable **research entry points** at the top level. Each func
 :members:
 ```
 
+## Full convex SDP versus CUDA comparisons
+
+```{automodule} maxkcut.study_compare
+:members:
+```
+
+```{automodule} maxkcut.study_cli
+:members:
+```
+
 ## CLI
 
 ```{automodule} maxkcut.cli

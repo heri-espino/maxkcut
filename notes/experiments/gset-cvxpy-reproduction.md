@@ -234,3 +234,30 @@ runtime advantage. This branch must remain an explicit experimental
 comparison against the thesis full-SDP+rounding pipeline. See
 `docs/cuda-lowrank.md`. **No real GPU G11/G81 solve was performed by the
 authoring agent.**
+
+## 2026-10-25: next-stage full convex SDP comparison (planned)
+
+The user successfully ran rank-64/500 epoch/four-start CUDA low-rank
+G11 (best cut 536), plus a 71-graph CUDA rank-32 baseline. These
+are nonconvex factors, NOT full SDP results. We introduced
+`maxkcut-sdp-compare` to join newly computed `maxkcut` (full CVXPY
+convex SDP) JSONL with saved CUDA JSONL, with *exact* canonical
+normalized-graph fingerprint matching and conditional paper optima.
+Unsolved graph instances remain marked `NOT_RUN`.
+
+The first intended numerical solve is **canonical G11 (n=800)**:
+`maxkcut --graphs G11 --gset-dir data --k 2 --solver SCS --eps 1e-3 --max-iters 3000 --cpu-threads 8 --restarts 20 --seed 2026 --output reports/gset/g11-fullsdp.jsonl`.
+
+Seven graphs (G55, G56, G60, G61, G70, G77, G81) were excluded in
+Ángel Rodríguez Fernández (2021, Chapter 6) because previous SDP
+software could not solve them. Check their real dimensions using
+`maxkcut-sdp-compare --preflight-seven`; 20,000 vertices would need
+2.98 GiB for **one** float64 Gram, but considerably more for the dense
+PSD cone numerical solve. Completing GPU low-rank cuts on all seven
+is not evidence that their **convex SDPs** have been solved.
+
+**No fresh full-SDP solve has yet been executed on the user's Windows
+workstation by the authoring agent.** The study runner is an offline
+comparison and safety inspection tool only. Any new measured SDP
+results must come from actual saved runs and independently verified
+archives. See `docs/full-sdp-comparison.md`.
