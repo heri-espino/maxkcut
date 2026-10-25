@@ -174,3 +174,20 @@ Gram matrix is separately cached by graph SHA256 + solver settings and need
 not be regenerated just to examine the previous cuts. Check archive integrity
 with `maxkcut --verify-archive PATH`, which rescales no SDP and simply
 recomputes the stored cut weights. See `docs/experiment-archives.md`.
+
+## Full checked-in G-set first pass: protocol only (no experiments run here)
+
+Repository inventory in October 2026 contains 71 `G-Set/G*.mat`
+files (`G1.mat` through `G71.mat`). To avoid 71 large CVXPY PSD cones,
+`maxkcut-sweep` has a separate **sparse one-flip local-search baseline**.
+Five independent random starts, 20 sweeps and a soft time budget of
+60 seconds per graph are the initial exploratory defaults; this is
+**not** SDP rounding and not itself a statistical significance study.
+Graph, weighted edge snapshot, all per-seed partitions, objective scores,
+elapsed time, and per-graph statuses are saved under
+`reports/gset/full-first-pass/`; re-running with identical parameters
+verifies and skips completed cases. See `docs/full-gset-sweep.md`.
+
+Run the existing SDP/GW/K-Means pipeline separately on feasible small
+G-set instances, preserving matched problem data and distinct method
+labels. **No 71-graph benchmark has been executed by the authoring agent.**
