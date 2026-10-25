@@ -46,7 +46,7 @@ def discover_graphs(directory: Path, names: list[str] | None = None) -> list[Pat
     if names is None or names == ["ALL"]:
         by_number = {}
         for path in directory.iterdir() if directory.is_dir() else []:
-            if not re.fullmatch(r"G\\d+\\.(?:txt|mat)", path.name):
+            if not re.fullmatch(r"G\d+\.(?:txt|mat)", path.name):
                 continue
             number = _graph_number(path)
             prior = by_number.get(number)
@@ -69,7 +69,16 @@ def discover_graphs(directory: Path, names: list[str] | None = None) -> list[Pat
                 candidate = txt if txt.exists() else mat
             paths.append(candidate)
     if not paths:
-        raise FileNotFoundError(f"No G-set .txt or .mat files in {directory}")
+        if not directory.is_dir():
+            raise FileNotFoundError(
+                f"G-set directory does not exist: {directory}. "
+                "Synchronize your local repository (git pull --ff-only origin main), "
+                "or pass --gset-dir PATH to the actual dataset."
+            )
+        raise FileNotFoundError(
+            f"No G-set G<number>.txt or G<number>.mat files found in {directory}. "
+            "Check the directory contents and your local Git checkout."
+        )
     for path in paths:
         _graph_number(path)
         if not path.is_file():
