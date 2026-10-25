@@ -15,6 +15,9 @@ maxkcut/
 │   ├── local_search.py          # fast signed sparse one-flip baseline
 │   ├── sweep.py                 # sequential resumable 71-graph orchestrator
 │   ├── sweep_cli.py             # maxkcut-sweep CLI
+│   ├── references.py            # Glass–Feder (2026) Table 1 references
+│   ├── comparison.py            # proven-vs-best-known cut comparisons
+│   ├── graph_compare.py         # canonical TXT vs legacy MAT identity audit
 │   ├── io.py                     # MATLAB matrices -> sparse weighted graph
 │   ├── objective.py              # exact weighted cut evaluator
 │   ├── sdp.py                    # semidefinite relaxation via CVXPY
