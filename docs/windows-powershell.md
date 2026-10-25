@@ -214,3 +214,41 @@ Use `--gset-dir G-Set` to explicitly reproduce previous runs based on
 legacy `.mat` files. Without the flag, the CLIs now load `data/*.txt`.
 The 2026 paper lists 17 toroidal instances, not 71 proven optima.
 See [canonical graph and published-cut comparison](canonical-data-comparison.md).
+
+## October 2026: all graph files appeared missing
+
+An earlier `discover_graphs` implementation accidentally used a
+**double-escaped regular-expression pattern**. Consequently, valid files
+named `G11.txt` or `G11.mat` were silently excluded, causing eight
+unit tests to fail and making `maxkcut-sweep` incorrectly report
+`No G-set .txt or .mat files in data`. The error did **not** establish
+that the local dataset was absent. This is fixed in PR #12.
+
+Copy **only commands** into PowerShell, not descriptive sentences such
+as "Check whether..." or "Run two instances...".
+
+```powershell
+git pull --ff-only origin main
+python -m pytest -q
+Get-ChildItem .\data -Filter 'G*.txt' | Measure-Object
+maxkcut-sweep --inspect-only
+maxkcut-sweep --compare-inputs
+maxkcut-sweep --max-graphs 2 --output-dir reports/gset/canonical-first-pass
+maxkcut-sweep --output-dir reports/gset/canonical-first-pass
+```
+
+There should be **71 canonical G-set TXT files** in the checked-out
+`data/` directory. If the `Get-ChildItem` command returns a missing
+directory error or a count of zero **after pulling**, inspect Git state
+without destroying local changes:
+
+```powershell
+git status --short --branch
+git ls-files data
+git ls-tree -r --name-only HEAD data
+```
+
+A failed `--compare-inputs` invocation will not create
+`input_comparison.csv`; an immediate `Import-Csv` of that missing
+output will then also fail. Only inspect the CSV after the generating
+command completes successfully.
