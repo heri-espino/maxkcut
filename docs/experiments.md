@@ -109,3 +109,23 @@ instances** in Glass and Feder (2026), Table 1, reporting the paper's
 best cut, certified upper bound and whether they agree. Absent entries
 are explicitly unreferenced; never assume the other 54 graph optima have
 been proved. See [comparison protocol](canonical-data-comparison.md).
+
+## Optional CUDA low-rank factor benchmark
+
+A distinct `maxkcut-gpu` entry point optimizes rank-r unit vectors using
+the original sparse signed graph, with optional PyTorch CUDA acceleration,
+and then evaluates GW, K-Means2N, K-MeansNM on the resulting factors.
+This is **not a reproduction of the full SDP solution** and is not a
+certified SDP upper bound. Distinct method labels carry the
+`_torchlowrank` suffix to prevent conflating algorithms.
+
+CUDA optimizer starts and rounding restarts are distinct compute budgets.
+Factor cache keys include graph SHA256, rank, epochs, learning rate,
+optimizer-start count, Torch/CUDA versions, device and optimizer seed.
+`--rounding-seed` changes only GW/K-Means random starts and does **not**
+invalidate that cached factor.
+
+All results retain exact weighted cuts, rank-r factors, optimizer histories,
+timings, GPU identity and every rounded partition. Compare them to the
+full convex SDP/rounding baseline only on canonical identical graphs and
+at disclosed compute budgets. See [CUDA low-rank guide](cuda-lowrank.md).
