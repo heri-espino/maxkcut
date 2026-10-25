@@ -227,7 +227,7 @@ def _write_audited_cuda_run(path, graph_path, labels, *, complete=True):
         update_manifest(run, status="complete")
     with path.open("a", encoding="utf8") as stream:
         for row in samples:
-            stream.write(json.dumps(row) + "\\n")
+            stream.write(json.dumps(row) + "\n")
     return run["manifest"]["run_id"]
 
 
@@ -235,7 +235,7 @@ def test_append_only_cuda_selects_latest_verified_run_not_maximum_cut(tmp_path):
     data = tmp_path / "data"
     data.mkdir()
     graph_path = data / "G11.txt"
-    graph_path.write_text("3 2\\n1 2 1\\n2 3 -1\\n", encoding="utf8")
+    graph_path.write_text("3 2\n1 2 1\n2 3 -1\n", encoding="utf8")
     cuda_path = tmp_path / "all71-cuda-baseline.jsonl"
     # First complete run has best cut 1.
     run_one = _write_audited_cuda_run(
@@ -265,7 +265,7 @@ def test_duplicate_cuda_without_any_valid_complete_archive_fails(tmp_path):
     data = tmp_path / "data"
     data.mkdir()
     graph = data / "G11.txt"
-    graph.write_text("3 2\\n1 2 1\\n2 3 -1\\n", encoding="utf8")
+    graph.write_text("3 2\n1 2 1\n2 3 -1\n", encoding="utf8")
     output = tmp_path / "cuda.jsonl"
     _write_audited_cuda_run(
         output, graph, np.array([0, 1, 1]), complete=False,
@@ -286,7 +286,7 @@ def test_compare_only_reuses_existing_full_sdp_records_without_solvers(
     data = tmp_path / "data"
     data.mkdir()
     (data / "G11.txt").write_text(
-        "3 2\\n1 2 1\\n2 3 -1\\n", encoding="utf8"
+        "3 2\n1 2 1\n2 3 -1\n", encoding="utf8"
     )
     full = _fake_run(tmp_path, "sdp-graph.jsonl", "G11", {
         "FJ": [1], "K-Means2N": [2], "K-MeansNM": [3],
