@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 
 from .sdp_batch import inventory, run_full_sdp_batch
+from .study_compare import write_study_comparison
 
 
 def main() -> None:
@@ -43,6 +44,12 @@ def main() -> None:
                         help="Overall run wall budget; continuing later is supported")
     parser.add_argument("--max-graphs", type=int,
                         help="Optional prefix test; e.g. first two graphs")
+    parser.add_argument("--cuda-results", type=Path, default=Path(
+        "reports/gset/all71-cuda-baseline.jsonl"
+    ), help="Saved CUDA low-rank JSONL; when present, automatically "
+            "write an exact graph-verified full SDP vs CUDA CSV")
+    parser.add_argument("--no-compare", action="store_true",
+                        help="Skip reading the pre-existing CUDA baseline")
     parser.add_argument("--retry-failed", action="store_true",
                         help="Retry failed/timed-out cases; successful graph archives "
                              "are still independently verified before skipping")
@@ -63,7 +70,7 @@ def main() -> None:
             ],
         }, indent=2))
         return
-    run_full_sdp_batch(
+    outcome = run_full_sdp_batch(
         args.gset_dir, args.output_dir, names=args.graphs,
         max_n=args.max_n, allow_large=args.allow_large,
         acknowledge_huge_risk=args.acknowledge_huge_risk,
@@ -74,6 +81,24 @@ def main() -> None:
         total_seconds=args.total_seconds, max_graphs=args.max_graphs,
         retry_failed=args.retry_failed,
     )
+
+    if not args.no_compare:
+        if args.cuda_results.is_file():
+            cases_dir = args.output_dir / "cases"
+            paths = []
+            for case_file in cases_dir.glob("G*.json"):
+                case = json.loads(case_file.read_text(encoding="utf8"))
+                if case.get("status") == "complete":
+                    paths.append(Path(case["source_jsonl"]))
+            target = args.output_dir / "sdp-vs-cuda.csv"
+            comparisons = write_study_comparison(
+                paths, args.cuda_results, args.gset_dir, target,
+            )
+            print(f"Saved {len(comparisons)} graph comparisons: {target}")
+        else:
+            print(f"CUDA baseline not present ({args.cuda_results}); "
+                  "retained full SDP summary only.")
+    return outcome
 
 
 if __name__ == "__main__":
