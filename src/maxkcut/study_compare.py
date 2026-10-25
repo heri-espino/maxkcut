@@ -13,6 +13,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import re
 from pathlib import Path
 
 import numpy as np
@@ -69,11 +70,14 @@ def _load_jsonl(path: Path, *, expected: tuple[str, ...]) -> dict:
             if "graph" not in row or "n" not in row or "cut_weight" not in row:
                 raise ValueError(f"{path}:{line_number}: missing graph, n or cut_weight")
             graph = str(row["graph"])
+            if re.fullmatch(r"G[1-9][0-9]*", graph) is None:
+                raise ValueError(f"{path}:{line_number}: invalid G-set graph {graph!r}")
             cut = float(row["cut_weight"])
             if not np.isfinite(cut):
                 raise ValueError(f"{path}:{line_number}: non-finite cut")
             run_id = row.get("artifact_run_id")
-            if not run_id:
+            if (not isinstance(run_id, str)
+                    or re.fullmatch(r"[A-Za-z0-9_-]+", run_id) is None):
                 raise ValueError(
                     f"{path}:{line_number}: missing archive run identifier; "
                     "run with the default artifact archiving enabled"
@@ -106,12 +110,25 @@ def _graph_fingerprint(n: int, edges: tuple) -> str:
     return digest.hexdigest()
 
 
-def _archived_identity(source: dict) -> str | None:
-    folder = (
+def _archive_folder(source: dict) -> Path:
+    return (
         Path(source["source"]).parent / "artifacts"
         / source["run_id"] / f"{source['sample']['graph']}-k2"
     )
-    path = folder / "graph.npz"
+
+
+def _archived_settings(source: dict | None) -> dict:
+    if source is None:
+        return {}
+    path = _archive_folder(source) / "manifest.json"
+    if not path.is_file():
+        return {}
+    manifest = json.loads(path.read_text(encoding="utf8"))
+    return manifest.get("settings", {})
+
+
+def _archived_identity(source: dict) -> str | None:
+    path = _archive_folder(source) / "graph.npz"
     if not path.exists():
         return None
     with np.load(path, allow_pickle=False) as saved:
@@ -214,6 +231,7 @@ def compare_saved_runs(
         cb = c["best_cut"] if c else None
         stime = _original_seconds(a, "sdp_original_solve_seconds")
         ctime = _original_seconds(b, "original_optimizer_seconds")
+        cuda_settings = _archived_settings(b)
         s_cache = a["sample"].get("cache_hit") if a else None
         c_cache = b["sample"].get("factor_cache_hit") if b else None
         ref = reference_for_graph(graph)
@@ -263,7 +281,8 @@ def compare_saved_runs(
             "cuda_rounding_restarts_per_method": c["restarts"] if c else None,
             "cuda_seconds_original": ctime, "cuda_cache_hit": c_cache,
             "cuda_rank": b["sample"].get("rank") if b else None,
-            "cuda_epochs": None, "cuda_optimizer_starts": None,
+            "cuda_epochs": cuda_settings.get("epochs"),
+            "cuda_optimizer_starts": cuda_settings.get("optimizer_starts"),
             "cuda_device": b["sample"].get("device") if b else None,
             "sdp_minus_cuda_cut": (
                 sb - cb if same_and_complete and sb is not None and cb is not None
