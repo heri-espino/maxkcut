@@ -157,3 +157,51 @@ def test_sweep_records_failed_graph_and_continues(tmp_path):
     )
     assert failed["status"] == "failed"
     assert failed["error"]
+
+
+def test_soft_budget_result_is_saved_and_counted_without_false_failure(
+    monkeypatch, tmp_path
+):
+    """A time-budgeted feasible cut must never become KeyError/failed."""
+    folder = tmp_path / "G-Set"
+    folder.mkdir()
+    _file(folder / "G1.mat", [[0, 1], [1, 0]])
+    output = tmp_path / "reports"
+
+    import maxkcut.sweep as sweep
+
+    def limited_restart(graph, *, seed, max_sweeps, deadline):
+        return np.array([0, 1], dtype=np.int8), {
+            "initial_cut": 0.,
+            "cut_weight": 1.,
+            "flips": 1,
+            "sweeps": 1,
+            "termination": "time_budget",
+            "seconds": 0.,
+        }
+
+    monkeypatch.setattr(sweep, "random_flip_restart", limited_restart)
+    first = run_sweep(
+        folder, output, restarts=3, max_sweeps=2,
+        seconds_per_graph=30.,
+    )
+    assert first["completed"] == 0
+    assert first["budget_limited"] == 1
+    assert first["failed"] == 0
+
+    record = json.loads((output / "graphs" / "G1.json").read_text())
+    assert record["status"] == "budget_limited"
+    assert record["completed_restarts"] == 1
+    verification = verify_archive(record["archive_path"])
+    assert verification["status"] == "budget_limited"
+    assert verification["methods"]["random_flip_local_search"]["best_cut"] == 1.
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("verified budget-limited experiment must be skipped")
+
+    monkeypatch.setattr(sweep, "random_flip_restart", forbidden)
+    resumed = run_sweep(
+        folder, output, restarts=3, max_sweeps=2,
+        seconds_per_graph=30.,
+    )
+    assert resumed["skipped"] == 1 and resumed["failed"] == 0
