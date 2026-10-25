@@ -14,4 +14,5 @@ from .sweep import discover_graphs, inspect_gset, run_sweep
 __version__ = "0.1.0"
 __all__ = ["load_graph", "edge_arrays", "cut_weight", "factorize",
            "round_fj", "round_spherical_kmeans", "solve_sdp", "benchmark",
-           "load_method", "verify_archive", "improve_by_flips",\n           "random_flip_restart", "discover_graphs", "inspect_gset", "run_sweep"]
+           "load_method", "verify_archive", "improve_by_flips",
+           "random_flip_restart", "discover_graphs", "inspect_gset", "run_sweep"]
