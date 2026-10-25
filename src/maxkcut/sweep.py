@@ -20,6 +20,7 @@ from .archive import (
     load_method, new_archive, new_run_id, save_method, update_manifest,
     verify_archive,
 )
+from .comparison import write_comparison
 from .io import edge_arrays, load_graph
 from .local_search import random_flip_restart
 
@@ -29,33 +30,52 @@ METHOD = "random_flip_local_search"
 
 
 def _graph_number(path: Path) -> int:
-    match = re.fullmatch(r"G(\d+)\.mat", path.name)
+    match = re.fullmatch(r"G(\d+)\.(?:txt|mat)", path.name)
     if match is None:
-        raise ValueError(f"Expected G<number>.mat, received {path}")
+        raise ValueError(f"Expected G<number>.txt or .mat, received {path}")
     return int(match.group(1))
 
 
 def discover_graphs(directory: Path, names: list[str] | None = None) -> list[Path]:
-    """Find graphs by numeric identifier, not G1/G10/G11 lexical order."""
+    """Find G-set graphs, using canonical TXT over MAT for duplicate IDs.
+
+    Explicit .txt or .mat names override the extension preference. The
+    old G-Set/*.mat directory remains supported with --gset-dir G-Set.
+    """
     directory = Path(directory)
     if names is None or names == ["ALL"]:
-        paths = [
-            path for path in directory.glob("G*.mat")
-            if re.fullmatch(r"G\d+\.mat", path.name)
-        ]
+        by_number = {}
+        for path in directory.iterdir() if directory.is_dir() else []:
+            if not re.fullmatch(r"G\\d+\\.(?:txt|mat)", path.name):
+                continue
+            number = _graph_number(path)
+            prior = by_number.get(number)
+            if prior is None or (
+                path.suffix.lower() == ".txt" and prior.suffix.lower() == ".mat"
+            ):
+                by_number[number] = path
+        paths = list(by_number.values())
     else:
-        paths = [
-            directory / (name if name.endswith(".mat") else name + ".mat")
-            for name in names
-        ]
+        paths = []
+        for name in names:
+            provided = Path(name)
+            if provided.name != name:
+                raise ValueError(f"Graph name must not include directories: {name}")
+            if provided.suffix:
+                candidate = directory / name
+            else:
+                txt = directory / f"{name}.txt"
+                mat = directory / f"{name}.mat"
+                candidate = txt if txt.exists() else mat
+            paths.append(candidate)
     if not paths:
-        raise FileNotFoundError(f"No G-set files found in {directory}")
+        raise FileNotFoundError(f"No G-set .txt or .mat files in {directory}")
     for path in paths:
         _graph_number(path)
         if not path.is_file():
             raise FileNotFoundError(f"Missing graph file: {path}")
-    if len(set(paths)) != len(paths):
-        raise ValueError("Repeated graph names are not allowed")
+    if len(set(paths)) != len(paths) or len(set(map(_graph_number, paths))) != len(paths):
+        raise ValueError("Repeated graph IDs are not allowed")
     return sorted(paths, key=_graph_number)
 
 
@@ -129,6 +149,7 @@ def _write_summary(output_dir: Path) -> None:
             writer.writeheader()
             writer.writerows(rows)
         temporary.replace(target)
+        write_comparison(target)
     finally:
         temporary.unlink(missing_ok=True)
 
@@ -330,6 +351,7 @@ def run_sweep(gset_dir: Path, output_dir: Path, *,
 
     _write_summary(output_dir)
     result = {"graphs_requested": len(paths), **counts,
+              "comparison_csv": str((output_dir / "comparison.csv").resolve()),
               "summary_csv": str((output_dir / "summary.csv").resolve())}
     print(json.dumps(result, indent=2), flush=True)
     return result

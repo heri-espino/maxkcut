@@ -183,7 +183,7 @@ vertex assignments; it does **not** rerun the SDP. See
 
 ## Run every checked-in G-set graph with the safe sparse baseline
 
-The 71 checked-in graphs are G1 through G71. The dedicated
+The complete 71 canonical text graphs are in `data/`: G1–G67, G70, G72, G77, G81. The older MATLAB graphs remain in `G-Set/`. The dedicated
 `maxkcut-sweep` command uses sparse signed-weight one-vertex-flip local
 search, **not** the expensive full SDP/GW/K-Means methods:
 
@@ -192,6 +192,7 @@ git pull origin main
 python -m pip install -e .
 python -m pytest -q
 maxkcut-sweep --inspect-only
+maxkcut-sweep --compare-inputs
 maxkcut-sweep --max-graphs 2 --output-dir reports/gset/full-first-pass
 maxkcut-sweep --output-dir reports/gset/full-first-pass
 ```
@@ -200,3 +201,16 @@ Re-run the last command after an interruption to resume. View
 `reports/gset/full-first-pass/summary.csv` with PowerShell `Import-Csv`.
 The first-pass budget is **5 restarts, 20 sweeps, soft 60 seconds/graph**.
 See [first-pass sweep methodology](full-gset-sweep.md).
+
+## Compare the canonical data against the paper and older graphs
+
+```powershell
+maxkcut-sweep --compare-inputs
+maxkcut-sweep --compare-only
+Import-Csv reports/gset/full-first-pass/comparison.csv | Where-Object {$_.paper_cut -ne ''} | Format-Table graph,our_best_cut,paper_cut,paper_upper_bound,reference_status,assessment
+```
+
+Use `--gset-dir G-Set` to explicitly reproduce previous runs based on
+legacy `.mat` files. Without the flag, the CLIs now load `data/*.txt`.
+The 2026 paper lists 17 toroidal instances, not 71 proven optima.
+See [canonical graph and published-cut comparison](canonical-data-comparison.md).

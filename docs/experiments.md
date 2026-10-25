@@ -95,3 +95,17 @@ Only after that baseline should we spend solver time on a manageable
 SDP subset, retaining the existing `maxkcut` results and caching each
 Gram matrix. Do not assume that trial counts on the initial heuristic
 baseline supply statistical significance for SDP rounding algorithms.
+
+## Canonical graph formats and reference comparisons
+
+The canonical complete G-set input is now **`data/G*.txt`** (71 files:
+G1–G67, G70, G72, G77, G81). `maxkcut` and `maxkcut-sweep` use that
+folder by default. The legacy `G-Set/*.mat` graphs remain available
+with `--gset-dir G-Set`, and `maxkcut-sweep --compare-inputs` checks
+all weighted edges, not just labels, between the directories.
+
+The `comparison.csv` produced by the sweep joins the **17 toroidal
+instances** in Glass and Feder (2026), Table 1, reporting the paper's
+best cut, certified upper bound and whether they agree. Absent entries
+are explicitly unreferenced; never assume the other 54 graph optima have
+been proved. See [comparison protocol](canonical-data-comparison.md).

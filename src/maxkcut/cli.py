@@ -8,11 +8,12 @@ from .archive import verify_archive
 from .hardware import hardware_info
 from .io import load_graph, edge_arrays
 from .experiments import benchmark
+from .sweep import discover_graphs
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--graphs', nargs='+', default=['G11'], help='Graph names, e.g. G11 G1 G22; ALL selects every file')
-    parser.add_argument('--gset-dir', type=Path, default=Path('G-Set'))
+    parser.add_argument('--graphs', nargs='+', default=['G11'], help='Graph names, e.g. G11 G1 G22; ALL selects available .txt/.mat files')
+    parser.add_argument('--gset-dir', type=Path, default=Path('data'))
     parser.add_argument('--k', type=int, nargs='+', default=[2])
     parser.add_argument('--output', type=Path, default=Path('reports/gset/runs.jsonl'))
     parser.add_argument('--solver', choices=['SCS', 'CLARABEL', 'MOSEK', 'SDPA'], default='SCS')
@@ -71,10 +72,7 @@ def main():
         parser.error('--psd-repair-rel-tol must be nonnegative and finite')
     if args.eps <= 0 or args.max_iters < 1:
         parser.error('--eps and --max-iters must be positive')
-    names = sorted(args.gset_dir.glob('G*.mat')) if args.graphs == ['ALL'] else [args.gset_dir / (s if s.endswith('.mat') else s + '.mat') for s in args.graphs]
-    for name in names:
-        if not name.is_file():
-            parser.error(f'No graph file: {name}')
+    names = discover_graphs(args.gset_dir, args.graphs)
     if args.inspect_only:
         for name in names:
             adjacency = load_graph(name)

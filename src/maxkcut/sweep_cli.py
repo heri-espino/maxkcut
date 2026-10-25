@@ -9,16 +9,24 @@ import argparse
 import json
 from pathlib import Path
 
+from .comparison import write_comparison
+from .graph_compare import compare_directories
 from .sweep import discover_graphs, inspect_gset, run_sweep
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--gset-dir", type=Path, default=Path("G-Set"))
+    parser.add_argument("--gset-dir", type=Path, default=Path("data"))
     parser.add_argument("--output-dir", type=Path,
                         default=Path("reports/gset/full-first-pass"))
     parser.add_argument("--graphs", nargs="+", default=["ALL"],
-                        help="ALL for every checked-in graph, or e.g. G1 G11")
+                        help="ALL for all canonical .txt (or legacy .mat) files, or e.g. G1 G11")
+    parser.add_argument("--compare-inputs", action="store_true",
+                        help="Audit data/*.txt against old G-Set/*.mat by all weighted edges")
+    parser.add_argument("--legacy-dir", type=Path, default=Path("G-Set"),
+                        help="Legacy .mat directory for --compare-inputs")
+    parser.add_argument("--compare-only", action="store_true",
+                        help="Generate comparison.csv from existing summary.csv; no graph loading or solves")
     parser.add_argument("--inspect-only", action="store_true",
                         help="List all instance sizes, weights and parse failures; no optimization")
     parser.add_argument("--restarts", type=int, default=5,
@@ -43,6 +51,19 @@ def main() -> None:
     if args.seed < 0:
         parser.error("--seed must be nonnegative")
 
+    if args.compare_inputs:
+        records = compare_directories(
+            args.gset_dir, args.legacy_dir,
+            args.output_dir / "input_comparison.csv",
+        )
+        from collections import Counter
+        print(json.dumps(dict(Counter(row["status"] for row in records)), indent=2))
+        print(str(args.output_dir / "input_comparison.csv"))
+        return
+    if args.compare_only:
+        comparison = write_comparison(args.output_dir / "summary.csv")
+        print(str(comparison))
+        return
     if args.inspect_only:
         inventory = inspect_gset(args.gset_dir, args.graphs)
         if args.max_graphs is not None:

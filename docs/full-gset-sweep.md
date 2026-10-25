@@ -3,9 +3,11 @@
 **Purpose:** obtain a feasible Max-Cut baseline on every available graph,
 without attempting a prohibitively expensive full semidefinite program.
 
-As of 2026-10-24 the repository contains 71 MATLAB files, **G1.mat through
-G71.mat**. In particular **G81.mat is not checked in**. This sweep discovers
-files at runtime rather than assuming they are present.
+As of 2026-10-24 the repository contains the **complete canonical 71 text
+instances in `data/`**: G1–G67, G70, G72, G77 and G81. The old `G-Set/`
+contains 71 legacy MATLAB files, whose equivalence must be checked before
+transferring any previous results. This sweep discovers files at runtime,
+including G81 (20,000 vertices).
 
 ## The two separate experiment types
 
@@ -39,6 +41,7 @@ Inspect every graph without optimization:
 
 ```powershell
 maxkcut-sweep --inspect-only
+maxkcut-sweep --compare-inputs
 ```
 
 Test the first **two** numerically ordered graph files only:
@@ -73,6 +76,7 @@ memory-intensive solvers.
 reports/gset/full-first-pass/
 ├── plan.json               # immutable configuration for this output directory
 ├── summary.csv             # one row per graph: status, cuts, times, archive
+├── comparison.csv          # reference cut, proven bound and comparable gap
 ├── graphs/
 │   ├── G1.json             # per-graph status, checksum, settings
 │   ├── G2.json
@@ -106,6 +110,25 @@ All output is under the Git-ignored `reports/` directory. To run a
 *different* seed, restart count, sweep count, or time budget, choose a
 **different output directory**. The runner refuses to combine incompatible
 experiments under one `plan.json`.
+
+The automatic `comparison.csv` joins exactly the **17 toroidal G-set
+references from Glass–Feder (2026), Table 1**. Rows not in that table are
+clearly marked `no_reference_in_paper_table_1`; a matching paper cut and
+upper bound is labeled `proven_optimum` while a gap is labeled
+`best_known_not_proven`. The comparison warns if graph vertex count differs
+from the published count, or a generated cut exceeds a claimed upper bound.
+
+To regenerate the paper comparison from an existing `summary.csv` with
+no graph loading and no solver:
+
+```powershell
+maxkcut-sweep --compare-only
+Import-Csv reports/gset/full-first-pass/comparison.csv | Where-Object {$_.paper_cut -ne ''} | Format-Table graph,our_best_cut,paper_cut,paper_upper_bound,reference_status,assessment
+```
+
+Before comparing any old `G-Set/*.mat` results to `data/*.txt`, run
+`maxkcut-sweep --compare-inputs`, which checks every weighted edge and
+writes `input_comparison.csv`.
 
 The library's archive verification CLI also works on the case archive:
 

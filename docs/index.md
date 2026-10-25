@@ -16,6 +16,7 @@ windows-powershell
 experiments
 experiment-archives
 full-gset-sweep
+canonical-data-comparison
 gset-reference-values
 performance
 gpu-cpu-performance

@@ -81,7 +81,7 @@ timings, and the limitations of CVXPY/SCS.
 
 ## First pass across every G-set instance (no SDP)
 
-The repository includes **G1.mat through G71.mat (71 inputs)**. Our
+The repository includes **71 canonical text graphs in `data/`**: G1–G67, G70, G72, G77 and G81. The older `G-Set/` contains 71 legacy MATLAB files. They are separate datasets until weighted-edge identity is verified. Our
 current dense SDP formulation is not a practical first-pass solver for all
 71 at once, so there is a separate, **sparse signed-weight local-search**
 baseline with resumable, fully archived results:
@@ -91,8 +91,10 @@ git pull origin main
 python -m pip install -e .
 python -m pytest -q
 maxkcut-sweep --inspect-only
+maxkcut-sweep --compare-inputs
 maxkcut-sweep --max-graphs 2 --output-dir reports/gset/full-first-pass
 maxkcut-sweep --output-dir reports/gset/full-first-pass
+maxkcut-sweep --compare-only
 ```
 
 Default: **5 random starts, at most 20 one-flip sweeps/start, a soft
@@ -166,3 +168,25 @@ Read `docs/_build/html/index.html` for the Sphinx/Furo site, or `docs/index.md` 
 - [Package architecture](docs/architecture.md) and [API](docs/api.md).
 
 The `G-Set/` files are associated with Chapter 6's Max-Cut benchmark, **not** the 300 A/B/C/D random graphs used in Chapter 7. No full G-set SDP computation is claimed by this packaging refactor.
+
+### Canonical input and published G-set comparisons
+
+Both `maxkcut` and `maxkcut-sweep` now read the canonical `data/G*.txt`
+files by default. Preserve previous experiments by selecting
+`--gset-dir G-Set` explicitly for the older MATLAB inputs.
+The new text reader validates the header, one-based edges, weights,
+vertex identifiers and duplicate undirected edges.
+
+To inspect graph equivalence and the published comparisons **without running
+an SDP**:
+
+```powershell
+maxkcut-sweep --compare-inputs
+maxkcut-sweep --compare-only
+Import-Csv reports/gset/full-first-pass/comparison.csv | Where-Object {$_.paper_cut -ne ''} | Format-Table graph,our_best_cut,paper_cut,paper_upper_bound,reference_status,assessment
+```
+
+The 2026 Glass–Feder paper covers **17 toroidal instances**; only rows with
+matching paper cut and certified upper bound have a proven optimal cut.
+A filename match alone does not guarantee the older MAT file is canonical.
+See [the new data comparison guide](docs/canonical-data-comparison.md).
