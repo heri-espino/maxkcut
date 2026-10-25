@@ -34,6 +34,26 @@ The package exposes stable **research entry points** at the top level. Each func
 :members:
 ```
 
+## Canonical G-set data and reference comparisons
+
+```{automodule} maxkcut.references
+:members:
+```
+
+```{automodule} maxkcut.comparison
+:members:
+```
+
+```{automodule} maxkcut.graph_compare
+:members:
+```
+
+## Resumable sparse G-set sweep
+
+```{automodule} maxkcut.sweep
+:members:
+```
+
 ## CLI
 
 ```{automodule} maxkcut.cli
