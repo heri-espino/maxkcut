@@ -9,6 +9,7 @@ import argparse
 import json
 from pathlib import Path
 
+from .comparison import write_comparison
 from .sweep import discover_graphs, inspect_gset, run_sweep
 
 
@@ -19,6 +20,8 @@ def main() -> None:
                         default=Path("reports/gset/full-first-pass"))
     parser.add_argument("--graphs", nargs="+", default=["ALL"],
                         help="ALL for all canonical .txt (or legacy .mat) files, or e.g. G1 G11")
+    parser.add_argument("--compare-only", action="store_true",
+                        help="Generate comparison.csv from existing summary.csv; no graph loading or solves")
     parser.add_argument("--inspect-only", action="store_true",
                         help="List all instance sizes, weights and parse failures; no optimization")
     parser.add_argument("--restarts", type=int, default=5,
@@ -43,6 +46,10 @@ def main() -> None:
     if args.seed < 0:
         parser.error("--seed must be nonnegative")
 
+    if args.compare_only:
+        comparison = write_comparison(args.output_dir / "summary.csv")
+        print(str(comparison))
+        return
     if args.inspect_only:
         inventory = inspect_gset(args.gset_dir, args.graphs)
         if args.max_graphs is not None:
