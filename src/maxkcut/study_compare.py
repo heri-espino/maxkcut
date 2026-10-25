@@ -77,6 +77,12 @@ def _complete_archived_run(entry: dict, expected: tuple[str, ...]) -> bool:
         if verified["status"] != "complete":
             return False
         for method in expected:
+            # A partial or malformed run must not be treated as complete even
+            # when its JSONL happens to have the expected number of rows.
+            if entry["restart_ids"][method] != set(
+                range(len(entry["methods"][method]))
+            ):
+                return False
             archived_scores = load_method(
                 folder / manifest["methods"][method]["partition_file"]
             )[1]
