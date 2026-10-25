@@ -127,10 +127,14 @@ def optimize_torch_lowrank(adjacency: sparse.spmatrix, *,
         torch.cat((first, second)),
         torch.cat((second, first)),
     ))
-    matrix = torch.sparse_coo_tensor(
-        indices, torch.cat((weighted, weighted)), (n, n),
-        device=target, dtype=torch.float32,
-    ).coalesce()
+    # Validate sparse COO indices once at construction. This follows the
+    # PyTorch sparse-invariants API and avoids the "implicitly disabled"
+    # warning observed on native Windows CUDA builds.
+    with torch.sparse.check_sparse_tensor_invariants():
+        matrix = torch.sparse_coo_tensor(
+            indices, torch.cat((weighted, weighted)), (n, n),
+            device=target, dtype=torch.float32,
+        ).coalesce()
     edge_total = 0.5 * torch.sum(weighted)
     if device == "cuda":
         torch.cuda.synchronize(target)
