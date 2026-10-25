@@ -1,4 +1,4 @@
-"""Load and validate undirected weighted graphs from MATLAB v5 files."""
+"""Load and validate canonical G-set text and legacy MATLAB weighted graphs."""
 from __future__ import annotations
 from pathlib import Path
 from inspect import signature
