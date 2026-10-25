@@ -14,12 +14,66 @@ def _matrix_candidates(obj, prefix=''):
     elif sparse.issparse(obj) or (isinstance(obj, np.ndarray) and obj.ndim == 2):
         yield prefix, obj
 
+def _load_gset_txt(path: Path) -> sparse.csr_matrix:
+    """Read canonical G-set text: 'n m' then m one-based 'i j weight' rows.
+
+    The graph is undirected and each edge must appear exactly once. A genuine
+    G-set graph may have negative weights, which are preserved unmodified.
+    The header's n is authoritative, including isolated highest-numbered
+    vertices that may not occur in the edge list.
+    """
+    with Path(path).open("r", encoding="utf8") as stream:
+        header = stream.readline().split()
+    if len(header) != 2:
+        raise ValueError(f"{path}: expected G-set header 'n m'")
+    try:
+        n, m = map(int, header)
+    except ValueError as exc:
+        raise ValueError(f"{path}: invalid G-set vertex/edge counts") from exc
+    if n < 2 or m < 1:
+        raise ValueError(f"{path}: G-set header requires n >= 2 and m >= 1")
+
+    try:
+        rows = np.loadtxt(path, dtype=float, skiprows=1, ndmin=2)
+    except (ValueError, OSError) as exc:
+        raise ValueError(f"{path}: invalid G-set edge list: {exc}") from exc
+    if rows.shape != (m, 3) or not np.isfinite(rows).all():
+        raise ValueError(
+            f"{path}: expected exactly {m} finite rows of 3 columns; "
+            f"found {rows.shape}"
+        )
+    identifiers = rows[:, :2]
+    if not np.array_equal(identifiers, np.floor(identifiers)):
+        raise ValueError(f"{path}: vertex identifiers must be integers")
+    if np.any(identifiers < 1) or np.any(identifiers > n):
+        raise ValueError(f"{path}: vertex identifiers must be in 1..{n}")
+    ij = identifiers.astype(np.int64) - 1
+    if np.any(ij[:, 0] == ij[:, 1]):
+        raise ValueError(f"{path}: self-loops are not supported")
+    left = np.minimum(ij[:, 0], ij[:, 1])
+    right = np.maximum(ij[:, 0], ij[:, 1])
+    keys = left * n + right
+    if len(np.unique(keys)) != m:
+        raise ValueError(f"{path}: duplicate or reversed duplicate edge")
+    weighted = sparse.coo_matrix(
+        (rows[:, 2], (left, right)), shape=(n, n), dtype=float,
+    ).tocsr()
+    result = weighted + weighted.T
+    result.eliminate_zeros()
+    return result.tocsr()
+
+
 def load_graph(path: Path) -> sparse.csr_matrix:
-    """Load a MATLAB v5 sparse/dense adjacency or 3-column edge list.
+    """Load a canonical G-set text graph or MATLAB v5 adjacency/edge list.
 
     Refuse ambiguous candidate matrices, nonzero diagonal and asymmetric weights.
     A triangular adjacency is symmetrized; a symmetric adjacency is not doubled.
     """
+    path = Path(path)
+    if path.suffix.lower() == ".txt":
+        return _load_gset_txt(path)
+    if path.suffix.lower() != ".mat":
+        raise ValueError(f"Unsupported graph format {path.suffix}; use .txt or .mat")
     # Since SciPy 1.18, loadmat warns when the default sparse return type is
     # left unspecified. Sparse arrays are supported below because we normalize
     # to csr_matrix. Older supported SciPy releases lack this parameter.
