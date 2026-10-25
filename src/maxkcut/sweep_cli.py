@@ -14,11 +14,11 @@ from .sweep import discover_graphs, inspect_gset, run_sweep
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--gset-dir", type=Path, default=Path("G-Set"))
+    parser.add_argument("--gset-dir", type=Path, default=Path("data"))
     parser.add_argument("--output-dir", type=Path,
                         default=Path("reports/gset/full-first-pass"))
     parser.add_argument("--graphs", nargs="+", default=["ALL"],
-                        help="ALL for every checked-in graph, or e.g. G1 G11")
+                        help="ALL for all canonical .txt (or legacy .mat) files, or e.g. G1 G11")
     parser.add_argument("--inspect-only", action="store_true",
                         help="List all instance sizes, weights and parse failures; no optimization")
     parser.add_argument("--restarts", type=int, default=5,
