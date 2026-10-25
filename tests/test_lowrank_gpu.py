@@ -1,7 +1,9 @@
 """Fast regression tests: optional CUDA backend, never requires a GPU."""
 from __future__ import annotations
 
+import importlib.util
 import json
+import subprocess
 import sys
 
 import numpy as np
@@ -80,27 +82,57 @@ def test_numpy_cache_only_factors_and_never_dense_gram(tmp_path):
 
 
 def test_cpu_torch_optimizer_never_builds_dense_gram():
-    pytest.importorskip("torch")
-    a = sparse.csr_matrix([
-        [0, 2, -1], [2, 0, 1], [-1, 1, 0]
-    ], dtype=float)
-    factors, info = optimize_torch_lowrank(
-        a, rank=2, epochs=30, optimizer_starts=2,
-        learning_rate=0.04, seed=42, device="cpu",
-        log_every=5,
+    """Isolate native DLL loading from the full Windows pytest process.
+
+    On some Windows Conda installations, importing torch after unrelated
+    native packages have been loaded by pytest fails with WinError 127
+    (shm.dll or its dependencies). Importing torch in a clean process
+    succeeds on the same machine. Always fail with the subprocess's
+    diagnostic output rather than crashing or poisoning the parent pytest.
+    """
+    if importlib.util.find_spec("torch") is None:
+        pytest.skip("Optional PyTorch is not installed")
+    script = """
+import numpy as np
+from scipy import sparse
+from maxkcut.io import edge_arrays
+from maxkcut.lowrank import lowrank_objective, optimize_torch_lowrank
+
+a = sparse.csr_matrix([[0, 2, -1], [2, 0, 1], [-1, 1, 0]], dtype=float)
+factors, info = optimize_torch_lowrank(
+    a, rank=2, epochs=30, optimizer_starts=2,
+    learning_rate=0.04, seed=42, device="cpu", log_every=5
+)
+assert factors.shape == (3, 2)
+assert np.allclose(np.linalg.norm(factors, axis=1), 1, atol=1e-5)
+assert info["backend"] == "torch_lowrank"
+assert info["device"] == "cpu"
+assert info["sdp_upper_bound_certified"] is False
+assert np.isclose(
+    info["lowrank_vector_objective"],
+    lowrank_objective(edge_arrays(a), factors),
+    atol=1e-6,
+)
+assert len(info["optimizer_history"]) >= 2
+assert info["lowrank_vector_objective"] >= max(
+    entry["vector_objective"] for entry in info["optimizer_history"]
+) - 1e-5
+"""
+    result = subprocess.run(
+        [sys.executable, "-c", script],
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=False,
     )
-    assert factors.shape == (3, 2)
-    assert np.allclose(np.linalg.norm(factors, axis=1), 1, atol=1e-5)
-    assert info["backend"] == "torch_lowrank"
-    assert info["device"] == "cpu"
-    assert info["sdp_upper_bound_certified"] is False
-    assert info["lowrank_vector_objective"] == pytest.approx(
-        lowrank_objective(edge_arrays(a), factors), abs=1e-6
+    assert result.returncode == 0, (
+        "Isolated PyTorch CPU smoke test failed. If the problem is "
+        "WinError 127 for shm.dll, check the PyTorch/Conda native DLL "
+        "dependencies and Visual C++ runtime.\\n"
+        f"exit code: {result.returncode}\\n"
+        f"stdout:\\n{result.stdout}\\n"
+        f"stderr:\\n{result.stderr}"
     )
-    assert len(info["optimizer_history"]) >= 2
-    assert info["lowrank_vector_objective"] >= max(
-        x["vector_objective"] for x in info["optimizer_history"]
-    ) - 1e-5
 
 
 @pytest.mark.parametrize("kwargs", [
