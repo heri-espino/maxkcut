@@ -79,6 +79,29 @@ maxkcut --graphs G11 --k 2 --scs-indirect --output reports/gset/g11-indirect.jso
 See [the performance guide](docs/performance.md) for bottlenecks, cache safety,
 timings, and the limitations of CVXPY/SCS.
 
+## First pass across every G-set instance (no SDP)
+
+The repository includes **G1.mat through G71.mat (71 inputs)**. Our
+current dense SDP formulation is not a practical first-pass solver for all
+71 at once, so there is a separate, **sparse signed-weight local-search**
+baseline with resumable, fully archived results:
+
+```powershell
+git pull origin main
+python -m pip install -e .
+python -m pytest -q
+maxkcut-sweep --inspect-only
+maxkcut-sweep --max-graphs 2 --output-dir reports/gset/full-first-pass
+maxkcut-sweep --output-dir reports/gset/full-first-pass
+```
+
+Default: **5 random starts, at most 20 one-flip sweeps/start, a soft
+60-second graph budget**, sequential execution, per-graph restart-safe output.
+The second batch command verifies/skips intact cases from the first. Results
+include `summary.csv`, per-trial JSONL, graph weights, every cut partition
+and full archive manifests. This is **not** the CVXPY SDP/GW/K-Means experiment;
+see [the full G-set sweep guide](docs/full-gset-sweep.md).
+
 ## Reusable experiment archives and published benchmark proofs
 
 The default is **20 rounding restarts per method**, not 100. The JSONL file
