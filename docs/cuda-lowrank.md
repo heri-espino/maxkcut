@@ -193,3 +193,38 @@ so matching accuracy is not guaranteed.
   https://docs.pytorch.org/docs/stable/generated/torch.cuda.is_available
 - Existing architecture and performance limitations:
   [CPU/GPU guide](gpu-cpu-performance.md)
+
+## Real Windows CUDA smoke result and native test isolation
+
+The first user-run native Windows NVIDIA RTX 4500 Ada experiment
+(2026-10-24) confirmed `torch 2.13.0+cu132`, `cuda_available: true`,
+and a successful G11 CUDA low-rank optimization (`rank=32`, 100
+epochs, one optimizer start). With 10 rounding restarts per method:
+
+| Method | Best cut |
+| --- | ---: |
+| GW_torchlowrank | 442 |
+| K-Means2N_torchlowrank | 506 |
+| K-MeansNM_torchlowrank | 502 |
+
+For **canonical G11**, the Glass–Feder upper-bound proof establishes
+OPT=564. Best GPU low-rank output 506 achieves approximately 89.72%,
+compared with an **earlier** (different input file and solve parameters)
+full-SDP result 546 ≈ 96.81%. The first CUDA experiment is an engineering
+smoke test, **not** a controlled algorithm comparison, a speedup
+measurement, or a significance test.
+
+The same user's first full pytest run showed **71 passing and 1 failing**
+tests because `import torch` late in the pytest process hit
+`WinError 127` for `shm.dll`. Immediately afterward a fresh CLI
+process loaded CUDA and completed G11. The optional Torch CPU numerical
+test now runs in its **own Python subprocess** to avoid DLL initialization
+interactions with earlier-loaded Windows native libraries. A failure in
+that clean process still fails the test with captured output; genuine
+native-installation problems must be diagnosed independently.
+
+PyTorch also emitted an informational sparse invariant-check warning
+at sparse COO construction. The optimizer now uses the documented
+`torch.sparse.check_sparse_tensor_invariants()` context manager during
+one-time matrix construction. This checks sparse indices rather than
+silently disabling validation.

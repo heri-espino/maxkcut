@@ -308,3 +308,47 @@ maxkcut-gpu --graphs G11 --device cuda --rank 32 --epochs 200 --optimizer-starts
 The CUDA check refuses silent CPU fallback. To change just random rounding
 seeds and **reuse the saved factor**, keep `--seed 2026` and add
 `--rounding-seed 2027`. See [full CUDA guide](cuda-lowrank.md).
+
+## Windows CUDA verification: G11 ran; PyTorch DLL failure inside pytest
+
+On 2026-10-24, the user's `maxkcut-cuda` environment installed
+**torch 2.13.0+cu132**. The separate `maxkcut-gpu --device-info`
+command successfully reported `cuda_available: true` and
+`NVIDIA RTX 4500 Ada Generation`. The actual G11 GPU low-rank smoke
+experiment also **completed** (rank 32, 100 epochs, one optimizer start,
+10 rounding starts): GW=442, K-Means2N=506, K-MeansNM=502. These
+measurements are **not the full SDP** and should not be conflated with
+the previous full-SDP G11 best cut of 546.
+
+The full test suite ran **71 passed, one failed**: `import torch` late
+in the in-process pytest session raised WinError 127 for `torch/lib/shm.dll`
+(or one of its dependencies), while a later fresh CLI process imported
+and used CUDA successfully. This suggests a native DLL load-order or
+environment conflict **in that process**, not proof of a broken GPU.
+
+The optional CPU PyTorch numerical test now executes in a clean Python
+subprocess, isolating DLL initialization from the other tests. It still
+reports an explicit failure with captured stderr if that subprocess
+cannot import or run PyTorch. This is test isolation, **not** a repair
+of a genuinely missing native runtime.
+
+```powershell
+git pull --ff-only origin main
+conda activate maxkcut-cuda
+python -m pytest -q
+maxkcut-gpu --device-info
+python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
+```
+
+If `python -c "import torch"` fails in a fresh process with WinError
+127, inspect conflicting DLLs and the Microsoft Visual C++ Redistributable
+(official [PyTorch Windows FAQ](https://docs.pytorch.org/docs/stable/notes/windows.html)).
+Do not assume that re-running pytest or suppressing errors repairs
+PyTorch's native installation.
+
+For better G11 cut quality, tune ranks, optimizer epochs, starts and
+learning rates in **new, separately archived** experiments. The first
+CUDA result is 506/564 (89.72% of the proven G11 optimum), below the
+earlier full-SDP K-Means result 546/564 (96.81%). These runs have
+different budgets; no speedup or statistical superiority has yet been
+measured.
