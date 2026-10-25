@@ -180,3 +180,23 @@ The command recomputes all cut scores from the saved signed edge list and
 vertex assignments; it does **not** rerun the SDP. See
 [experiment archiving](experiment-archives.md) and
 [certified G-set optima](gset-reference-values.md).
+
+## Run every checked-in G-set graph with the safe sparse baseline
+
+The 71 checked-in graphs are G1 through G71. The dedicated
+`maxkcut-sweep` command uses sparse signed-weight one-vertex-flip local
+search, **not** the expensive full SDP/GW/K-Means methods:
+
+```powershell
+git pull origin main
+python -m pip install -e .
+python -m pytest -q
+maxkcut-sweep --inspect-only
+maxkcut-sweep --max-graphs 2 --output-dir reports/gset/full-first-pass
+maxkcut-sweep --output-dir reports/gset/full-first-pass
+```
+
+Re-run the last command after an interruption to resume. View
+`reports/gset/full-first-pass/summary.csv` with PowerShell `Import-Csv`.
+The first-pass budget is **5 restarts, 20 sweeps, soft 60 seconds/graph**.
+See [first-pass sweep methodology](full-gset-sweep.md).
