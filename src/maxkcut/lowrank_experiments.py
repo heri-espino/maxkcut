@@ -26,7 +26,8 @@ from .rounding import round_fj, round_spherical_kmeans
 
 def benchmark_lowrank(paths, output, *, device="cuda", rank=32,
                       epochs=200, optimizer_starts=2, learning_rate=0.05,
-                      log_every=10, restarts=20, seed=2026, max_n=1000,
+                      log_every=10, restarts=20, seed=2026, rounding_seed=None,
+                      max_n=1000,
                       factor_cache_dir=Path("reports/gset/lowrank_cache"),
                       use_factor_cache=True, save_artifacts=True,
                       artifacts_dir=None, argv=None) -> None:
@@ -38,6 +39,10 @@ def benchmark_lowrank(paths, output, *, device="cuda", rank=32,
     """
     if restarts < 1 or max_n < 2:
         raise ValueError("restarts must be positive and max_n >= 2")
+    if rounding_seed is None:
+        rounding_seed = seed
+    if not isinstance(rounding_seed, int) or rounding_seed < 0:
+        raise ValueError("rounding_seed must be a nonnegative integer")
     # Fail before writing output if the user requested unavailable CUDA.
     hardware = torch_device_info(device)
 
@@ -85,7 +90,7 @@ def benchmark_lowrank(paths, output, *, device="cuda", rank=32,
                 archive_settings = dict(settings)
                 archive_settings.update({
                     "rounding_restarts": restarts,
-                    "rounding_seed": seed,
+                    "rounding_seed": rounding_seed,
                     "max_n": max_n,
                     "factor_cache_enabled": bool(use_factor_cache),
                 })
@@ -139,7 +144,7 @@ def benchmark_lowrank(paths, output, *, device="cuda", rank=32,
                 for rep in range(restarts):
                     # The same seed must be used for paired GW vs K-MeansNM.
                     rng = np.random.default_rng(np.random.SeedSequence([
-                        seed, int(path.stem[1:]), 2, rep,
+                        rounding_seed, int(path.stem[1:]), 2, rep,
                         0 if method in ("GW_torchlowrank",
                                         "K-MeansNM_torchlowrank") else 1,
                     ]))
