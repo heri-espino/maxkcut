@@ -212,6 +212,23 @@ When responding to a user's terminal logs, identify their shell before providing
   cut 546, CUDA low-rank strong best 536, canonical proven optimum 564;
   full SDP solver said `optimal` (not proof of integer Max-Cut optimum).
 
+## Append-only CUDA result comparisons and no-solver recovery
+
+- CUDA low-rank JSONL files may contain multiple independently archived
+  attempts for the same graph. The study comparison **must never
+  concatenate roundings across distinct runs** or silently select the
+  maximum cut across budgets. When duplicates occur, choose the
+  **latest completed independently verified archive** and record
+  selected run ID/count/policy in output.
+- The full SDP batch has `--compare-only`, which reads previously
+  saved successful cases and CUDA JSONL and regenerates the comparison
+  without ever invoking CVXPY/SCS or CUDA. A failed optional comparison
+  does not invalidate previously verified full-SDP numerical results.
+- The user's first n<=1000 full-SDP batch: 30 completed, 41 size
+  skipped, 0 failed, 0 timed out, ~952.579 seconds. Optional
+  comparison originally failed on duplicate append-only G1 CUDA
+  runs; this does not imply SDP failure.
+
 ## Workflow authorization and scope
 
 - **Never** launch a large graph SDP, numerical figure generation, or paper/PDF build as an automatic push/PR job. Heavy work requires `workflow_dispatch`, explicit operator selection and bounded inputs/resources. Lightweight tests/lint are allowed.
