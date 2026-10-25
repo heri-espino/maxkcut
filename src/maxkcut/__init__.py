@@ -16,6 +16,7 @@ from .graph_compare import compare_directories
 from .lowrank import optimize_torch_lowrank, torch_device_info, lowrank_objective
 from .lowrank_experiments import benchmark_lowrank
 from .study_compare import compare_saved_runs, write_study_comparison, full_sdp_preflight
+from .sdp_batch import inventory as sdp_batch_inventory, run_full_sdp_batch
 
 __version__ = "0.1.0"
 __all__ = ["load_graph", "edge_arrays", "cut_weight", "factorize",
@@ -25,4 +26,5 @@ __all__ = ["load_graph", "edge_arrays", "cut_weight", "factorize",
            "reference_for_graph", "compare_rows", "write_comparison",
            "compare_directories", "optimize_torch_lowrank", "torch_device_info",
            "lowrank_objective", "benchmark_lowrank", "compare_saved_runs",
-           "write_study_comparison", "full_sdp_preflight"]
+           "write_study_comparison", "full_sdp_preflight",
+           "sdp_batch_inventory", "run_full_sdp_batch"]
