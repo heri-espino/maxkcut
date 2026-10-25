@@ -1,8 +1,9 @@
 """Resource-bounded, resumable G-set *full convex SDP* batch runner.
 
 Each selected instance executes in its own Python subprocess using the
-unchanged CVXPY/SCS maxkcut CLI. The child is killed after a wall-clock
-timeout; independently verified successful graph archives are reusable.
+unchanged CVXPY/SCS maxkcut CLI. Wall-clock limits are configurable,
+including an explicit unlimited-time option; independently verified
+successful graph archives are reusable.
 Do not conflate this with the CUDA low-rank nonconvex solver or the fast
 local-search sweep.
 
@@ -80,7 +81,7 @@ def inventory(gset_dir: Path, names: list[str] | None = None) -> list[dict]:
 
 def _settings(*, solver: str, eps: float, max_iters: int, restarts: int,
               seed: int, cpu_threads: int | None, scs_indirect: bool,
-              seconds_per_graph: float) -> dict:
+              seconds_per_graph: float | None) -> dict:
     return {
         "solver": solver, "eps": eps, "max_iters": max_iters,
         "restarts": restarts, "seed": seed,
@@ -88,6 +89,29 @@ def _settings(*, solver: str, eps: float, max_iters: int, restarts: int,
         "seconds_per_graph": seconds_per_graph,
         "k": 2, "solver_family": "full_convex_sdp_cvxpy",
     }
+
+
+def _same_numerical_settings(old: dict | None, new: dict) -> bool:
+    """Allow only time-budget changes within a completed numerical study.
+
+    Legacy study plans stored seconds_per_graph alongside actual solver
+    parameters. That execution guard is not part of numerical solver
+    identity: changing it must not invalidate archived, verified results.
+    """
+    if not isinstance(old, dict):
+        return False
+    old_numeric = {k: v for k, v in old.items()
+                   if k != "seconds_per_graph"}
+    new_numeric = {k: v for k, v in new.items()
+                   if k != "seconds_per_graph"}
+    return old_numeric == new_numeric
+
+
+def _timeout_seconds(seconds_per_graph: float | None,
+                     remaining: float | None) -> float | None:
+    """None means unlimited; otherwise cap a process by remaining time."""
+    limits = [v for v in (seconds_per_graph, remaining) if v is not None]
+    return min(limits) if limits else None
 
 
 def _read_saved_result(jsonl: Path, graph: str, restarts: int,
@@ -200,8 +224,8 @@ def run_full_sdp_batch(
     solver: str = "SCS", eps: float = 1e-3,
     max_iters: int = 3000, restarts: int = 20,
     seed: int = 2026, cpu_threads: int | None = 8,
-    scs_indirect: bool = False, seconds_per_graph: float = 600,
-    total_seconds: float = 3600, max_graphs: int | None = None,
+    scs_indirect: bool = False, seconds_per_graph: float | None = 600,
+    total_seconds: float | None = 3600, max_graphs: int | None = None,
     retry_failed: bool = False,
 ) -> dict:
     """Run bounded independent full CVXPY SDP child processes and persist status.
@@ -211,8 +235,10 @@ def run_full_sdp_batch(
     OOM/commit pressure is not preventable by a timeout. Successful, checksum-
     and settings-matched archives are independently rescored before skipping.
     """
-    if max_n < 2 or seconds_per_graph <= 0 or total_seconds <= 0:
-        raise ValueError("max_n and time budgets must be positive")
+    if (max_n < 2 or
+            (seconds_per_graph is not None and seconds_per_graph <= 0) or
+            (total_seconds is not None and total_seconds <= 0)):
+        raise ValueError("max_n must be >=2; time limits must be positive or None")
     if max_n > 1000 and not allow_large:
         raise ValueError("max_n > 1000 requires --allow-large")
     if max_n > 3000 and not acknowledge_huge_risk:
@@ -242,16 +268,28 @@ def run_full_sdp_batch(
     plan_path = root / "plan.json"
     if plan_path.exists():
         plan = json.loads(plan_path.read_text(encoding="utf8"))
-        if plan.get("settings") != settings or plan.get("input_dir") != str(
-            Path(gset_dir).resolve()
-        ):
+        if (not _same_numerical_settings(plan.get("settings"), settings)
+                or plan.get("input_dir") != str(Path(gset_dir).resolve())):
             raise ValueError(
-                "Run settings or dataset changed; use a new --output-dir"
+                "Numerical settings or dataset changed; use a new --output-dir"
             )
     else:
-        _atomic_json(plan_path, {
+        plan = {
             "settings": settings, "input_dir": str(Path(gset_dir).resolve()),
-        })
+        }
+    # Preserve the legacy plan's original settings and separately record
+    # the new execution policy; no numerical provenance is overwritten.
+    policy = {
+        "seconds_per_graph": seconds_per_graph,
+        "total_seconds": total_seconds,
+        "unlimited_wall_time": (
+            seconds_per_graph is None and total_seconds is None
+        ),
+    }
+    history = plan.setdefault("execution_policies", [])
+    if not history or history[-1] != policy:
+        history.append(policy)
+    _atomic_json(plan_path, plan)
 
     count = {
         "complete": 0, "skipped_verified": 0, "skipped_size": 0,
@@ -279,8 +317,9 @@ def run_full_sdp_batch(
             continue
         if previous is not None and previous.get("status") == "complete":
             try:
-                if (previous.get("settings") != settings
-                        or not previous.get("source_jsonl")):
+                if (not _same_numerical_settings(
+                        previous.get("settings"), settings
+                    ) or not previous.get("source_jsonl")):
                     raise ValueError("Settings differ")
                 _read_saved_result(
                     Path(previous["source_jsonl"]), name, restarts, path,
@@ -296,8 +335,11 @@ def run_full_sdp_batch(
             count["skipped_failed"] += 1
             print(f"{name}: previous {previous['status']}; --retry-failed to retry")
             continue
-        remaining = total_seconds - (time.monotonic() - started)
-        if remaining < 1:
+        remaining = (
+            None if total_seconds is None
+            else total_seconds - (time.monotonic() - started)
+        )
+        if remaining is not None and remaining < 1:
             count["skipped_total_budget"] += 1
             print(f"{name}: overall time budget reached", flush=True)
             continue
@@ -314,19 +356,21 @@ def run_full_sdp_batch(
         record = {
             "graph": name, "vertices": n, "edges": m,
             "attempts": attempt_no, "status": "started",
-            "settings": settings, "source_jsonl": str(jsonl.resolve()),
+            "settings": settings, "runtime_policy": policy,
+            "source_jsonl": str(jsonl.resolve()),
             "log_path": str(log_path.resolve()),
             "input_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
         }
         _atomic_json(case_path, record)
         graph_start = time.monotonic()
-        print(f"{name}: full SDP n={n}; wall limit "
-              f"{min(seconds_per_graph,remaining):.0f}s", flush=True)
+        limit = _timeout_seconds(seconds_per_graph, remaining)
+        label = "unlimited wall time" if limit is None else f"wall limit {limit:.0f}s"
+        print(f"{name}: full SDP n={n}; {label}", flush=True)
         try:
             with log_path.open("w", encoding="utf8") as log:
                 completed = subprocess.run(
                     command, stdout=log, stderr=subprocess.STDOUT,
-                    timeout=min(seconds_per_graph, remaining),
+                    timeout=limit,
                     check=False,
                 )
             if completed.returncode != 0:
@@ -343,11 +387,17 @@ def run_full_sdp_batch(
         except subprocess.TimeoutExpired:
             record["status"] = "timeout"
             record["reason"] = (
-                f"Exceeded wall budget of "
-                f"{min(seconds_per_graph,remaining):.0f}s"
+                f"Exceeded wall budget of {limit:.0f}s"
             )
             count["timeout"] += 1
             print(f"{name}: timed out; see {log_path}", flush=True)
+        except KeyboardInterrupt:
+            record["status"] = "interrupted"
+            record["reason"] = "Interrupted by user (Ctrl+C)"
+            record["wall_seconds"] = time.monotonic() - graph_start
+            _atomic_json(case_path, record)
+            _write_summary(root, selected)
+            raise
         except (OSError, ValueError, RuntimeError, KeyError) as exc:
             record["status"] = "failed"
             record["reason"] = f"{type(exc).__name__}: {exc}"
