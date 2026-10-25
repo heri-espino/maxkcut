@@ -30,7 +30,7 @@ METHOD = "random_flip_local_search"
 
 
 def _graph_number(path: Path) -> int:
-    match = re.fullmatch(r"G(\d+)\.mat", path.name)
+    match = re.fullmatch(r"G(\d+)\.(?:txt|mat)", path.name)
     if match is None:
         raise ValueError(f"Expected G<number>.mat, received {path}")
     return int(match.group(1))
