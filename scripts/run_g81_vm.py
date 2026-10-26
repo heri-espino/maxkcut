@@ -287,11 +287,14 @@ def push_snapshot() -> None:
              f"results: G81 128GB VM research checkpoint {timestamp()}",
              "--", relative], cwd=ROOT, check=True,
         )
+        git_env = dict(os.environ)
+        git_env["GIT_TERMINAL_PROMPT"] = "0"
         subprocess.run(
-            ["git", "push", "origin", "HEAD:main"], cwd=ROOT, check=True,
+            ["git", "push", "origin", "HEAD:main"],
+            cwd=ROOT, check=True, timeout=120, env=git_env,
         )
         print("G81 checkpoint pushed to GitHub main.", flush=True)
-    except (CalledProcessError, RuntimeError, OSError) as exc:
+    except (CalledProcessError, subprocess.TimeoutExpired, RuntimeError, OSError) as exc:
         # Keep local results on disk and retry at the next checkpoint.
         print(
             f"WARNING: G81 GitHub push failed: {type(exc).__name__}: {exc}. "
