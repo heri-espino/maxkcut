@@ -207,3 +207,34 @@ def test_push_refuses_feature_branch(monkeypatch, tmp_path):
     monkeypatch.setattr(cli, "_git", fake_git)
     with pytest.raises(RuntimeError, match="not 'main'"):
         _push_publication(dest, 54)
+
+
+def test_rejects_individual_jsonl_score_mismatch_even_if_best_agrees(tmp_path):
+    batch = _study(tmp_path)
+    case = json.loads(
+        (batch / "cases" / "G11.json").read_text(encoding="utf8")
+    )
+    jsonl = Path(case["source_jsonl"])
+    rows = [
+        json.loads(line) for line in jsonl.read_text(encoding="utf8").splitlines()
+    ]
+    # K-Means2N best remains 1, but the *other* restart is corrupted.
+    changed = False
+    for row in rows:
+        if row["method"] == "K-Means2N" and row["restart"] == 1:
+            assert row["cut_weight"] == 0.0
+            row["cut_weight"] = 1.0
+            changed = True
+    assert changed
+    jsonl.write_text(
+        "".join(json.dumps(row) + "\n" for row in rows),
+        encoding="utf8",
+    )
+    target = tmp_path / "tracked"
+    output = publish_snapshot(batch, target)
+    assert output["verified_complete"] == 0
+    assert output["unverified"]
+    with (target / "rounding-trials.csv").open(
+        newline="", encoding="utf8",
+    ) as stream:
+        assert list(csv.DictReader(stream)) == []
