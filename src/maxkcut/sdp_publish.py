@@ -17,6 +17,9 @@ import os
 from pathlib import Path
 import tempfile
 
+import numpy as np
+
+from .archive import load_method
 from .sdp_batch import _read_saved_result
 from .study_compare import COLUMNS, compare_saved_runs
 
@@ -77,6 +80,42 @@ def _write_if_changed(path: Path, text: str) -> bool:
     return True
 
 
+def _verified_trial_records(
+    archive: Path, jsonl: Path, manifest: dict,
+) -> list[dict]:
+    """Check *every* reported restart score against verified NPZ archives.
+
+    `_read_saved_result` already verifies original graph checksum,
+    the normalized weighted-edge snapshot and rescored partition arrays.
+    This additional check prevents publishing individually corrupted
+    or interleaved JSONL scores even if each method's best cut agrees.
+    """
+    with Path(jsonl).open("r", encoding="utf8") as stream:
+        rows = [json.loads(line) for line in stream if line.strip()]
+    by_method = {m: {} for m in manifest["methods"]}
+    for row in rows:
+        method = row.get("method")
+        if method not in by_method:
+            raise ValueError(f"Unexpected rounding method {method!r}")
+        index = row.get("restart")
+        if (not isinstance(index, int)
+                or index in by_method[method]):
+            raise ValueError("Missing/duplicate rounding restart index")
+        by_method[method][index] = float(row["cut_weight"])
+
+    for method, settings in manifest["methods"].items():
+        _, scores = load_method(archive / settings["partition_file"])
+        observed = by_method[method]
+        if set(observed) != set(range(len(scores))):
+            raise ValueError(f"Incomplete rounding restart indices for {method}")
+        actual = np.asarray([observed[i] for i in range(len(scores))])
+        if not np.allclose(actual, scores, rtol=0, atol=1e-8):
+            raise ValueError(
+                f"JSONL rounding values differ from archived partitions: {method}"
+            )
+    return rows
+
+
 def publish_snapshot(
     batch_dir: Path, dest: Path, *,
     cuda_results: Path | None = None,
@@ -118,6 +157,13 @@ def publish_snapshot(
                     name, int(case["settings"]["restarts"]),
                     input_dir / f"{name}.txt",
                 )
+                archive = Path(numeric["archive_path"])
+                manifest = json.loads(
+                    (archive / "manifest.json").read_text(encoding="utf8")
+                )
+                trial_records = _verified_trial_records(
+                    archive, Path(case["source_jsonl"]), manifest,
+                )
             except (OSError, ValueError, TypeError, KeyError) as exc:
                 state = "unverified_complete"
                 bad_cases.append(f"{name}: {type(exc).__name__}: {exc}")
@@ -137,15 +183,6 @@ def publish_snapshot(
                 "input_sha256": numeric["input_sha256"],
             })
             verified_paths.append(Path(case["source_jsonl"]))
-            archive = Path(numeric["archive_path"])
-            manifest = json.loads(
-                (archive / "manifest.json").read_text(encoding="utf8")
-            )
-            trial_records = []
-            with Path(case["source_jsonl"]).open("r", encoding="utf8") as stream:
-                for line in stream:
-                    if line.strip():
-                        trial_records.append(json.loads(line))
             for item in trial_records:
                 trial_rows.append({
                     "graph": name, "n": item["n"], "method": item["method"],
