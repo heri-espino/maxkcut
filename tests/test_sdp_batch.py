@@ -70,7 +70,15 @@ def test_full_sdp_child_command_is_same_convex_pipeline(tmp_path):
         solver="SCS", eps=1e-3, max_iters=3000, restarts=20,
         seed=2026, cpu_threads=8, scs_indirect=False, n=800,
     )
-    assert command[:3] == [batch.sys.executable, "-m", "maxkcut"]
+    assert command[:4] == [batch.sys.executable, "-u", "-m", "maxkcut"]
+    assert "--verbose" not in command
+    live = batch._child_command(
+        path=graph, jsonl=tmp_path / "future.jsonl",
+        solver="SCS", eps=1e-3, max_iters=3000, restarts=20,
+        seed=2026, cpu_threads=8, scs_indirect=False, n=800,
+        solver_progress=True,
+    )
+    assert "--verbose" in live
     assert "--solver" in command
     assert command[command.index("--solver") + 1] == "SCS"
     assert command[command.index("--max-n") + 1] == "800"
@@ -301,3 +309,40 @@ def test_cli_no_wall_limit_passes_none_without_running_solver(monkeypatch, tmp_p
     assert observed["seconds_per_graph"] is None
     assert observed["total_seconds"] is None
     assert observed["max_n"] == 2000
+
+
+def test_solver_progress_is_execution_policy_and_existing_archives_resume(
+    monkeypatch, tmp_path
+):
+    graph = _create_graph(tmp_path, "G1")
+    target = tmp_path / "runs"
+    calls = []
+
+    def mock_run(command, *, stdout, stderr, timeout, check):
+        calls.append(command)
+        output = Path(command[command.index("--output") + 1])
+        _write_complete_sdp_archive(graph, output, restarts=2)
+        return subprocess.CompletedProcess(command, 0)
+
+    monkeypatch.setattr(
+        "maxkcut.archive._git_metadata",
+        lambda: {"commit": None, "dirty": None},
+    )
+    monkeypatch.setattr(batch.subprocess, "run", mock_run)
+    first = batch.run_full_sdp_batch(
+        graph.parent, target, restarts=2,
+        seconds_per_graph=None, total_seconds=None,
+    )
+    assert first["complete"] == 1
+    assert "--verbose" not in calls[0]
+
+    # Turning on logging must not force a new SDP solve.
+    repeat = batch.run_full_sdp_batch(
+        graph.parent, target, restarts=2,
+        seconds_per_graph=None, total_seconds=None,
+        solver_progress=True,
+    )
+    assert repeat["skipped_verified"] == 1
+    assert len(calls) == 1
+    plan = json.loads((target / "plan.json").read_text())
+    assert plan["execution_policies"][-1]["solver_progress"] is True
