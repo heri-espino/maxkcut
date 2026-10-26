@@ -457,3 +457,35 @@ lose the in-flight solver state and raw files. Crucially:
 **no SCS x/y/s warm-start checkpoint serialization is implemented**.
 An interrupted G81 must restart its SDP numerical iterations.
 See `docs/g81-128gb-vm.md` for exact clone/Conda/run/Git commands.
+
+
+## 2026-10-26: G81 VM original direct solver initialization failure
+
+On the user's 128 GB Windows PowerShell VM, G81 (n=20,000, m=40,000)
+CVXPY 1.9.3 compiled a conic program with 200,010,000
+SCS variables and 200,030,000 constraints in about 436 s,
+then SCS 3.3.1's sparse-direct AMD/QDLDL setup failed:
+
+```text
+AMD permutatation error.
+ERROR: init_lin_sys_work failure
+ValueError: ScsWork allocation error!
+```
+
+The first G81 case record was `failed` after 553.47 seconds,
+with **no SCS iterations, no rounding and no cut**.
+These exact messages are preserved in committed
+`results/gset/g81-128gb-vm/solver-output.txt`.
+This is not a mathematical infeasibility conclusion; it is a
+numerical backend initialization failure. The reported total
+system RAM peak is not proof of the exact cause.
+
+A new explicitly opt-in `--scs-indirect` VM runner mode
+will evaluate the *same original full convex SDP* with SCS's
+CG-based indirect linear system backend, isolating the new
+study in `reports/gset/g81-vm-128gb-indirect/` and the
+supervisor-facing GitHub publication folder
+`results/gset/g81-128gb-vm-indirect/`.
+The comparison will require independent feasibility and
+convergence diagnostics: this is a solver-backend change,
+not a successful 20,000-node SDP claim.

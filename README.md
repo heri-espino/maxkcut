@@ -186,11 +186,11 @@ requires an additional explicit `--acknowledge-huge-risk`. Neither
 a wall timeout nor these flags guarantees protection from RAM exhaustion.
 Read [the full SDP batch safety and comparison guide](docs/full-sdp-batch.md).
 
-## G81 — 128 GB Linux VM, original full SDP, GitHub checkpoints
+## G81 — 128 GB VM, original full SDP, GitHub checkpoints
 
 For the final and largest canonical G-set graph (**G81, 20,000
-vertices**), use the dedicated Python VM launcher after cloning and
-creating the existing Conda environment:
+vertices**), use the dedicated Python VM launcher on Windows or Linux
+with the existing Conda environment:
 
 ```bash
 python scripts/run_g81_vm.py --cpu-threads 16 --checkpoint-seconds 900
@@ -205,7 +205,19 @@ After independent validation of a successful G81, it also publishes
 all 60 original rounded partitions and methods' cut scores,
 excluding the multi-GB SDP Gram matrix and local secret paths.
 
-**These are file/log checkpoints, not saved SCS iteration state.**
+**Observed first G81 failure:** CVXPY compiled successfully, but
+SCS sparse-direct AMD/QDLDL initialization failed before any solver
+iterations. On Windows the alternative SCS indirect mode can be
+attempted without replacing the original convex SDP:
+
+```powershell
+python scripts/run_g81_vm.py --scs-indirect --cpu-threads 16 --checkpoint-seconds 900
+```
+
+This writes to separate `reports/gset/g81-vm-128gb-indirect/`
+and `results/gset/g81-128gb-vm-indirect/` folders rather than
+overwriting failed evidence. **These are file/log checkpoints,
+not saved SCS iteration state.**
 An interrupted G81 solve must still restart numerical SCS from the
 beginning; 128 GB RAM does not guarantee it fits/finishes.
 See [the complete clean-VM setup, commands and limitations](docs/g81-128gb-vm.md).

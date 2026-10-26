@@ -359,3 +359,30 @@ Read instructions → inspect the current branch/files → state the mathematica
   previously pushed GitHub data are guaranteed to survive.
 - Tests: `tests/test_g81_vm_runner.py`; VM setup documentation:
   `docs/g81-128gb-vm.md`.
+
+
+## G81 direct AMD failure and Windows/indirect fallback (2026-10-26)
+
+- The first 128GB Windows VM G81 CVXPY/SCS 3.3.1 full convex SDP
+  successfully compiled (about 436 seconds) but failed before the
+  first SCS iteration: `AMD permutatation error`,
+  `ERROR: init_lin_sys_work failure`,
+  `ValueError: ScsWork allocation error!`.
+  **No valid SDP solve or rounded cut was produced** (case status
+  `failed`, elapsed 553.47s). GitHub checkpoints were published.
+- Do not misdiagnose this as evidence of unavailable virtual memory:
+  initialization error can reflect QDLDL ordering/index/factorization
+  resource limits. 128GB is not automatically sufficient.
+- The initial VM runner assumed Linux, explaining empty `system_memory`
+  in checkpoints on Windows. It now calls native Windows system memory
+  APIs when `/proc/meminfo` is unavailable.
+- `python scripts/run_g81_vm.py --scs-indirect` uses original
+  CVXPY/SCS full **convex** SDP with iterative CG linear-system solves,
+  not the CUDA low-rank method. It uses separate original data
+  `reports/gset/g81-vm-128gb-indirect/` and public results
+  `results/gset/g81-128gb-vm-indirect/`, preserving the original
+  QDLDL failure evidence, solver settings, artifacts and Git history.
+  This avoids numerical-config conflicts, but does not guarantee
+  memory capacity, convergence or an SCS-state checkpoint.
+- Tests cover indirect flag propagation and path isolation.
+  User-local test execution and numerical feasibility still required.
