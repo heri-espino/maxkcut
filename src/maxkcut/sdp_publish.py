@@ -257,9 +257,15 @@ def publish_snapshot(
         results["comparison_skipped"] = "CUDA baseline not present"
 
     counts = {}
+    numerical_status_counts = {}
     for row in records:
         key = str(row["status"])
         counts[key] = counts.get(key, 0) + 1
+        if key == "complete":
+            numerical = str(row["sdp_solver_status"])
+            numerical_status_counts[numerical] = (
+                numerical_status_counts.get(numerical, 0) + 1
+            )
     lines = [
         "# G-set — Full convex SDP results",
         "",
@@ -294,6 +300,19 @@ def publish_snapshot(
     for status, count in sorted(counts.items()):
         lines.append(f"| {status} | {count} |")
     lines += [
+        "",
+        "## Numerical SDP solver statuses",
+        "",
+        "| CVXPY/SCS status | Completed graphs |",
+        "| --- | ---: |",
+    ]
+    for status, count in sorted(numerical_status_counts.items()):
+        lines.append(f"| {status} | {count} |")
+    lines += [
+        "",
+        "Runs marked `optimal_inaccurate` reached only the solver's "
+        "weaker numerical termination criteria. Review feasibility and "
+        "duality diagnostics before drawing conclusions.",
         "",
         "## Interpretation and limitations",
         "",
