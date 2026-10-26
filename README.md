@@ -186,6 +186,24 @@ requires an additional explicit `--acknowledge-huge-risk`. Neither
 a wall timeout nor these flags guarantees protection from RAM exhaustion.
 Read [the full SDP batch safety and comparison guide](docs/full-sdp-batch.md).
 
+## Monitor full convex SDP convergence
+
+The read-only progress view can be run in a second PowerShell terminal
+without stopping or restarting an existing CPU convex SDP batch:
+
+```powershell
+maxkcut-sdp-batch --status --output-dir reports/gset/full-sdp-batch
+maxkcut-sdp-batch --watch-progress --output-dir reports/gset/full-sdp-batch
+```
+
+For future graph attempts, use `--solver-progress` in the same
+`maxkcut-sdp-batch` solve command to save SCS verbose iteration,
+primal/dual residual and duality-gap diagnostics to each
+`runs/Gxx/attempt-NNN/solver.log`. A monitor cannot obtain numerical
+progress retroactively from an already non-verbose G56 solve, and
+an SCS iteration/max iteration count is **not a completion percentage**.
+See [full SDP batch progress](docs/full-sdp-batch.md).
+
 ## Full convex SDP versus CUDA low-rank comparison
 
 The original `maxkcut` command **already solves the full convex SDP**
