@@ -332,7 +332,7 @@ Read instructions → inspect the current branch/files → state the mathematica
 - The canonical final graph G81 has n=20,000, m=40,000.
   Preserve the **original convex CVXPY/SCS SDP** for research; never
   silently substitute the separate low-rank nonconvex CUDA method.
-- `scripts/run_g81_vm.py` runs only G81 with the G-set text dataset,
+- `src/maxkcut/g81_vm.py` with thin `scripts/run_g81_vm.py` runs only G81 with the G-set text dataset,
   eps=1e-3, max_iters=3000, seed=2026, 20 restarts per rounding
   method, and a configurable BLAS thread count (default 16).
   No wall timeout implies neither a RAM guarantee nor convergence.
