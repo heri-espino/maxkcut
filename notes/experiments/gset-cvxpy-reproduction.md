@@ -424,3 +424,36 @@ Windows source and artifact paths, which the new publication
 mechanism eliminates in its regenerated public snapshots. Original
 signed-edge graph identity checks, individual rounding score
 validation and solver provenance are emphasized for the supervisor.
+
+## 2026-10-26: dedicated G81 128 GB VM experiment plan
+
+G81 is the last and largest canonical G-set case, with 20,000
+vertices and 40,000 edges. A new `scripts/run_g81_vm.py`
+infrastructure harness automates running the **original full convex
+CVXPY/SCS** relaxation at eps=1e-3, max 3000 SCS iterations,
+20 restarts per method (FJ, K-Means2N, K-MeansNM), seed=2026,
+and a configurable CPU BLAS worker pool (16 by default).
+It does not use the CUDA low-rank surrogate.
+
+The user has access to a temporary Linux VM with 128GB RAM.
+This RAM budget is materially larger than the original 64GB
+desktop machine but cannot guarantee that the dense PSD cone
+will fit or complete; cubic eigendecomposition costs remain.
+No numerical results or timings for G81 are claimed by this
+code change.
+
+Because ephemeral VM contents disappear, the runner periodically
+exports UTC snapshots of SCS residuals/iteration, OS CPU/RAM metrics,
+case status and sanitized solver/orchestration log excerpts, then
+Git commits/pushes only `results/gset/g81-128gb-vm/`
+approximately every 900 s. This does not disturb the earlier
+59-graph Windows study's own publication directory.
+
+After a genuine completed G81, it revalidates the signed weighted
+graph and all 60 rounded partitions and publishes their compressed
+NPZ data, method stats and traceability into Git; giant dense
+Gram matrices remain locally ignored. A hard VM failure may
+lose the in-flight solver state and raw files. Crucially:
+**no SCS x/y/s warm-start checkpoint serialization is implemented**.
+An interrupted G81 must restart its SDP numerical iterations.
+See `docs/g81-128gb-vm.md` for exact clone/Conda/run/Git commands.
