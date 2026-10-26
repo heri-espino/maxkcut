@@ -397,3 +397,30 @@ if files are unchanged, never force-pushes, and does not interfere
 with the optimizer. **No user's local numerical reports were copied
 to GitHub by the code authoring agent.** Data appear only after
 the user executes the publisher on their Windows workstation.
+
+## 2026-10-26: first result summary committed to GitHub
+
+The tracked `results/gset/full-sdp/summary.csv` was first
+published by the user's workstation. At the time inspected, that
+file showed **59 completed graph instances** (G1–G59) and G60
+marked `interrupted`. It reported:
+
+| Graph | Best feasible rounded cut | Numerical CVXPY/SCS status |
+| --- | ---: | --- |
+| G55 | 9,935 | `optimal_inaccurate` |
+| G56 | 3,665 | `optimal_inaccurate` |
+| G57 | 3,316 | `optimal` |
+| G58 | 18,486 | `optimal` |
+| G59 | 5,322 | `optimal` |
+
+G56 was listed as successful on the **second** attempt. These
+are source-file *reported outputs*, not independently rerun or
+numerically certified by the authoring agent. An
+`optimal_inaccurate` solver status is materially weaker than
+`optimal`, and neither proves an integer Max-Cut optimum.
+
+The initial CSV commit accidentally included absolute local
+Windows source and artifact paths, which the new publication
+mechanism eliminates in its regenerated public snapshots. Original
+signed-edge graph identity checks, individual rounding score
+validation and solver provenance are emphasized for the supervisor.
