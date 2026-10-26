@@ -302,6 +302,9 @@ def main() -> int:
     parser.add_argument("--checkpoint-seconds", type=int, default=900)
     parser.add_argument("--no-push", action="store_true",
                         help="Create local checkpoints without publishing Git commits")
+    parser.add_argument("--retry-failed", action="store_true",
+                        help="Explicitly retry a previously failed/timed-out G81 case;"
+                             " incomplete iterations still start from zero")
     args = parser.parse_args()
     if args.cpu_threads < 1 or args.checkpoint_seconds < 60:
         parser.error("cpu-threads must be >=1 and checkpoint-seconds >=60")
@@ -338,6 +341,8 @@ def main() -> int:
         "--solver-progress", "--no-compare",
         "--output-dir", str(BATCH),
     ]
+    if args.retry_failed:
+        cmd.append("--retry-failed")
     save_json(PUBLIC / "run-config.json", {
         "graph": "G81", "n": 20000,
         "method": "original_full_convex_CVXPY_SCS",
@@ -345,6 +350,7 @@ def main() -> int:
         "eps": 1e-3, "max_iters": 3000, "restarts_per_method": 20,
         "seed": 2026, "wall_time_limit": None,
         "checkpoint_seconds": args.checkpoint_seconds,
+        "explicit_retry_failed": args.retry_failed,
         "solver_iteration_state_persisted": False,
         "run_command": [str(x).replace(str(ROOT), "<REPO>")
                         .replace(sys.executable, "python") for x in cmd],
