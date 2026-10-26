@@ -94,6 +94,7 @@ def log_excerpt(file: Path, max_bytes: int) -> str:
 
 
 def linux_memory() -> dict:
+    """Cross-platform available physical/virtual memory, despite legacy name."""
     out: dict = {}
     source = Path("/proc/meminfo")
     if source.is_file():
@@ -101,6 +102,34 @@ def linux_memory() -> dict:
             key, _, raw = line.partition(":")
             if key in ("MemTotal", "MemAvailable", "SwapTotal", "SwapFree"):
                 out[f"{key}_gib"] = round(int(raw.strip().split()[0]) * 1024 / (1024 ** 3), 2)
+        return out
+    if os.name == "nt":
+        import ctypes
+        from ctypes import wintypes
+
+        class MemoryStatus(ctypes.Structure):
+            _fields_ = [
+                ("dwLength", wintypes.DWORD),
+                ("dwMemoryLoad", wintypes.DWORD),
+                ("ullTotalPhys", ctypes.c_ulonglong),
+                ("ullAvailPhys", ctypes.c_ulonglong),
+                ("ullTotalPageFile", ctypes.c_ulonglong),
+                ("ullAvailPageFile", ctypes.c_ulonglong),
+                ("ullTotalVirtual", ctypes.c_ulonglong),
+                ("ullAvailVirtual", ctypes.c_ulonglong),
+                ("ullAvailExtendedVirtual", ctypes.c_ulonglong),
+            ]
+        state = MemoryStatus()
+        state.dwLength = ctypes.sizeof(MemoryStatus)
+        if ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(state)):
+            convert = lambda value: round(value / 2 ** 30, 2)
+            return {
+                "MemTotal_gib": convert(state.ullTotalPhys),
+                "MemAvailable_gib": convert(state.ullAvailPhys),
+                "CommitLimit_gib": convert(state.ullTotalPageFile),
+                "CommitAvailable_gib": convert(state.ullAvailPageFile),
+                "MemoryLoad_percent": int(state.dwMemoryLoad),
+            }
     return out
 
 
@@ -313,12 +342,20 @@ def main() -> int:
     parser.add_argument("--retry-failed", action="store_true",
                         help="Explicitly retry a previously failed/timed-out G81 case;"
                              " incomplete iterations still start from zero")
+    parser.add_argument("--scs-indirect", action="store_true",
+                        help="Use the ORIGINAL full convex SDP with SCS conjugate-"
+                             "gradient indirect linear solver; separate results "
+                             "from failed AMD/QDLDL sparse-direct attempt")
     args = parser.parse_args()
     if args.cpu_threads < 1 or args.checkpoint_seconds < 60:
         parser.error("cpu-threads must be >=1 and checkpoint-seconds >=60")
     if not GRAPH.is_file():
         parser.error(f"Missing canonical graph: {GRAPH}")
     os.chdir(ROOT)
+    global BATCH, PUBLIC
+    if args.scs_indirect:
+        BATCH = ROOT / "reports" / "gset" / "g81-vm-128gb-indirect"
+        PUBLIC = ROOT / "results" / "gset" / "g81-128gb-vm-indirect"
     BATCH.mkdir(parents=True, exist_ok=True)
     PUBLIC.mkdir(parents=True, exist_ok=True)
 
@@ -351,9 +388,15 @@ def main() -> int:
     ]
     if args.retry_failed:
         cmd.append("--retry-failed")
+    if args.scs_indirect:
+        cmd.append("--scs-indirect")
     save_json(PUBLIC / "run-config.json", {
         "graph": "G81", "n": 20000,
         "method": "original_full_convex_CVXPY_SCS",
+        "scs_linear_solver_backend": (
+            "indirect_conjugate_gradient" if args.scs_indirect
+            else "direct_AMD_QDLDL"
+        ),
         "cpu_threads": args.cpu_threads,
         "eps": 1e-3, "max_iters": 3000, "restarts_per_method": 20,
         "seed": 2026, "wall_time_limit": None,
@@ -375,9 +418,17 @@ def main() -> int:
         print(f"Received signal {signum}; stopping batch process group.", flush=True)
         if child and child.poll() is None:
             try:
-                os.killpg(child.pid, signal.SIGINT)
-            except ProcessLookupError:
-                pass
+                if os.name == "nt":
+                    # Windows requires CREATE_NEW_PROCESS_GROUP for CTRL_BREAK.
+                    child.send_signal(signal.CTRL_BREAK_EVENT)
+                else:
+                    os.killpg(child.pid, signal.SIGINT)
+            except (ProcessLookupError, OSError):
+                print(
+                    "Signal forwarding failed; do not assume that the "
+                    "nested solver subprocess stopped.",
+                    file=sys.stderr, flush=True,
+                )
 
     old_int = signal.signal(signal.SIGINT, stop)
     old_term = signal.signal(signal.SIGTERM, stop)
@@ -385,7 +436,9 @@ def main() -> int:
         with (BATCH / "batch-stdout.txt").open("ab") as output:
             child = subprocess.Popen(
                 cmd, cwd=ROOT, stdout=output, stderr=subprocess.STDOUT,
-                start_new_session=True,
+                start_new_session=(os.name != "nt"),
+                creationflags=(subprocess.CREATE_NEW_PROCESS_GROUP
+                               if os.name == "nt" else 0),
             )
             checkpoint(child, state="started", exit_code=None, do_push=not args.no_push)
             next_checkpoint = time.monotonic() + args.checkpoint_seconds
