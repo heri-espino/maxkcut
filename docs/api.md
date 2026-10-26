@@ -82,6 +82,16 @@ The package exposes stable **research entry points** at the top level. Each func
 :members:
 ```
 
+## GitHub publication of verified full SDP results
+
+```{automodule} maxkcut.sdp_publish
+:members:
+```
+
+```{automodule} maxkcut.sdp_publish_cli
+:members:
+```
+
 ## Resource-bounded full convex SDP G-set batch
 
 ```{automodule} maxkcut.sdp_batch
