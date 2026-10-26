@@ -165,6 +165,11 @@ def publish_snapshot(
                     archive, Path(case["source_jsonl"]), manifest,
                 )
             except (OSError, ValueError, TypeError, KeyError) as exc:
+                # _read_saved_result may succeed before individual trial
+                # verification fails. Revoke its partial success as well:
+                # no cut, method statistics, trials, provenance, or comparison
+                # may be published for an unverified graph.
+                numeric = None
                 state = "unverified_complete"
                 bad_cases.append(f"{name}: {type(exc).__name__}: {exc}")
         summary = {
