@@ -17,6 +17,7 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
 import json
+import math
 import os
 from pathlib import Path
 import shutil
@@ -46,8 +47,21 @@ def save_text(path: Path, value: str) -> None:
     temp.replace(path)
 
 
+def json_safe(value):
+    """Represent non-finite native SCS residuals explicitly as strings."""
+    if isinstance(value, float) and not math.isfinite(value):
+        return str(value)
+    if isinstance(value, dict):
+        return {k: json_safe(v) for k, v in value.items()}
+    if isinstance(value, (tuple, list)):
+        return [json_safe(v) for v in value]
+    return value
+
+
 def save_json(path: Path, data: dict) -> None:
-    save_text(path, json.dumps(data, indent=2, sort_keys=True, allow_nan=False) + "\n")
+    save_text(path, json.dumps(
+        json_safe(data), indent=2, sort_keys=True, allow_nan=False,
+    ) + "\n")
 
 
 def read_json(path: Path) -> dict | None:
