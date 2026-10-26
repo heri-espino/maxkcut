@@ -103,3 +103,18 @@ def test_case_log_path_cannot_escape_trusted_batch(runner, monkeypatch, tmp_path
         runner.latest_solver_log({
             "graph": "G81", "log_path": str(tmp_path / "outside.log")
         })
+
+
+def test_native_scs_nan_inf_diagnostics_are_preserved_without_json_failure(
+    runner, tmp_path,
+):
+    target = tmp_path / "checkpoint.json"
+    runner.save_json(target, {
+        "scs_progress": {
+            "primal_residual": float("nan"),
+            "duality_gap": float("inf"),
+        }
+    })
+    data = json.loads(target.read_text())
+    assert data["scs_progress"]["primal_residual"] == "nan"
+    assert data["scs_progress"]["duality_gap"] == "inf"
