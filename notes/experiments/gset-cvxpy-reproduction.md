@@ -350,3 +350,26 @@ Next experiment is the explicit n=3000 stage (G48, G49, G50),
 preserving the same numerical settings and output directory. Users
 should review solver logs and memory use before attempting 5000+
 vertex dense convex SDPs. No wall-clock timeout is not a RAM bound.
+
+## 2026-10-26: read-only monitoring and verbose full-SDP convergence
+
+While running the very large original convex SDP batch, the user
+observed that G56 appeared stuck; CPU-time increases showed substantial
+compute but did **not** establish convergence. The batch launched SCS
+with `verbose=False`, so no SCS primal/dual residual or iteration
+trace could be recovered from the currently running process.
+
+An optional `--solver-progress` execution flag now forwards verbose
+SCS logging for **newly launched** graphs, recording convergence traces
+in per-attempt `solver.log` without altering the full SDP
+mathematical program, solver parameters, cache key or earlier
+verified results. The separate `--status` and `--watch-progress`
+commands read saved case status and parse any available SCS numerical
+trace, without creating any numerical solver subprocess. It identifies
+a `started` record as potentially stale and never invents a percent
+complete or an ETA.
+
+`--solver-progress` is not retroactive, requires launching a new
+graph process, and native stdout may be buffered. The 3000 SCS
+iteration stopping criterion remains a cap, not a guaranteed number
+of iterations to successful convergence.
