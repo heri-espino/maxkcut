@@ -428,8 +428,8 @@ validation and solver provenance are emphasized for the supervisor.
 ## 2026-10-26: dedicated G81 128 GB VM experiment plan
 
 G81 is the last and largest canonical G-set case, with 20,000
-vertices and 40,000 edges. A new `scripts/run_g81_vm.py`
-infrastructure harness automates running the **original full convex
+vertices and 40,000 edges. A new `src/maxkcut/g81_vm.py` implementation with thin
+`scripts/run_g81_vm.py` launcher automates running the **original full convex
 CVXPY/SCS** relaxation at eps=1e-3, max 3000 SCS iterations,
 20 restarts per method (FJ, K-Means2N, K-MeansNM), seed=2026,
 and a configurable CPU BLAS worker pool (16 by default).
