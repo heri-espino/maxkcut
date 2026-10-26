@@ -1,1 +1,78 @@
-No solver output yet.
+===============================================================================
+                                     CVXPY                                     
+                                     v1.9.3                                    
+===============================================================================
+(CVXPY) Oct 26 04:47:54 PM: Your problem has 400000000 variables, 20000 constraints, and 0 parameters.
+(CVXPY) Oct 26 04:47:54 PM: It is compliant with the following grammars: DCP, DQCP
+(CVXPY) Oct 26 04:47:54 PM: DCP verification time: 0.0000 seconds.
+(CVXPY) Oct 26 04:47:54 PM: Expression tree has 3 nodes.
+(CVXPY) Oct 26 04:47:54 PM: (If you need to solve this problem multiple times, but with different data, consider using parameters.)
+(CVXPY) Oct 26 04:47:54 PM: CVXPY will first compile your problem; then, it will invoke a numerical solver to obtain a solution.
+(CVXPY) Oct 26 04:47:54 PM: Your problem is compiled with the CPP canonicalization backend.
+-------------------------------------------------------------------------------
+                                  Compilation                                  
+-------------------------------------------------------------------------------
+(CVXPY) Oct 26 04:47:54 PM: Compiling problem (target solver=SCS).
+(CVXPY) Oct 26 04:47:54 PM: Reduction chain: FlipObjective -> Dcp2Cone -> CvxAttr2Constr -> ExactCone2Cone -> EliminateZeroSized -> ConeMatrixStuffing -> SCS
+(CVXPY) Oct 26 04:47:54 PM: Applying reduction FlipObjective
+(CVXPY) Oct 26 04:47:54 PM: Applying reduction Dcp2Cone
+(CVXPY) Oct 26 04:47:54 PM: Applying reduction CvxAttr2Constr
+(CVXPY) Oct 26 04:48:04 PM: Applying reduction ExactCone2Cone
+(CVXPY) Oct 26 04:49:01 PM: Applying reduction EliminateZeroSized
+(CVXPY) Oct 26 04:49:01 PM: Applying reduction ConeMatrixStuffing
+(CVXPY) Oct 26 04:54:33 PM: Applying reduction SCS
+(CVXPY) Oct 26 04:55:10 PM: Finished problem compilation (took 4.359e+02 seconds).
+-------------------------------------------------------------------------------
+                                Numerical solver                               
+-------------------------------------------------------------------------------
+(CVXPY) Oct 26 04:55:10 PM: Invoking solver SCS  to obtain a solution.
+------------------------------------------------------------------
+	       SCS v3.3.1 - Splitting Conic Solver
+	(c) Brendan O'Donoghue, Stanford University, 2012
+------------------------------------------------------------------
+problem:  variables n: 200010000, constraints m: 200030000
+cones: 	  z: primal zero / dual free vars: 20000
+	  s: psd vars: 200010000, ssize: 1
+settings: eps_abs: 1.0e-03, eps_rel: 1.0e-03, eps_infeas: 1.0e-07
+	  alpha: 1.50, scale: 1.00e-01, adaptive_scale: 1
+	  max_iters: 3000, normalize: 1, rho_x: 1.00e-06
+	  acceleration_lookback: 10, acceleration_interval: 5
+lin-sys:  sparse-direct-amd-qdldl
+	  nnz(A): 200029999, nnz(P): 0
+AMD permutatation error.
+ERROR: init_lin_sys_work failure
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "<REPO>\src\maxkcut\__main__.py", line 5, in <module>
+    main()
+  File "<REPO>\src\maxkcut\cli.py", line 86, in main
+    benchmark(names, args.k, args.output, solver=args.solver, eps=args.eps,
+  File "<REPO>\src\maxkcut\experiments.py", line 113, in benchmark
+    x, solver_info = solve_sdp(
+                     ^^^^^^^^^^
+  File "<REPO>\src\maxkcut\sdp.py", line 80, in solve_sdp
+    value = problem.solve(solver=solver, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<HOME>\AppData\Local\miniconda3\envs\maxkcut\Lib\site-packages\cvxpy\problems\problem.py", line 687, in solve
+    return solve_func(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<HOME>\AppData\Local\miniconda3\envs\maxkcut\Lib\site-packages\cvxpy\problems\problem.py", line 1144, in _solve
+    solution = solving_chain.solve_via_data(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<HOME>\AppData\Local\miniconda3\envs\maxkcut\Lib\site-packages\cvxpy\reductions\solvers\solving_chain.py", line 566, in solve_via_data
+    return self.solver.solve_via_data(data, warm_start, verbose,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<HOME>\AppData\Local\miniconda3\envs\maxkcut\Lib\site-packages\cvxpy\reductions\solvers\conic_solvers\scs_conif.py", line 265, in solve_via_data
+    results, status = solve(solver_opts)
+                      ^^^^^^^^^^^^^^^^^^
+  File "<HOME>\AppData\Local\miniconda3\envs\maxkcut\Lib\site-packages\cvxpy\reductions\solvers\conic_solvers\scs_conif.py", line 260, in solve
+    _results = scs.solve(args, cones, verbose=verbose, **_solver_opts)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<HOME>\AppData\Local\miniconda3\envs\maxkcut\Lib\site-packages\scs\__init__.py", line 219, in solve
+    solver = SCS(data, cone, **settings)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<HOME>\AppData\Local\miniconda3\envs\maxkcut\Lib\site-packages\scs\__init__.py", line 172, in __init__
+    self._solver = _scs.SCS(
+                   ^^^^^^^^^
+ValueError: ScsWork allocation error!
