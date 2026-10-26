@@ -276,3 +276,24 @@ Read instructions → inspect the current branch/files → state the mathematica
   can exhaust the user's 64 GB Windows memory or crash the system.
   Prefer staged n<=2000 then n<=3000, and individually inspected
   large SDP attempts. Never automatically launch >3000 PSD cones.
+
+
+## Read-only full SDP batch progress (2026-10-26)
+
+- `maxkcut-sdp-batch --status` and `--watch-progress` may inspect
+  per-graph JSON statuses, latest solver log update time and SCS
+  convergence trace without starting ANY new numerical computation.
+  A `started` record is not proof of process liveness after a hard crash.
+- `--solver-progress` is a logging-only execution policy that
+  forwards the original CLI's `--verbose` flag to **new** SCS child
+  processes; old complete graphs remain verified/resumable under the
+  same numerical settings. Do not silently change `--max-iters`,
+  tolerances, seed, restarts, CPU threads or convex solver.
+- Never present SCS iteration index divided by the iteration cap
+  as true completion percentage or predict remaining wall-clock time
+  from it. Primal/dual residual and duality gap are diagnostic
+  convergence measures, not integer Max-Cut proof.
+- No retroactive introspection of native SCS solver internals and
+  no SCS iteration checkpointing are claimed. Verbose logs may buffer
+  for long periods during eigendecompositions, so stale log timestamps
+  are not proof of a freeze.

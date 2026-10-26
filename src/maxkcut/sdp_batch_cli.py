@@ -8,9 +8,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import time
 from pathlib import Path
 
 from .sdp_batch import inventory, run_full_sdp_batch
+from .sdp_progress import batch_status
 from .study_compare import write_study_comparison
 
 
@@ -54,6 +56,16 @@ def main() -> None:
     parser.add_argument("--graphs", nargs="+", default=["ALL"])
     parser.add_argument("--output-dir", type=Path,
                         default=Path("reports/gset/full-sdp-batch"))
+    parser.add_argument("--status", action="store_true",
+                        help="Read-only saved graph status and latest available "
+                             "SCS convergence metrics; no optimization")
+    parser.add_argument("--watch-progress", action="store_true",
+                        help="Read-only refresh status every 15 seconds in "
+                             "this terminal; Ctrl+C stops monitoring only")
+    parser.add_argument("--solver-progress", action="store_true",
+                        help="On newly started graph processes, enable verbose "
+                             "SCS per-iteration residual/gap logging. "
+                             "Cannot retroactively monitor an active solve")
     parser.add_argument("--compare-only", action="store_true",
                         help="Regenerate sdp-vs-cuda.csv from completed saved cases; "
                              "never launch a convex SDP subprocess")
@@ -95,6 +107,18 @@ def main() -> None:
                         help="Retry failed/timed-out cases; successful graph archives "
                              "are still independently verified before skipping")
     args = parser.parse_args()
+    if args.status or args.watch_progress:
+        if args.watch_progress:
+            try:
+                while True:
+                    print(json.dumps(batch_status(args.output_dir), indent=2),
+                          flush=True)
+                    time.sleep(15)
+            except KeyboardInterrupt:
+                print("Stopped status monitoring; SDP batch is unaffected.")
+                return
+        print(json.dumps(batch_status(args.output_dir), indent=2))
+        return
     if args.compare_only:
         if args.no_compare:
             parser.error("--compare-only and --no-compare are incompatible")
@@ -140,6 +164,7 @@ def main() -> None:
             None if args.no_wall_limit else args.total_seconds
         ), max_graphs=args.max_graphs,
         retry_failed=args.retry_failed,
+        solver_progress=args.solver_progress,
     )
 
     if not args.no_compare:
