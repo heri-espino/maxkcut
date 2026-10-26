@@ -138,7 +138,7 @@ def test_publish_is_sanitized_idempotent_and_only_completed_archives(
     )
     assert "C:\\Users\\SECRET" not in published
     assert str(tmp_path.resolve()) not in published
-    assert "optimal integer" in published
+    assert "proof of the integer optimum" in published
     assert not (target / "sdp-vs-cuda.csv").exists()
     assert publish_snapshot(batch, target)["updated_files"] == []
 
