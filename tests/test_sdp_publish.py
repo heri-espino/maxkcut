@@ -234,7 +234,22 @@ def test_rejects_individual_jsonl_score_mismatch_even_if_best_agrees(tmp_path):
     output = publish_snapshot(batch, target)
     assert output["verified_complete"] == 0
     assert output["unverified"]
-    with (target / "rounding-trials.csv").open(
-        newline="", encoding="utf8",
-    ) as stream:
-        assert list(csv.DictReader(stream)) == []
+    assert output["statuses"]["unverified_complete"] == 1
+    assert "JSONL rounding values differ" in output["unverified"][0]
+
+    # The top-level archive reader approved the original method's best
+    # score, but a single corrupted nonbest restart invalidates the ENTIRE
+    # graph for public reporting. No stale numeric data may escape.
+    with (target / "summary.csv").open(newline="", encoding="utf8") as stream:
+        summary = {row["graph"]: row for row in csv.DictReader(stream)}
+    assert summary["G11"]["status"] == "unverified_complete"
+    assert summary["G11"]["best_cut"] == ""
+    assert summary["G11"]["best_method"] == ""
+    assert summary["G11"]["sdp_solver_status"] == ""
+
+    for filename in ("rounding-trials.csv", "method-summary.csv", "provenance.csv"):
+        with (target / filename).open(newline="", encoding="utf8") as stream:
+            assert list(csv.DictReader(stream)) == [], filename
+    assert "unverified_complete" in (target / "README.md").read_text(
+        encoding="utf8"
+    )
