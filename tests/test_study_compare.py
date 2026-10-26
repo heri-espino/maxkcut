@@ -172,6 +172,7 @@ def test_rejects_mixed_runs_and_nonfinite_values(tmp_path):
         handle.write(json.dumps({
             "graph": "G11", "n": 3, "k": 2, "method": "K-MeansNM",
             "cut_weight": 3, "artifact_run_id": "different-run",
+            "restart": 0,
         }) + "\n")
     with pytest.raises(ValueError, match="multiple runs"):
         compare_saved_runs([sdp], cuda, data)
@@ -179,6 +180,7 @@ def test_rejects_mixed_runs_and_nonfinite_values(tmp_path):
     sdp.write_text(json.dumps({
         "graph": "G11", "n": 3, "k": 2, "method": "FJ",
         "cut_weight": float("nan"), "artifact_run_id": "sdp-run",
+        "restart": 0,
     }) + "\n")
     with pytest.raises(ValueError, match="non-finite"):
         compare_saved_runs([sdp], cuda, data)
