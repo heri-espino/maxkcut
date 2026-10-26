@@ -373,3 +373,27 @@ complete or an ETA.
 graph process, and native stdout may be buffered. The 3000 SCS
 iteration stopping criterion remains a cap, not a guaranteed number
 of iterations to successful convergence.
+
+
+## 2026-10-26: publishing numerical SDP progress to supervisor on GitHub
+
+The supervisor uses GitHub for project review. Actual full convex
+CVXPY/SCS batch data live under the ignored `reports/`, and local
+numerical results are **not automatically visible on GitHub**.
+A new `maxkcut-sdp-publish` CLI exports source-verified compact
+Markdown/CSV snapshots into tracked `results/gset/full-sdp/`
+without running any optimizer. Published source files include
+full rounding distributions per method, per-graph solver statuses,
+provenance metadata and optional exact weighted graph-verified
+SDP vs low-rank CUDA comparisons. The exporter excludes dense
+Gram matrices, raw logs and identifying local absolute paths.
+
+To publish once: `maxkcut-sdp-publish --push` (explicit push,
+requires local Git authentication and `main` checked out).
+To publish during a long local solve from another PowerShell
+terminal: `maxkcut-sdp-publish --watch-seconds 900 --push`.
+It checks for updated finished cases every 15 minutes, does nothing
+if files are unchanged, never force-pushes, and does not interfere
+with the optimizer. **No user's local numerical reports were copied
+to GitHub by the code authoring agent.** Data appear only after
+the user executes the publisher on their Windows workstation.
