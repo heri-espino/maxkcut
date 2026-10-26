@@ -1,7 +1,6 @@
 """G81 VM checkpoint orchestration tests; never launch a real SDP."""
 from __future__ import annotations
 
-import importlib.util
 import json
 from pathlib import Path
 import subprocess
@@ -9,14 +8,12 @@ from types import SimpleNamespace
 
 import pytest
 
+import maxkcut.g81_vm as _runner
+
 
 @pytest.fixture
 def runner():
-    source = Path(__file__).resolve().parents[1] / "scripts" / "run_g81_vm.py"
-    spec = importlib.util.spec_from_file_location("g81_vm_runner_test", source)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+    return _runner
 
 
 def test_log_excerpt_is_bounded_and_private_paths_redacted(
