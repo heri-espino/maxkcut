@@ -326,3 +326,36 @@ Read instructions → inspect the current branch/files → state the mathematica
 - Documents: `docs/full-sdp-publication.md`; tests:
   `tests/test_sdp_publish.py`. No heavy solver calculation belongs
   in publish/test workflows.
+
+## G81 original full convex SDP on ephemeral 128GB Linux VM
+
+- The canonical final graph G81 has n=20,000, m=40,000.
+  Preserve the **original convex CVXPY/SCS SDP** for research; never
+  silently substitute the separate low-rank nonconvex CUDA method.
+- `scripts/run_g81_vm.py` runs only G81 with the G-set text dataset,
+  eps=1e-3, max_iters=3000, seed=2026, 20 restarts per rounding
+  method, and a configurable BLAS thread count (default 16).
+  No wall timeout implies neither a RAM guarantee nor convergence.
+- A 128GB VM may still exhaust memory while canonicalizing a 20k
+  dense PSD cone or take extremely long for PSD eigenprojections.
+  Store precise failure diagnostics; no fabricated cut or completion.
+- Every 15 minutes the **local VM** (not this chat) creates/pushes
+  sanitized file/solver-log checkpoints into
+  `results/gset/g81-128gb-vm/`, not into the pre-existing Windows
+  study `results/gset/full-sdp/`. Original `reports/` remains ignored.
+- On success, independently rescore all archived method partitions
+  and publish compact original graph and bitpacked partition NPZ,
+  sanitized manifest, full method summary and all rounding trials.
+  Do not Git-push huge raw SDP matrices. No original signed graph
+  or partitions must be invented or discarded.
+- **Do not conflate diagnostic Git snapshots with genuine solver
+  iteration checkpoints.** Current SCS/CVXPY pipeline does NOT
+  serialize/restore its x/y/s or resume numerical iterations after
+  VM teardown. True warm-start state storage is future engineering,
+  potentially multi-GB and unsuitable for ordinary Git.
+- Git commits/pushes target only dedicated G81 path; never force
+  push/pull/rebase during a running solver. On push failures
+  preserve local commit and report issue; on VM teardown only
+  previously pushed GitHub data are guaranteed to survive.
+- Tests: `tests/test_g81_vm_runner.py`; VM setup documentation:
+  `docs/g81-128gb-vm.md`.
