@@ -397,7 +397,27 @@ def main() -> int:
                 exit_code=exit_code, do_push=not args.no_push,
             )
             print(f"G81 batch exit code: {exit_code}", flush=True)
-            return exit_code
+            # The batch CLI itself can exit 0 after recording an individual
+            # 'failed' case. The VM runner must NOT call that research success.
+            case = latest_case()
+            if exit_code != 0:
+                return exit_code if exit_code > 0 else 1
+            if case is None or case.get("status") != "complete":
+                print(
+                    "G81 was not completed even though the batch command exited 0. "
+                    "Inspect saved case/log/checkpoints on GitHub.",
+                    file=sys.stderr, flush=True,
+                )
+                return 2
+            try:
+                verified_archive_copy(case)
+            except (OSError, ValueError, KeyError, TypeError) as exc:
+                print(
+                    f"G81 completed record is not independently verified: {exc}",
+                    file=sys.stderr, flush=True,
+                )
+                return 3
+            return 0
     finally:
         signal.signal(signal.SIGINT, old_int)
         signal.signal(signal.SIGTERM, old_term)
