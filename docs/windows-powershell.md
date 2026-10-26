@@ -454,3 +454,30 @@ using the same directory and parameters:
 ```powershell
 maxkcut-sdp-batch --max-n 3000 --allow-large --no-wall-limit --cpu-threads 8 --restarts 20 --output-dir reports/gset/full-sdp-batch
 ```
+
+## Live SDP progress and convergence logging
+
+From a second PowerShell window while the full convex SDP batch is running:
+
+```powershell
+cd C:\Users\175199\maxkcut
+conda activate maxkcut-cuda
+maxkcut-sdp-batch --status --output-dir reports/gset/full-sdp-batch
+```
+
+Use `--watch-progress` instead of `--status` for a read-only 15-second
+refresh. It does not interrupt your already running solver.
+
+SCS numerical convergence diagnostics (iteration, primal/dual residuals,
+gap) require **the newly started graph** to run with the additional
+`--solver-progress` flag. It forwards `--verbose` to the existing
+full convex SDP solver and saves logs per graph. It is not retroactive
+for an already-running G56.
+
+```powershell
+maxkcut-sdp-batch --graphs ALL --max-n 20000 --allow-large --acknowledge-huge-risk --no-wall-limit --cpu-threads 8 --restarts 20 --solver-progress --output-dir reports/gset/full-sdp-batch
+```
+
+The same original 54+ successful SDP archives will still verify and skip;
+verbosity is an execution/logging choice, not a new optimization method.
+SCS iteration count versus 3000 is **not** a percentage solved.
