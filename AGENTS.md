@@ -297,3 +297,32 @@ Read instructions → inspect the current branch/files → state the mathematica
   no SCS iteration checkpointing are claimed. Verbose logs may buffer
   for long periods during eigendecompositions, so stale log timestamps
   are not proof of a freeze.
+
+
+## GitHub publication of independently verified SDP results
+
+- `maxkcut-sdp-publish` reads saved cases/archives from ignored
+  `reports/` and constructs public, deterministic, sanitized
+  `results/gset/full-sdp/` Markdown/CSV snapshots. This **never**
+  launches a numerical SDP or CUDA optimizer. Do not publish raw
+  Gram caches, dense matrices, solver logs, local absolute paths,
+  personal account identifiers or secret data.
+- The publisher must independently verify each claimed completed
+  SDP's signed weighted graph SHA, method partitions and all rounding
+  cuts using the existing archive validator before publishing any
+  feasible cut. Incomplete/started records are not successes.
+- Publish method distributions and full rounding trial scores,
+  not just best cuts; preserve solver status (including
+  `optimal_inaccurate`), seed, solver/BLAS settings, Git SHA and
+  graph identity metadata. Do not present primal SDP scores as
+  mathematically certified upper bounds or numerical solver optimal
+  status as integer Max-Cut proof.
+- Git operations are explicit: `--push` requires the checked-out
+  `main` branch, stages only the known public result snapshot,
+  never force-pushes or auto-pulls, and no-op commits when results
+  have not changed. `--watch-seconds` runs synchronously in a
+  second user terminal and can be stopped with Ctrl+C without
+  disturbing the solver. It is not an asynchronous ChatGPT job.
+- Documents: `docs/full-sdp-publication.md`; tests:
+  `tests/test_sdp_publish.py`. No heavy solver calculation belongs
+  in publish/test workflows.

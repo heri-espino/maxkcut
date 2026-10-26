@@ -481,3 +481,32 @@ maxkcut-sdp-batch --graphs ALL --max-n 20000 --allow-large --acknowledge-huge-ri
 The same original 54+ successful SDP archives will still verify and skip;
 verbosity is an execution/logging choice, not a new optimization method.
 SCS iteration count versus 3000 is **not** a percentage solved.
+
+## Publish progress to GitHub for supervisors
+
+The solver ignores `reports/` in Git. To share original **full
+convex SDP** results on GitHub while another terminal continues the
+large batch, use the new separate publisher:
+
+```powershell
+cd C:\Users\175199\maxkcut
+conda activate maxkcut-cuda
+python -m pip install -e .
+maxkcut-sdp-publish --output-dir reports/gset/full-sdp-batch --push
+```
+
+To keep GitHub automatically updated every 15 minutes:
+
+```powershell
+maxkcut-sdp-publish --watch-seconds 900 --push --output-dir reports/gset/full-sdp-batch
+```
+
+Only verified completed SDPs contribute cuts. The publication under
+`results/gset/full-sdp/` includes full method/trial distributions,
+solver provenance and the optional CUDA comparison, but **never**
+huge Gram matrices, original logs or absolute Windows paths.
+The watcher runs independently of the numerical SDP and can be
+stopped with Ctrl+C without stopping the solver. Requires GitHub
+authentication and checked-out `main`; non-fast-forward Git pushes
+fail safely without force pushing. See
+[full-SDP publishing guide](full-sdp-publication.md).

@@ -186,6 +186,34 @@ requires an additional explicit `--acknowledge-huge-risk`. Neither
 a wall timeout nor these flags guarantees protection from RAM exhaustion.
 Read [the full SDP batch safety and comparison guide](docs/full-sdp-batch.md).
 
+## Publish full convex SDP results to GitHub for supervisors
+
+The actual full SDP G-set experiments run locally and save results
+under ignored `reports/`. **Your supervisor cannot see those files
+until you explicitly publish them.** The separate publication command
+creates small, privacy-conscious, independently archive-verified Git
+snapshots in tracked `results/gset/full-sdp/` without launching any
+SDP or CUDA calculation.
+
+```powershell
+maxkcut-sdp-publish --output-dir reports/gset/full-sdp-batch --push
+```
+
+For ongoing GitHub progress updates **while the solver runs in another
+PowerShell window**, keep this second command active:
+
+```powershell
+maxkcut-sdp-publish --watch-seconds 900 --push --output-dir reports/gset/full-sdp-batch
+```
+
+Only a changed publication creates a new Git commit. The publisher
+requires `main`, never force-pushes or runs `git pull`, and
+does not upload raw dense SDP matrices, Windows paths, or logs.
+The GitHub folder includes `README.md`, case statuses, per-method
+statistics, all recorded rounding scores, solver provenance and a
+graph-verified CUDA comparison when available. Full
+[publication instructions](docs/full-sdp-publication.md).
+
 ## Monitor full convex SDP convergence
 
 The read-only progress view can be run in a second PowerShell terminal

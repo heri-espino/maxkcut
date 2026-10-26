@@ -373,3 +373,54 @@ complete or an ETA.
 graph process, and native stdout may be buffered. The 3000 SCS
 iteration stopping criterion remains a cap, not a guaranteed number
 of iterations to successful convergence.
+
+
+## 2026-10-26: publishing numerical SDP progress to supervisor on GitHub
+
+The supervisor uses GitHub for project review. Actual full convex
+CVXPY/SCS batch data live under the ignored `reports/`, and local
+numerical results are **not automatically visible on GitHub**.
+A new `maxkcut-sdp-publish` CLI exports source-verified compact
+Markdown/CSV snapshots into tracked `results/gset/full-sdp/`
+without running any optimizer. Published source files include
+full rounding distributions per method, per-graph solver statuses,
+provenance metadata and optional exact weighted graph-verified
+SDP vs low-rank CUDA comparisons. The exporter excludes dense
+Gram matrices, raw logs and identifying local absolute paths.
+
+To publish once: `maxkcut-sdp-publish --push` (explicit push,
+requires local Git authentication and `main` checked out).
+To publish during a long local solve from another PowerShell
+terminal: `maxkcut-sdp-publish --watch-seconds 900 --push`.
+It checks for updated finished cases every 15 minutes, does nothing
+if files are unchanged, never force-pushes, and does not interfere
+with the optimizer. **No user's local numerical reports were copied
+to GitHub by the code authoring agent.** Data appear only after
+the user executes the publisher on their Windows workstation.
+
+## 2026-10-26: first result summary committed to GitHub
+
+The tracked `results/gset/full-sdp/summary.csv` was first
+published by the user's workstation. At the time inspected, that
+file showed **59 completed graph instances** (G1–G59) and G60
+marked `interrupted`. It reported:
+
+| Graph | Best feasible rounded cut | Numerical CVXPY/SCS status |
+| --- | ---: | --- |
+| G55 | 9,935 | `optimal_inaccurate` |
+| G56 | 3,665 | `optimal_inaccurate` |
+| G57 | 3,316 | `optimal` |
+| G58 | 18,486 | `optimal` |
+| G59 | 5,322 | `optimal` |
+
+G56 was listed as successful on the **second** attempt. These
+are source-file *reported outputs*, not independently rerun or
+numerically certified by the authoring agent. An
+`optimal_inaccurate` solver status is materially weaker than
+`optimal`, and neither proves an integer Max-Cut optimum.
+
+The initial CSV commit accidentally included absolute local
+Windows source and artifact paths, which the new publication
+mechanism eliminates in its regenerated public snapshots. Original
+signed-edge graph identity checks, individual rounding score
+validation and solver provenance are emphasized for the supervisor.
