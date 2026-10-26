@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime, timezone
+import hashlib
 import json
 import math
 import os
@@ -163,6 +164,10 @@ def verified_archive_copy(case: dict | None) -> dict:
     original = read_json(archive / "manifest.json")
     if not original or original.get("graph_sha256") != verification["graph_sha256"]:
         raise ValueError("G81 manifest graph identity differs from validated data")
+    if original.get("n") != 20000 or original.get("m") != 40000:
+        raise ValueError("G81 archive has unexpected graph dimensions")
+    if hashlib.sha256(GRAPH.read_bytes()).hexdigest() != original["graph_sha256"]:
+        raise ValueError("G81 archive SHA256 differs from the repository dataset")
     destination = PUBLIC / "compact-archives"
     destination.mkdir(parents=True, exist_ok=True)
     files = ["graph.npz", *[
