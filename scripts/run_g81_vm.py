@@ -302,16 +302,14 @@ def main() -> int:
     if lock.exists():
         try:
             previous = int(lock.read_text().strip())
+        except ValueError:
+            parser.error(f"Invalid runner lock; check manually: {lock}")
+        try:
             os.kill(previous, 0)
-        except (ValueError, ProcessLookupError, PermissionError):
-            # A permission error may indicate an active process; fail closed.
-            if lock.exists():
-                try:
-                    os.kill(int(lock.read_text().strip()), 0)
-                except ProcessLookupError:
-                    pass
-                else:
-                    parser.error(f"Another runner may be active: PID file {lock}")
+        except ProcessLookupError:
+            pass  # Stale PID from a previous VM process; resume is allowed.
+        except PermissionError:
+            parser.error(f"Runner lock PID may still be active: {previous}")
         else:
             parser.error(f"Another G81 runner appears active (PID {previous})")
     lock.write_text(str(os.getpid()), encoding="utf8")
@@ -362,11 +360,15 @@ def main() -> int:
                 start_new_session=True,
             )
             checkpoint(child, state="started", exit_code=None, do_push=not args.no_push)
+            next_checkpoint = time.monotonic() + args.checkpoint_seconds
             while child.poll() is None:
-                time.sleep(args.checkpoint_seconds)
-                checkpoint(child, state="running", exit_code=None, do_push=not args.no_push)
                 if interrupted:
                     break
+                time.sleep(5)
+                if time.monotonic() >= next_checkpoint:
+                    checkpoint(child, state="running", exit_code=None,
+                               do_push=not args.no_push)
+                    next_checkpoint = time.monotonic() + args.checkpoint_seconds
             if interrupted and child.poll() is None:
                 try:
                     child.wait(timeout=120)
