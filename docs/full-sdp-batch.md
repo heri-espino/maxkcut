@@ -276,3 +276,59 @@ For stopping a no-wall batch, use **Ctrl+C** in PowerShell. Already
 completed per-graph archives remain stored; an interrupted in-progress
 graph can be attempted again on a later invocation. The operation is
 synchronous, requiring the local Python/PowerShell process to stay open.
+
+## See batch and solver progress without disturbing the running job
+
+Your existing n=5,000+ convex SDP batch launches SCS without verbose
+logging. **You cannot know a precise solve percentage** for G56 or
+another already-running graph. CPU-time increases only demonstrate
+computation, not SDP convergence.
+
+In **another PowerShell terminal**, from the `maxkcut` repository,
+inspect case progress without launching any optimizer:
+
+```powershell
+maxkcut-sdp-batch --status --output-dir reports/gset/full-sdp-batch
+```
+
+Optionally print updated statuses every 15 seconds; Ctrl+C terminates
+the **status monitor**, not the separately running solver:
+
+```powershell
+maxkcut-sdp-batch --watch-progress --output-dir reports/gset/full-sdp-batch
+```
+
+For **future graphs that have not yet started**, opt in to SCS verbose
+per-iteration numerical diagnostics:
+
+```powershell
+maxkcut-sdp-batch --graphs ALL --max-n 20000 --allow-large --acknowledge-huge-risk --no-wall-limit --cpu-threads 8 --restarts 20 --solver-progress --output-dir reports/gset/full-sdp-batch
+```
+
+This changes **logging only** (no SDP numerical settings) and preserves
+completed graphs in the same output directory. Logs are stored in
+`runs/Gxx/attempt-NNN/solver.log`. Use a second terminal to follow
+the newest G56 log:
+
+```powershell
+Get-ChildItem .\reports\gset\full-sdp-batch\runs\G56\attempt-*\solver.log | Sort-Object LastWriteTime -Descending | Select-Object -First 1 | Get-Content -Tail 25 -Wait
+```
+
+Important limitations:
+
+- `--solver-progress` is **not retroactive**. Do not stop a healthy
+  ongoing solver merely to add verbose logging.
+- SCS normally reports numerical iteration index, primal residual,
+  dual residual and duality gap every few hundred iterations. These
+  metrics help diagnose convergence; **iteration/max-iters is NOT
+  percentage completion**, and `max-iters` remains 3000 unless changed
+  explicitly (changing it requires a fresh experiment output directory).
+- Some native solver prints can be buffered. Unchanged log modification
+  time **does not prove that the solver has stopped**.
+- The `--status` command reads saved case JSON. A `started` record
+  may be left by a hard crash and does not prove a live process.
+  Use Task Manager or `Get-Process python*` for liveness.
+- This adds **no numerical checkpointing** of a partial SCS solve:
+  restart of the current graph usually redoes its SDP iterations.
+- Progress remains on **original CPU convex CVXPY/SCS SDP**, never CUDA
+  low-rank substitution; no automatic attempt to override memory limits.
