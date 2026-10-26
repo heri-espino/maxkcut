@@ -323,3 +323,30 @@ sparse/nonconvex CUDA solver into a full SDP, eliminate finite SCS
 max-iterations, or guarantee that very large dense convex SDPs fit
 in 64 GB. The seven excluded thesis instances remain an eventual,
 separately controlled research target.
+
+## 2026-10-25: n<=2000 full convex SDP extension completed
+
+The user continued the existing resumable `maxkcut-sdp-batch` with
+`--max-n 2000 --allow-large --no-wall-limit --cpu-threads 8
+--restarts 20 --output-dir reports/gset/full-sdp-batch`.
+All 30 previously completed n<=1000 graph archives were verified
+and skipped. **Twenty-one additional 2000-vertex full convex SDPs
+(G22–G42) completed**, with zero solver failures and zero timeouts
+in this invocation. New runtime **4,940.172 seconds**. Total
+successful full SDP graph runs: **51 of 71**, with **20 larger
+instances size-skipped**. The automatic offline comparison generated
+71 rows (51 successful full SDP graph sources), including full SDP
+vs previous CUDA low-rank results. The seven originally omitted thesis
+instances have not yet been attempted with the new full SDP backend.
+
+The user's `pytest -q` output showed **89 passed / 1 failed**
+because a synthetic regression test for mixed SDP run IDs omitted
+the newly required `restart` field. This test fixture has now
+been corrected, without modifying the optimization algorithm or
+the numerical results. A test pass still requires verification
+on the user's Windows checkout.
+
+Next experiment is the explicit n=3000 stage (G48, G49, G50),
+preserving the same numerical settings and output directory. Users
+should review solver logs and memory use before attempting 5000+
+vertex dense convex SDPs. No wall-clock timeout is not a RAM bound.
