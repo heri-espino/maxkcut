@@ -201,9 +201,10 @@ def _write_summary(root: Path, graph_names: list[str]) -> Path:
 
 def _child_command(*, path: Path, jsonl: Path, solver: str, eps: float,
                    max_iters: int, restarts: int, seed: int,
-                   cpu_threads: int | None, scs_indirect: bool, n: int) -> list[str]:
+                   cpu_threads: int | None, scs_indirect: bool, n: int,
+                   solver_progress: bool = False) -> list[str]:
     command = [
-        sys.executable, "-m", "maxkcut", "--graphs", path.name,
+        sys.executable, "-u", "-m", "maxkcut", "--graphs", path.name,
         "--gset-dir", str(path.parent.resolve()), "--k", "2",
         "--solver", solver, "--eps", str(eps),
         "--max-iters", str(max_iters), "--restarts", str(restarts),
@@ -214,6 +215,8 @@ def _child_command(*, path: Path, jsonl: Path, solver: str, eps: float,
         command += ["--cpu-threads", str(cpu_threads)]
     if scs_indirect:
         command.append("--scs-indirect")
+    if solver_progress:
+        command.append("--verbose")
     return command
 
 
@@ -226,7 +229,7 @@ def run_full_sdp_batch(
     seed: int = 2026, cpu_threads: int | None = 8,
     scs_indirect: bool = False, seconds_per_graph: float | None = 600,
     total_seconds: float | None = 3600, max_graphs: int | None = None,
-    retry_failed: bool = False,
+    retry_failed: bool = False, solver_progress: bool = False,
 ) -> dict:
     """Run bounded independent full CVXPY SDP child processes and persist status.
 
@@ -285,6 +288,7 @@ def run_full_sdp_batch(
         "unlimited_wall_time": (
             seconds_per_graph is None and total_seconds is None
         ),
+        "solver_progress": bool(solver_progress),
     }
     history = plan.setdefault("execution_policies", [])
     if not history or history[-1] != policy:
@@ -352,6 +356,7 @@ def run_full_sdp_batch(
             path=path, jsonl=jsonl, solver=solver, eps=eps,
             max_iters=max_iters, restarts=restarts, seed=seed,
             cpu_threads=cpu_threads, scs_indirect=scs_indirect, n=n,
+            solver_progress=solver_progress,
         )
         record = {
             "graph": name, "vertices": n, "edges": m,
