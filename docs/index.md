@@ -24,6 +24,7 @@ cuda-lowrank
 full-sdp-comparison
 full-sdp-batch
 full-sdp-publication
+g81-128gb-vm
 ```
 
 ```{toctree}
