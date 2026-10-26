@@ -1,1 +1,43 @@
-No solver output yet.
+===============================================================================
+                                     CVXPY                                     
+                                     v1.9.3                                    
+===============================================================================
+(CVXPY) Oct 26 05:07:31 PM: Your problem has 400000000 variables, 20000 constraints, and 0 parameters.
+(CVXPY) Oct 26 05:07:31 PM: It is compliant with the following grammars: DCP, DQCP
+(CVXPY) Oct 26 05:07:31 PM: DCP verification time: 0.0000 seconds.
+(CVXPY) Oct 26 05:07:31 PM: Expression tree has 3 nodes.
+(CVXPY) Oct 26 05:07:31 PM: (If you need to solve this problem multiple times, but with different data, consider using parameters.)
+(CVXPY) Oct 26 05:07:31 PM: CVXPY will first compile your problem; then, it will invoke a numerical solver to obtain a solution.
+(CVXPY) Oct 26 05:07:31 PM: Your problem is compiled with the CPP canonicalization backend.
+-------------------------------------------------------------------------------
+                                  Compilation                                  
+-------------------------------------------------------------------------------
+(CVXPY) Oct 26 05:07:31 PM: Compiling problem (target solver=SCS).
+(CVXPY) Oct 26 05:07:31 PM: Reduction chain: FlipObjective -> Dcp2Cone -> CvxAttr2Constr -> ExactCone2Cone -> EliminateZeroSized -> ConeMatrixStuffing -> SCS
+(CVXPY) Oct 26 05:07:31 PM: Applying reduction FlipObjective
+(CVXPY) Oct 26 05:07:31 PM: Applying reduction Dcp2Cone
+(CVXPY) Oct 26 05:07:31 PM: Applying reduction CvxAttr2Constr
+(CVXPY) Oct 26 05:07:40 PM: Applying reduction ExactCone2Cone
+(CVXPY) Oct 26 05:08:41 PM: Applying reduction EliminateZeroSized
+(CVXPY) Oct 26 05:08:41 PM: Applying reduction ConeMatrixStuffing
+(CVXPY) Oct 26 05:14:37 PM: Applying reduction SCS
+(CVXPY) Oct 26 05:15:14 PM: Finished problem compilation (took 4.632e+02 seconds).
+-------------------------------------------------------------------------------
+                                Numerical solver                               
+-------------------------------------------------------------------------------
+(CVXPY) Oct 26 05:15:14 PM: Invoking solver SCS  to obtain a solution.
+------------------------------------------------------------------
+	       SCS v3.3.1 - Splitting Conic Solver
+	(c) Brendan O'Donoghue, Stanford University, 2012
+------------------------------------------------------------------
+problem:  variables n: 200010000, constraints m: 200030000
+cones: 	  z: primal zero / dual free vars: 20000
+	  s: psd vars: 200010000, ssize: 1
+settings: eps_abs: 1.0e-03, eps_rel: 1.0e-03, eps_infeas: 1.0e-07
+	  alpha: 1.50, scale: 1.00e-01, adaptive_scale: 1
+	  max_iters: 3000, normalize: 1, rho_x: 1.00e-06
+	  acceleration_lookback: 10, acceleration_interval: 5
+lin-sys:  sparse-indirect-scs
+	  nnz(A): 200029999, nnz(P): 0
+Failed to allocate memory for AA.
+WARN: aa_init returned NULL, no acceleration applied.
