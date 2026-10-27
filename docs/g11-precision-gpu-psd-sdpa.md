@@ -160,3 +160,60 @@ The GitHub publisher deliberately never force-pushes or pulls.
 If another agent advances `main` while the experiment is running,
 local commits remain available and GitHub reports a rejected push;
 reconcile the remote explicitly after the experiment.
+
+
+## Windows 11: torch shm.dll WinError 127 and archive WinError 5
+
+A real Windows 11 RTX 4080 SUPER / 128 GB VM reported:
+- Standalone `python -c "import torch; ..."`: **CUDA True**, CUDA 12.8.
+- CVXPY installed solvers: **SCS and SDPA** available.
+- Full `python -m pytest -q`: 108 passing, **four PyTorch
+  imports failing** with `OSError [WinError 127]` on `torch/lib/shm.dll`
+  when torch was imported late inside a long-lived pytest process.
+- One unrelated batch archive test failed while `os.replace`
+  attempted to replace `manifest.json`: `WinError 5`.
+
+The torch package and GPU were **not missing**; a new Python process
+could import torch and report the correct GPU. The most plausible
+diagnosis is an incompatible DLL already loaded earlier in the pytest
+process (e.g. scientific OpenMP/BLAS libraries); it is not yet a
+proven specific DLL collision.
+
+The regression patch isolates PyTorch smoke/math tests in fresh Python
+subprocesses that `import torch` **before** NumPy/SciPy/CVXPY. All
+GPU/full-eigh benchmark subprocesses likewise bootstrap torch first.
+This addresses native import order without suppressing or falsely
+marking the numerical tests as passing.
+
+Archive writes now retry a narrowly bounded number of transient
+Windows access-denied / sharing violations while **retaining the
+original atomic file replacement**; persistent access errors still
+fail and are reported.
+
+On Windows PowerShell, after pulling the fix:
+
+```powershell
+git pull --ff-only origin main
+python -m pip install -e .
+python -c "import torch; print(torch.__version__, torch.cuda.is_available(), torch.cuda.get_device_name(0))"
+python -m pytest -q
+```
+
+Only if the tests pass, launch the actual numerical benchmark:
+
+```powershell
+python scripts/precision_psd_benchmark.py --graph G11 --cpu-threads 8 --restarts 20 --admm-iters 120 --eigh-repeats 3 --push
+```
+
+If native `shm.dll` errors persist **in fresh workers**, test import
+order explicitly in distinct PowerShell subprocesses:
+
+```powershell
+python -c "import torch; import cvxpy; import scipy; print('torch-first OK')"
+python -c "import cvxpy; import scipy; import torch; print('torch-last OK')"
+```
+
+Do not mask conflicts with `KMP_DUPLICATE_LIB_OK=TRUE`, disable
+Defender broadly, or change DLLs in `System32` without diagnosis.
+Do not claim a completed GPU comparison until real backend case
+results are published in the tracked results folder.
