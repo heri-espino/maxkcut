@@ -435,3 +435,32 @@ Read instructions → inspect the current branch/files → state the mathematica
   native Windows CUDA and does not claim measured GPU results.
   Preserve test logs and backend failure diagnostics in GitHub
   rather than hiding errors.
+
+
+## 2026-10-27: adaptive penalty for full PSD-projection GPU ADMM
+
+- A **new experimental** `adaptive_rho` mode uses residual balancing:
+  increase rho if primal > mu * dual; decrease rho if dual > mu *
+  primal, bounded by explicit rho_min/max. The scaled dual must always
+  be rescaled `U <- (rho_old/rho_new)*U` to keep unscaled dual
+  `Y=rho U` invariant. Test convergence **before** adapting.
+- Fixed-rho mode is the default and unchanged. Numerical
+  backend labels `gpu-admm32`, `gpu-admm64` remain fixed,
+  `gpu-admm32-adaptive` and `gpu-admm64-adaptive` enable
+  adaptive schedule explicitly. Never silently replace the fixed
+  experimental baseline or mix results across distinct settings.
+- Controlled four-backend G11 study reuses identical graph hash,
+  initial rho=1, 3000 max iterations, abs eps=1e-5,
+  rel eps=1e-4, seeds/restarts and hardware.
+  Public `results/gset/g11-adaptive-rho-strict/` stores all
+  roundings, errors, rho events/values/history, residuals,
+  PSD defects, hardware, objective and timing. The VM must run
+  tests and publish results to GitHub via opt-in `--push`.
+- The user's previous strict fixed-rho G11 GPU runs reached
+  iteration 3000 without strict residual convergence.
+  Do not assert adaptive mode is faster or more accurate until
+  independent measured results show this. Compare time only at
+  comparable convergence/accuracy. See
+  `docs/g11-adaptive-rho-gpu-admm.md`,
+  `tests/test_adaptive_rho.py` and
+  `tests/_precision_torch_worker.py`.
