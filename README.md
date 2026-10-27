@@ -4,6 +4,23 @@ Python research library for **Max-Cut** and **Max-$k$-Cut** using semidefinite r
 
 The project is motivated by Ángel Eduardo Rodríguez Fernández's 2021 dissertation (Chapters 6–7). It is experimental research software: **solver success does not imply an exact optimum or a new approximation guarantee**.
 
+## G77 (14,000 vertices): safe full convex GPU SDP preflight
+
+G77 is the second-largest checked-in G-set graph by vertex count
+(G81 has 20,000). Because full 14k×14k GPU PSD projection
+may exceed RTX 4080 SUPER 16GB VRAM and WDDM limits, test
+**one iteration only**, with the original convex SDP, and
+**skip the separate 14k×14k CPU rounding factorization**:
+
+```powershell
+python scripts/precision_psd_benchmark.py --graph G77 --backends gpu-admm32-adaptive --rho 1 --admm-iters 1 --admm-abs 1e-5 --admm-rel 1e-4 --log-every 1 --restarts 1 --skip-rounding --timeout-seconds 1200 --output-dir reports/gset/g77-gpu-full-psd-1iter --publish-dir results/gset/g77-gpu-full-psd-1iter --push
+```
+
+**This is a resource/feasibility probe only**, without a
+converged SDP solution or cut score. Inspect the GPU memory
+and solver log before attempting ten iterations or more.
+See [Windows G77 full SDP preflight](docs/g77-full-convex-gpu-preflight-windows.md).
+
 ## Adaptive penalty for full convex GPU SDP (RTX 4080 SUPER)
 
 A controlled G11 comparison now supports **fixed vs adaptive rho**
