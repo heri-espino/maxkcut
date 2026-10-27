@@ -77,10 +77,12 @@ def full_sdp_admm_torch(
             or isinstance(rho_update_interval, bool)
             or rho_update_interval < 1):
         raise ValueError("Invalid ADMM parameters")
-    # Validate adaptive hyperparameters even in fixed mode: configurations
-    # are immutable and must not accidentally become invalid later.
+    # Validate balancing controls without restricting legacy fixed rho:
+    # a fixed-rho experiment may intentionally use values outside
+    # the adaptive clipping bounds, preserving its original behavior.
+    checked_rho = rho if adaptive_rho else min(max(rho, rho_min), rho_max)
     balanced_penalty_update(
-        rho, 0.0, 0.0, mu=rho_balance_mu, scale=rho_scale,
+        checked_rho, 0.0, 0.0, mu=rho_balance_mu, scale=rho_scale,
         rho_min=rho_min, rho_max=rho_max,
     )
     a = sparse.csr_matrix(adjacency, dtype=np.float64)
