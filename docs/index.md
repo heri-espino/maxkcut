@@ -26,6 +26,7 @@ full-sdp-batch
 full-sdp-publication
 g11-precision-gpu-psd-sdpa
 g11-adaptive-rho-gpu-admm
+g77-full-convex-gpu-preflight-windows
 g81-128gb-vm
 ```
 
