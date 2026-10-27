@@ -22,6 +22,7 @@ import traceback
 import numpy as np
 from scipy import sparse
 
+from .atomic_fs import replace_atomic
 from .io import load_graph, edge_arrays
 from .objective import cut_weight
 from .rounding import factorize, round_fj, round_spherical_kmeans
@@ -59,7 +60,7 @@ def atomic_json(path: Path, data: dict) -> None:
         with os.fdopen(fd, "w", encoding="utf8") as fp:
             json.dump(_jsonable(data), fp, indent=2, sort_keys=True, allow_nan=False)
             fp.write("\n")
-        os.replace(temp, path)
+        replace_atomic(temp, path)
     finally:
         Path(temp).unlink(missing_ok=True)
 
