@@ -151,7 +151,8 @@ def full_sdp_admm_torch(
             # Only adjust after evaluating the stopping test for the
             # current rho. The update changes *future* iterations; this
             # preserves correct residual units for the reported step.
-            if adaptive_rho and iteration % rho_update_interval == 0:
+            if (adaptive_rho and iteration < max_iters
+                    and iteration % rho_update_interval == 0):
                 new_rho, reason = balanced_penalty_update(
                     rho, r, d, mu=rho_balance_mu, scale=rho_scale,
                     rho_min=rho_min, rho_max=rho_max,
