@@ -464,3 +464,30 @@ Read instructions → inspect the current branch/files → state the mathematica
   `docs/g11-adaptive-rho-gpu-admm.md`,
   `tests/test_adaptive_rho.py` and
   `tests/_precision_torch_worker.py`.
+
+
+## 2026-10-27 G77 14k GPU full SDP safe preflight
+
+- G77 (14,000 vertices, 28,000 edges) is the **second largest by n**
+  checked-in G-set graph, after G81 (20,000 / 40,000).
+  A full-rank 14k PSD eigendecomposition may exhaust the
+  RTX 4080 SUPER's 16GB VRAM or trigger Windows WDDM timeout,
+  despite 128GB system RAM.
+- Before any 10+ iteration experiment, run **one** original
+  convex SDP GPU eigenprojection with
+  `--admm-iters 1 --skip-rounding` and a time budget.
+- `--skip-rounding` intentionally bypasses *extra* CPU 14k
+  PSD eigendecomposition and randomized GW/kmeans rounding.
+  **No** cut scores, PSD eigenverification or claim of
+  convergence are produced by this solver-only feasibility probe.
+  The original full-matrix GPU PSD projection **still runs**.
+- Record GPU allocation, objective (uncertified), solver status,
+  graph checksum, exceptions and sanitized logs under the
+  distinct tracked `results/gset/g77-gpu-full-psd-1iter/`
+  folder. Use `--push` to checkpoint after the case finishes.
+  Never overwrite G11, G81 or prior results.
+- A successful probe is **not evidence** that 3000 iterations
+  are feasible; inspect resource use before trying the
+  separately published 10-iteration diagnostic.
+  See `docs/g77-full-convex-gpu-preflight-windows.md`
+  and `tests/test_g77_gpu_preflight.py`.
