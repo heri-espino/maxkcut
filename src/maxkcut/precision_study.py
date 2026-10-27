@@ -159,19 +159,28 @@ def _solver_worker(args, graph: Path) -> dict:
         (np.dot(degrees, np.diag(matrix)) -
          2 * np.dot(weights, matrix[ii, jj])) / 4
     )
-    try:
-        methods, trials, min_eig, repair_info = _round(
-            matrix, a, graph.stem, args.restarts, args.seed,
-        )
-        rounding_status, rounding_error = "validated", None
-    except (RuntimeError, ValueError) as exc:
-        # An SDP solver may return an infeasible/indefinite matrix;
-        # preserve its objective and numerical diagnostics for comparison.
+    if args.skip_rounding:
+        # Feasibility probe for very large *full matrix* SDP runs.
+        # Do not perform another costly n-by-n CPU eigendecomposition
+        # and n-by-n GW/K-Means rounding on top of the GPU solve.
+        # The numeric primal is NOT a certified upper bound, nor an
+        # approximation claim without PSD/rounding validation.
         methods, trials, repair_info = {}, [], {}
-        min_eig = float(np.linalg.eigvalsh((matrix + matrix.T) / 2)[0])
-        rounding_status, rounding_error = "failed_validation", (
-            f"{type(exc).__name__}: {exc}"
-        )
+        min_eig = None
+        rounding_status, rounding_error = "intentionally_skipped", None
+    else:
+        try:
+            methods, trials, min_eig, repair_info = _round(
+                matrix, a, graph.stem, args.restarts, args.seed,
+            )
+            rounding_status, rounding_error = "validated", None
+        except (RuntimeError, ValueError) as exc:
+            # Preserve diagnostics even when factorization fails.
+            methods, trials, repair_info = {}, [], {}
+            min_eig = float(np.linalg.eigvalsh((matrix + matrix.T) / 2)[0])
+            rounding_status, rounding_error = "failed_validation", (
+                f"{type(exc).__name__}: {exc}"
+            )
     return {
         "backend": backend, "type": "full_convex_sdp",
         "status": "computed",
@@ -186,6 +195,7 @@ def _solver_worker(args, graph: Path) -> dict:
         "max_diag_error": diag_error,
         "repair": repair_info,
         "rounding_validation": rounding_status,
+        "skip_rounding": args.skip_rounding,
         "rounding_error": rounding_error,
         "admm_converged": info.get("converged"),
         "primal_residual": (info.get("residuals") or {}).get("primal_residual"),
@@ -376,6 +386,8 @@ def _publish(results_dir: Path, public_dir: Path, graph: str,
         "- float32 trades precision for potentially faster matrix operations; "
         "do not assume it reproduces float64 solver outputs.",
         "- An SDP primal objective is **not** a certified upper bound.",
+        "- A solver-only `--skip-rounding` run is a GPU feasibility/timing "
+        "probe only: no CPU PSD verification, no partition and no cut score.",
         "- All rounded cuts are re-evaluated against original signed edges.",
         "- An ADMM iteration-limit result is approximate/unconverged.",
         "- Never compare eigenprojection kernel time to total SCS solve time.",
@@ -468,6 +480,9 @@ def main(argv=None) -> int:
                         default=Path("results/gset/precision-psd-benchmark"))
     parser.add_argument("--cpu-threads", type=int, default=8)
     parser.add_argument("--restarts", type=int, default=10)
+    parser.add_argument("--skip-rounding", action="store_true",
+                        help="Solver-only feasibility probe; no CPU n*n "
+                             "PSD factorization or rounded cut scores")
     parser.add_argument("--seed", type=int, default=2026)
     parser.add_argument("--scs-eps", type=float, default=1e-3)
     parser.add_argument("--scs-iters", type=int, default=3000)
@@ -524,6 +539,7 @@ def main(argv=None) -> int:
         "graph_sha256": hashlib.sha256(graph_path.read_bytes()).hexdigest(),
         "backends": list(args.backends), "seed": args.seed,
         "restarts": args.restarts, "cpu_threads": args.cpu_threads,
+        "skip_rounding": args.skip_rounding,
         "scs_eps": args.scs_eps, "scs_iters": args.scs_iters,
         "admm_iters": args.admm_iters,
         "admm_abs": args.admm_abs, "admm_rel": args.admm_rel,
@@ -548,6 +564,7 @@ def main(argv=None) -> int:
             "--output-dir", str(args.output_dir),
             "--cpu-threads", str(args.cpu_threads),
             "--restarts", str(args.restarts),
+            *(["--skip-rounding"] if args.skip_rounding else []),
             "--seed", str(args.seed),
             "--scs-eps", str(args.scs_eps),
             "--scs-iters", str(args.scs_iters),
