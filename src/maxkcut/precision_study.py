@@ -11,6 +11,7 @@ import csv
 import hashlib
 import json
 import os
+import platform
 from pathlib import Path
 import subprocess
 import sys
@@ -174,7 +175,8 @@ def _environment_info() -> dict:
     try:
         import importlib.metadata
         return {
-            "python": sys.version.split()[0], "platform": sys.platform,
+            "python": sys.version.split()[0], "platform": platform.platform(),
+            "cpu": platform.processor(), "logical_cpus": os.cpu_count(),
             "numpy": np.__version__,
             **{pkg: _safe_version(pkg) for pkg in
                ("scipy", "torch", "cvxpy", "scs", "sdpa-python")},
@@ -260,9 +262,23 @@ def _publish(results_dir: Path, public_dir: Path, graph: str,
                                  "graph": graph, **trial})
     cases = public_dir / "cases"
     cases.mkdir(exist_ok=True)
+    public_logs = public_dir / "logs"
+    public_logs.mkdir(exist_ok=True)
     for item in results:
         # Result JSON contains no absolute local source/log paths.
         atomic_json(cases / (item["backend"] + ".json"), item)
+        raw = results_dir / (item["backend"] + ".log")
+        if raw.is_file():
+            with raw.open("rb") as log:
+                log.seek(0, 2)
+                size = log.tell()
+                log.seek(max(0, size - 200000))
+                tail = log.read().decode("utf8", errors="replace")
+            tail = tail.replace(str(Path.home()), "<HOME>")
+            tail = tail.replace(str(Path.cwd()), "<REPO>")
+            (public_logs / (item["backend"] + ".txt")).write_text(
+                tail, encoding="utf8",
+            )
     lines = [
         f"# {graph} — float32, GPU PSD eigendecomposition and SDPA study",
         "",
@@ -287,6 +303,8 @@ def _publish(results_dir: Path, public_dir: Path, graph: str,
         "[rounding-trials.csv](rounding-trials.csv) — all rounded cuts.",
         "",
         "[cases/](cases/) — complete backend JSON diagnostics.",
+
+        "[logs/](logs/) — sanitized bounded execution-log tails.",
         "",
         "| Backend | Status | Solver status | Seconds | Best cut |",
         "| --- | --- | --- | ---: | ---: |",
@@ -381,6 +399,7 @@ def main(argv=None) -> int:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     for backend in args.backends:
         case = args.output_dir / "cases" / (backend + ".json")
+        case.unlink(missing_ok=True)  # Never reuse a stale success on a failed rerun.
         cmd = [
             sys.executable, "-u", "-m", "maxkcut.precision_study",
             "--worker", "--backend", backend,
