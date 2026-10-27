@@ -21,6 +21,7 @@ from uuid import uuid4
 
 import numpy as np
 
+from .atomic_fs import replace_atomic
 from .objective import cut_weight
 
 
@@ -64,7 +65,7 @@ def _atomic_json(path: Path, data: dict) -> None:
             temp = Path(stream.name)
             json.dump(data, stream, indent=2, sort_keys=True, allow_nan=False)
             stream.write("\n")
-        os.replace(temp, path)
+        replace_atomic(temp, path)
     finally:
         if temp is not None:
             temp.unlink(missing_ok=True)
@@ -80,7 +81,7 @@ def _atomic_npz(path: Path, **arrays: np.ndarray) -> None:
         ) as stream:
             temp = Path(stream.name)
             np.savez_compressed(stream, **arrays)
-        os.replace(temp, path)
+        replace_atomic(temp, path)
     finally:
         if temp is not None:
             temp.unlink(missing_ok=True)

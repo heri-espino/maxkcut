@@ -16,6 +16,8 @@ import tempfile
 import numpy as np
 
 
+from .atomic_fs import replace_atomic
+
 CACHE_FORMAT_VERSION = 1
 
 
@@ -97,7 +99,7 @@ def save_cached_sdp(path: Path, identity: dict, x: np.ndarray, info: dict) -> No
         ) as temporary:
             temp_name = temporary.name
             np.savez(temporary, gram=matrix, metadata=np.array(metadata))
-        os.replace(temp_name, path)
+        replace_atomic(temp_name, path)
     finally:
         if temp_name and os.path.exists(temp_name):
             os.unlink(temp_name)

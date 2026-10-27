@@ -23,6 +23,7 @@ import sys
 import tempfile
 import time
 
+from .atomic_fs import replace_atomic
 from .archive import verify_archive
 from .io import load_graph, edge_arrays
 from .sweep import discover_graphs
@@ -45,7 +46,7 @@ def _atomic_json(path: Path, payload: dict) -> None:
         with os.fdopen(fd, "w", encoding="utf8") as handle:
             json.dump(payload, handle, indent=2, sort_keys=True, allow_nan=False)
             handle.write("\n")
-        os.replace(temporary, path)
+        replace_atomic(temporary, path)
     finally:
         Path(temporary).unlink(missing_ok=True)
 
