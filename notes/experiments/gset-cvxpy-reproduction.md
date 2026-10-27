@@ -582,3 +582,29 @@ checking memory/headroom and the 1-iteration timing.
 Full 3000-iteration G77 optimization is **not pre-approved**
 or claimed practical on 16GB VRAM. See
 `docs/g77-full-convex-gpu-preflight-windows.md`.
+
+
+## 2026-10-27: Windows atomic replace regression in full pytest before G77 probe
+
+On RTX 4080 SUPER Windows 11, after the G77 full-matrix GPU
+preflight patch, `python -m pytest -q` reported **138 passed /
+1 failed**. The failure was solely in
+`test_atomic_replace_retry_on_transient_windows_access_denied`:
+expected `attempts == [0,1,2]`, got `[0,1,2,3]`.
+It was the test's monkeypatch of
+`atomic_fs.os.replace`: because `atomic_fs.os` is the Python
+global `os` module, the patch also replaced unrelated
+`os.replace` calls in the process, contaminating the
+attempt counter. A similarly global monkeypatch of
+`atomic_fs.time.sleep` was removed.
+
+Fix: `atomic_fs` now captures module-local hooks
+`_replace_file = os.replace` and
+`_retry_sleep = time.sleep`; production still uses the
+original atomic OS primitive and the exact same backoff.
+Tests patch **only** these local aliases, add a regression
+ensuring other `os.replace` calls remain untouched, and
+retain retry/validation/assertion behavior.
+This is a **test-isolation fix**, not a change in the
+mathematical solver or measured GPU results. Windows tests
+must be rerun after merging the patch, before launching G77.
