@@ -4,7 +4,30 @@ Python research library for **Max-Cut** and **Max-$k$-Cut** using semidefinite r
 
 The project is motivated by Ángel Eduardo Rodríguez Fernández's 2021 dissertation (Chapters 6–7). It is experimental research software: **solver success does not imply an exact optimum or a new approximation guarantee**.
 
-## Install with Conda
+## G11 RTX 4080 SUPER precision and GPU PSD projection benchmark
+
+A reproducible small-graph study compares original **CPU SCS
+float64**, alternative **CPU SDPA float64**, and experimental
+**GPU full-rank convex SDP PSD-ADMM float32/float64**.
+Independent CPU/GPU full eigenprojection benchmarks measure kernel
+speed separately from complete SDP solve time.
+
+```bash
+python scripts/precision_psd_benchmark.py --graph G11 --cpu-threads 8 --restarts 20 --admm-iters 120 --eigh-repeats 3
+git add results/gset/precision-psd-benchmark
+git commit -m "results: compare G11 CPU SDPA SCS with GPU full SDP precision"
+git push
+```
+
+Requires compatible CUDA-enabled PyTorch and optional
+`sdpa-python`; `docs/g11-precision-gpu-psd-sdpa.md` has the
+complete Conda setup and validation procedure. Solver residuals,
+precision differences, and all random-rounding trials are saved to
+GitHub-ready results. **GPU PSD-ADMM uses the same convex SDP but
+is a different first-order algorithm from SCS/SDPA**; unconverged
+iterations cannot be interpreted as an optimal solution.
+
+
 
 ```bash
 git clone https://github.com/heri-espino/maxkcut.git

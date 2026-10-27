@@ -425,6 +425,28 @@ mechanism eliminates in its regenerated public snapshots. Original
 signed-edge graph identity checks, individual rounding score
 validation and solver provenance are emphasized for the supervisor.
 
+## 2026-10-27: small-graph CPU SDPA versus GPU PSD precision experiment
+
+The user can choose RTX 4080 SUPER / **128GB system RAM** (16GB VRAM)
+or RTX 4500 Ada / **64GB system RAM** (24GB VRAM).
+The initial experiment uses canonical G11 (n=800) on the
+4080 SUPER because its VRAM comfortably fits the matrix while
+the 128GB host supports the CPU SDPA comparison.
+
+Compare CPU SCS float64, CPU SDPA float64, GPU full PSD-projection
+ADMM float32/float64 (a different algorithm, **same full
+convex feasible region**) and separate CPU/GPU eig
+projections. No low-rank surrogate is substituted.
+
+Record objective, PSD eigenvalue/diagonal defects, solver status,
+ADMM residuals, all 20 randomized roundings per method,
+runtime, versions, graph SHA256, failures and hardware. The
+study writes ignored raw artifacts to
+`reports/gset/precision-psd-benchmark/` and supervisor-visible
+snapshots to `results/gset/precision-psd-benchmark/`.
+No measurements have yet been run on the user's actual GPUs.
+See `docs/g11-precision-gpu-psd-sdpa.md`.
+
 ## 2026-10-26: dedicated G81 128 GB VM experiment plan
 
 G81 is the last and largest canonical G-set case, with 20,000

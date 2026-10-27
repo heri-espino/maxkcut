@@ -299,6 +299,31 @@ Read instructions → inspect the current branch/files → state the mathematica
   are not proof of a freeze.
 
 
+## RTX 4080 SUPER G11 GPU full convex SDP precision benchmark
+
+- `src/maxkcut/gpu_full_sdp.py` implements full n×n
+  PSD-projection ADMM on the **original convex k=2 Max-Cut SDP**.
+  It does NOT introduce a low-rank approximation and is **not**
+  SCS's conic solver compiled with GPU support.
+- `src/maxkcut/precision_study.py` runs CPU SCS/SDPA
+  float64 and GPU full-rank PSD-ADMM float32/float64 in
+  isolated subprocesses on G11, plus standalone CPU/GPU
+  eigendecomposition comparisons. Preserve all failed cases,
+  numerical convergence residuals and all rounding trial scores.
+- Report full convex SDP solve time separately from eig
+  microbenchmark kernel time. Never call a numerical primal
+  a certified upper bound. Do not claim float32 gives identical
+  numerical SDP matrices or that an unconverged ADMM run is optimal.
+- The 4080 SUPER + 128GB VM is selected for this small study;
+  4500 Ada + 64GB is a potential 24GB VRAM alternative for
+  larger GPU matrices. Neither is guaranteed to accelerate FP64.
+- Check `tests/test_precision_psd_benchmark.py` and
+  `docs/g11-precision-gpu-psd-sdpa.md`.
+- Raw `reports/gset/precision-psd-benchmark/` remains gitignored;
+  sanitized results, logs and all restart cuts go to
+  `results/gset/precision-psd-benchmark/` and must be
+  explicitly committed/pushed from the VM.
+
 ## GitHub publication of independently verified SDP results
 
 - `maxkcut-sdp-publish` reads saved cases/archives from ignored
