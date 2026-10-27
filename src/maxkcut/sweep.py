@@ -16,6 +16,7 @@ from uuid import uuid4
 
 import numpy as np
 
+from .atomic_fs import replace_atomic
 from .archive import (
     load_method, new_archive, new_run_id, save_method, update_manifest,
     verify_archive,
@@ -116,7 +117,7 @@ def _write_json_atomic(path: Path, payload: dict) -> None:
             json.dumps(payload, indent=2, sort_keys=True, allow_nan=False) + "\n",
             encoding="utf8",
         )
-        temporary.replace(path)
+        replace_atomic(temporary, path)
     finally:
         temporary.unlink(missing_ok=True)
 
@@ -128,7 +129,7 @@ def _write_trials_atomic(path: Path, rows: list[dict]) -> None:
         with temporary.open("w", encoding="utf8") as stream:
             for row in rows:
                 stream.write(json.dumps(row, allow_nan=False) + "\n")
-        temporary.replace(path)
+        replace_atomic(temporary, path)
     finally:
         temporary.unlink(missing_ok=True)
 
