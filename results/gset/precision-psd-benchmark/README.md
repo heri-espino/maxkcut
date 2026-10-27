@@ -22,6 +22,7 @@ This is a **new numerical comparison**, not a claim of improved quality or runti
 | --- | --- | --- | ---: | ---: |
 | cpu-scs64 | computed | optimal | 41.25 | 546.0 |
 | cpu-sdpa64 | failed | failed | — | — |
+| gpu-admm32 | computed | admm_iteration_limit | 0.9272986000287347 | 546.0 |
 
 ## Scientific caveats
 
