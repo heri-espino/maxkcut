@@ -154,3 +154,36 @@ def test_gpu_labels_archive_does_not_break_score_csv(tmp_path):
         rows = list(csv.DictReader(f))
     assert rows[0]["cut_weight"] == "3.0"
     assert len(rows) == 1
+
+
+def test_feature_branch_push_requires_explicit_opt_in(monkeypatch, tmp_path):
+    """The result publisher must never merge or force-push, and old policy stays."""
+    import subprocess
+    from maxkcut import precision_study as study
+
+    dest = tmp_path / "results" / "gset" / "experiment001-g77-fp32-cut"
+    dest.mkdir(parents=True)
+    (dest / "comparison.csv").write_text("backend,status\n")
+    calls = []
+
+    def fake_run(cmd, **kwargs):
+        calls.append(cmd)
+        if cmd[:3] == ["git", "rev-parse", "--show-toplevel"]:
+            return subprocess.CompletedProcess(cmd, 0, stdout=str(tmp_path) + "\n")
+        if cmd[:3] == ["git", "branch", "--show-current"]:
+            return subprocess.CompletedProcess(
+                cmd, 0, stdout="experiment001-g77-gpu-fp32-single-cut\n",
+            )
+        if cmd[:4] == ["git", "diff", "--cached", "--quiet"]:
+            return subprocess.CompletedProcess(cmd, 1)
+        return subprocess.CompletedProcess(cmd, 0)
+
+    monkeypatch.setattr(study.subprocess, "run", fake_run)
+    study._push_publication(dest)
+    assert not any(cmd[:2] == ["git", "push"] for cmd in calls)
+
+    calls.clear()
+    study._push_publication(dest, allow_feature_branch=True)
+    assert ["git", "push", "origin",
+            "HEAD:experiment001-g77-gpu-fp32-single-cut"] in calls
+    assert not any("merge" in cmd or "--force" in cmd for cmd in calls)
