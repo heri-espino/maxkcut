@@ -1,5 +1,21 @@
 # maxkcut
 
+## Experiment001: one actual G77 Max-Cut partition on GPU FP32
+
+G77's one-iteration full SDP GPU preflight succeeded, but
+`--skip-rounding` deliberately produced no cut. A new **opt-in**
+`--gpu-gw-rounding` reuses the last GPU PSD eigensystem to sample
+Goemans–Williamson hyperplanes and score/persist the original
+signed-weight G77 partitions **without a second huge CPU eigendecomposition**.
+Only GPU ADMM FP32 is selected; `gpu-admm32-adaptive` retains float32
+and adapts only its ADMM penalty.
+
+To validate and run from the isolated branch, follow
+[experiment001's Windows instructions](docs/g77-gpu-fp32-one-cut.md).
+The 50-iteration experiment has **not** run yet and cannot certify
+SDP convergence or integer Max-Cut optimality.
+
+
 Python research library for **Max-Cut** and **Max-$k$-Cut** using semidefinite relaxations, randomized rounding, and spherical $k$-means rounding.
 
 The project is motivated by Ángel Eduardo Rodríguez Fernández's 2021 dissertation (Chapters 6–7). It is experimental research software: **solver success does not imply an exact optimum or a new approximation guarantee**.

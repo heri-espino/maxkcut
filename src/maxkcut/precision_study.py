@@ -144,6 +144,8 @@ def _solver_worker(args, graph: Path) -> dict:
             rho_balance_mu=args.rho_balance_mu,
             rho_scale=args.rho_scale,
             rho_min=args.rho_min, rho_max=args.rho_max,
+            gw_restarts=args.restarts if args.gpu_gw_rounding else 0,
+            gw_seed=args.seed, gw_graph_number=int(graph.stem[1:]),
         )
     matrix = np.asarray(matrix, dtype=np.float64)
     if not np.isfinite(matrix).all():
@@ -168,6 +170,20 @@ def _solver_worker(args, graph: Path) -> dict:
         methods, trials, repair_info = {}, [], {}
         min_eig = None
         rounding_status, rounding_error = "intentionally_skipped", None
+    elif args.gpu_gw_rounding:
+        # Draw exact Gaussian-hyperplane signs from the final full-rank
+        # GPU PSD projector; avoid a SECOND dense CPU eigendecomposition.
+        # Cuts are rescored against the canonical signed edge weights.
+        rounded = info["gpu_rounding"]
+        methods, trials = rounded["methods"], rounded["trials"]
+        min_eig = None  # No secondary CPU eigvalsh; not a PSD certificate.
+        repair_info = {
+            "rounding_source": rounded["factor_source"],
+            "labels_format": rounded["labels_format"],
+            "cpu_full_eigendecomposition": False,
+            "gpu_projector_not_a_convergence_certificate": True,
+        }
+        rounding_status, rounding_error = "gpu_gw_exact_cut_scored", None
     else:
         try:
             methods, trials, min_eig, repair_info = _round(
@@ -296,8 +312,13 @@ def _publish(results_dir: Path, public_dir: Path, graph: str,
         writer.writeheader()
         for item in results:
             for trial in item.get("trials", []):
-                writer.writerow({"backend": item["backend"],
-                                 "graph": graph, **trial})
+                # Full packed labels live in cases/*.json; CSV remains
+                # a compact score table with its fixed schema.
+                writer.writerow({
+                    "backend": item["backend"], "graph": graph,
+                    "method": trial["method"], "restart": trial["restart"],
+                    "cut_weight": trial["cut_weight"],
+                })
     cases = public_dir / "cases"
     cases.mkdir(exist_ok=True)
     public_logs = public_dir / "logs"
@@ -388,6 +409,11 @@ def _publish(results_dir: Path, public_dir: Path, graph: str,
         "- An SDP primal objective is **not** a certified upper bound.",
         "- A solver-only `--skip-rounding` run is a GPU feasibility/timing "
         "probe only: no CPU PSD verification, no partition and no cut score.",
+        "- Optional `--gpu-gw-rounding` draws Gaussian hyperplanes using "
+        "the LAST full-rank GPU PSD eigensystem, stores bit-packed "
+        "partitions in cases/*.json, and scores original signed edges "
+        "without an additional CPU eigendecomposition. It does not "
+        "certify SDP convergence, primal feasibility or optimality.",
         "- All rounded cuts are re-evaluated against original signed edges.",
         "- An ADMM iteration-limit result is approximate/unconverged.",
         "- Never compare eigenprojection kernel time to total SCS solve time.",
@@ -397,11 +423,11 @@ def _publish(results_dir: Path, public_dir: Path, graph: str,
     (public_dir / "README.md").write_text("\n".join(lines), encoding="utf8")
 
 
-def _push_publication(public_dir: Path) -> None:
+def _push_publication(public_dir: Path, *, allow_feature_branch: bool = False) -> None:
     """Opt-in publish only this experiment's results, never ignored reports.
 
-    Commit/push is non-forced and requires main; a remote divergence
-    must be reconciled manually, without disrupting numerical results.
+    Commit/push is non-forced; main is required by default, with an
+    explicit feature-branch opt-in. Never merges or rewrites history.
     """
     try:
         project = Path(subprocess.run(
@@ -415,8 +441,11 @@ def _push_publication(public_dir: Path) -> None:
             ["git", "branch", "--show-current"],
             capture_output=True, text=True, check=True,
         ).stdout.strip()
-        if branch != "main":
-            raise RuntimeError(f"GitHub publishing requires main, not {branch!r}")
+        if branch != "main" and not allow_feature_branch:
+            raise RuntimeError(
+                f"GitHub publishing requires main unless "
+                f"--push-from-branch is explicitly supplied: {branch!r}"
+            )
         subprocess.run(["git", "add", "-A", "--", relative], check=True)
         diff = subprocess.run(
             ["git", "diff", "--cached", "--quiet", "--", relative],
@@ -428,11 +457,11 @@ def _push_publication(public_dir: Path) -> None:
             raise RuntimeError("Failed to compare staged research result files")
         subprocess.run([
             "git", "commit", "-m",
-            "results: checkpoint G11 CPU SDPA SCS GPU FP32/FP64 benchmark",
+            f"results: checkpoint {public_dir.name} SDP study",
             "--", relative,
         ], check=True)
         subprocess.run(
-            ["git", "push", "origin", "HEAD:main"],
+            ["git", "push", "origin", f"HEAD:{branch}"],
             check=True, timeout=120,
             env={**os.environ, "GIT_TERMINAL_PROMPT": "0"},
         )
@@ -471,6 +500,9 @@ def main(argv=None) -> int:
     parser.add_argument("--worker", action="store_true")
     parser.add_argument("--push", action="store_true",
                         help="Commit/push this study's sanitized results after EACH backend")
+    parser.add_argument("--push-from-branch", action="store_true",
+                        help="Allow opt-in results commits on the current feature branch "
+                             "instead of requiring main; no merge or force push")
     parser.add_argument("--backends", nargs="+",
                         choices=(*BACKENDS, *EIG_BACKENDS),
                         default=[*BACKENDS[:4], *EIG_BACKENDS])
@@ -483,6 +515,10 @@ def main(argv=None) -> int:
     parser.add_argument("--skip-rounding", action="store_true",
                         help="Solver-only feasibility probe; no CPU n*n "
                              "PSD factorization or rounded cut scores")
+    parser.add_argument("--gpu-gw-rounding", action="store_true",
+                        help="GPU ADMM only: reuse last GPU PSD eigensystem "
+                             "for GW cuts, avoiding separate CPU eigendecomposition; "
+                             "stores exact packed cut partitions")
     parser.add_argument("--seed", type=int, default=2026)
     parser.add_argument("--scs-eps", type=float, default=1e-3)
     parser.add_argument("--scs-iters", type=int, default=3000)
@@ -506,6 +542,14 @@ def main(argv=None) -> int:
             or args.rho_balance_mu <= 1 or args.rho_scale <= 1
             or args.rho_min <= 0 or args.rho_max < args.rho_min):
         parser.error("Invalid execution budget")
+    if args.push_from_branch and not args.push:
+        parser.error("--push-from-branch requires --push")
+    selected_backends = ([args.backend] if args.worker else args.backends)
+    if args.gpu_gw_rounding and (args.skip_rounding or
+            any(b is None or not b.startswith("gpu-admm")
+                for b in selected_backends)):
+        parser.error("--gpu-gw-rounding requires GPU ADMM backends only "
+                     "and is incompatible with --skip-rounding")
     try:
         from .sweep import discover_graphs
         graph_path = discover_graphs(args.gset_dir, [args.graph])[0]
@@ -540,6 +584,7 @@ def main(argv=None) -> int:
         "backends": list(args.backends), "seed": args.seed,
         "restarts": args.restarts, "cpu_threads": args.cpu_threads,
         "skip_rounding": args.skip_rounding,
+        "gpu_gw_rounding": args.gpu_gw_rounding,
         "scs_eps": args.scs_eps, "scs_iters": args.scs_iters,
         "admm_iters": args.admm_iters,
         "admm_abs": args.admm_abs, "admm_rel": args.admm_rel,
@@ -565,6 +610,7 @@ def main(argv=None) -> int:
             "--cpu-threads", str(args.cpu_threads),
             "--restarts", str(args.restarts),
             *(["--skip-rounding"] if args.skip_rounding else []),
+            *(["--gpu-gw-rounding"] if args.gpu_gw_rounding else []),
             "--seed", str(args.seed),
             "--scs-eps", str(args.scs_eps),
             "--scs-iters", str(args.scs_iters),
@@ -603,7 +649,7 @@ def main(argv=None) -> int:
         ]
         _publish(args.output_dir, args.publish_dir, graph_path.stem, saved)
         if args.push:
-            _push_publication(args.publish_dir)
+            _push_publication(args.publish_dir, allow_feature_branch=args.push_from_branch)
     print(f"GitHub-ready files: {args.publish_dir}", flush=True)
     print(
         "Results are locally preserved. "

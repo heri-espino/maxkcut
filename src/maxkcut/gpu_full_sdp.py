@@ -10,6 +10,7 @@ Split X=Z in max <L/4,X>, diag(X)=1, Z>=0 (PSD):
 """
 from __future__ import annotations
 
+import base64
 import math
 import time
 import numpy as np
@@ -44,6 +45,65 @@ def balanced_penalty_update(
     return rho, None
 
 
+def _round_final_gpu_psd(eigenvectors, eigenvalues, adjacency, *,
+                         restarts: int, seed: int, graph_number: int) -> dict:
+    """GW hyperplanes using the last *full-rank* GPU PSD eigensystem.
+
+    If Z=Q diag(lambda_+) Q.T, then Q diag(sqrt(lambda_+)) g
+    has covariance Z for g~N(0,I). Positive diagonal renormalization
+    of Z changes magnitudes, not the signs of its hyperplane scores.
+    This avoids a second enormous CPU eigendecomposition. These are
+    feasible signed-edge cuts, NOT a certificate of SDP convergence.
+    """
+    import torch
+
+    from .io import edge_arrays
+    from .objective import cut_weight
+
+    n = int(eigenvectors.shape[0])
+    if restarts < 1 or eigenvectors.shape != (n, n):
+        raise ValueError("Invalid full-GPU PSD hyperplane-rounding dimensions")
+    if graph_number < 0:
+        raise ValueError("graph_number must be nonnegative")
+    edges = edge_arrays(adjacency)
+    sqrt_eigenvalues = eigenvalues.clamp_min(0).sqrt()
+    trials = []
+    scores = []
+    for restart in range(restarts):
+        rng = np.random.default_rng(np.random.SeedSequence(
+            [seed, graph_number, 2, restart, 0],
+        ))
+        direction = torch.as_tensor(
+            rng.standard_normal(n).astype(np.float32),
+            device=eigenvectors.device, dtype=eigenvectors.dtype,
+        )
+        # Q @ (sqrt(lambda_+) * g) uses only vectors of length n.
+        # Do not form another full n-by-n factor on the GPU or the CPU.
+        projections = eigenvectors @ (sqrt_eigenvalues * direction)
+        labels = (projections >= 0).to(torch.uint8).cpu().numpy()
+        score = float(cut_weight(edges, labels))
+        scores.append(score)
+        trials.append({
+            "method": "FJ", "restart": restart, "cut_weight": score,
+            "labels_packed_b64": base64.b64encode(
+                np.packbits(labels, bitorder="big").tobytes()
+            ).decode("ascii"),
+        })
+    return {
+        "methods": {"FJ": {
+            "best": max(scores), "mean": float(np.mean(scores)),
+            "std": float(np.std(scores, ddof=1)) if restarts > 1 else None,
+        }},
+        "trials": trials,
+        "labels_format": "base64(numpy.packbits(labels, bitorder='big'))",
+        "n": n,
+        "factor_source": "last_GPU_full_PSD_eigenprojection",
+        "rounding_method": "Goemans-Williamson Gaussian hyperplane",
+        "cpu_full_eigendecomposition": False,
+        "sdp_optimality_certified": False,
+    }
+
+
 def full_sdp_admm_torch(
     adjacency: sparse.spmatrix, *, device: str = "cuda",
     precision: str = "float32", rho: float = 1.0,
@@ -52,6 +112,7 @@ def full_sdp_admm_torch(
     adaptive_rho: bool = False, rho_update_interval: int = 25,
     rho_balance_mu: float = 10.0, rho_scale: float = 2.0,
     rho_min: float = 0.0625, rho_max: float = 16.0,
+    gw_restarts: int = 0, gw_seed: int = 2026, gw_graph_number: int = 0,
 ) -> tuple[np.ndarray, dict]:
     """Return an approximate full-size PSD SDP matrix and convergence diagnostics.
 
@@ -75,7 +136,10 @@ def full_sdp_admm_torch(
             or log_every < 1 or not isinstance(adaptive_rho, bool)
             or not isinstance(rho_update_interval, int)
             or isinstance(rho_update_interval, bool)
-            or rho_update_interval < 1):
+            or rho_update_interval < 1
+            or not isinstance(gw_restarts, int) or isinstance(gw_restarts, bool)
+            or gw_restarts < 0 or not isinstance(gw_seed, int)
+            or not isinstance(gw_graph_number, int) or gw_graph_number < 0):
         raise ValueError("Invalid ADMM parameters")
     # Validate balancing controls without restricting legacy fixed rho:
     # a fixed-rho experiment may intentionally use values outside
@@ -191,6 +255,10 @@ def full_sdp_admm_torch(
     candidate = (candidate + candidate.mT) * 0.5
     candidate.fill_diagonal_(1.)
     objective = float(torch.sum(c * candidate).item())
+    gpu_rounding = (_round_final_gpu_psd(
+        q, eigenvalues, a, restarts=gw_restarts,
+        seed=gw_seed, graph_number=gw_graph_number,
+    ) if gw_restarts else None)
     matrix = candidate.detach().cpu().numpy().astype(np.float64)
     meta = {
         "solver": "full-psd-admm", "optimization_type": "full_convex_psd_admm",
@@ -216,6 +284,8 @@ def full_sdp_admm_torch(
         "cuda_runtime": str(torch.version.cuda),
         "gpu_name": torch.cuda.get_device_name(dev) if device == "cuda" else None,
     }
+    if gpu_rounding is not None:
+        meta["gpu_rounding"] = gpu_rounding
     return matrix, meta
 
 

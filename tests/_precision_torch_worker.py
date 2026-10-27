@@ -120,6 +120,47 @@ def fixed_rho_legacy() -> None:
         assert np.isfinite(matrix).all()
 
 
+def gpu_gw_cut() -> None:
+    """Every GPU-projector hyperplane cut is exactly reconstructible.
+
+    CPU backend tests the same torch eigensystem logic in a Windows-safe
+    fresh subprocess; the actual G77 device remains CUDA.
+    """
+    import base64
+
+    from maxkcut.io import edge_arrays
+    from maxkcut.objective import cut_weight
+
+    graph = sparse.csr_matrix(np.array([
+        [0.,  2., -1., 0.],
+        [2.,  0.,  3., 1.],
+        [-1., 3.,  0., 2.],
+        [0.,  1.,  2., 0.],
+    ]))
+    kwargs = {
+        "device": "cpu", "precision": "float32", "max_iters": 25,
+        "log_every": 5, "gw_restarts": 5,
+        "gw_seed": 2026, "gw_graph_number": 77,
+    }
+    first, info = full_sdp_admm_torch(graph, **kwargs)
+    second, info_again = full_sdp_admm_torch(graph, **kwargs)
+    assert np.allclose(first, second)
+    rounds = info["gpu_rounding"]
+    assert len(rounds["trials"]) == 5
+    assert rounds["methods"]["FJ"]["best"] >= rounds["methods"]["FJ"]["mean"]
+    assert rounds["cpu_full_eigendecomposition"] is False
+    assert info_again["gpu_rounding"]["trials"] == rounds["trials"]
+    for trial in rounds["trials"]:
+        labels = np.unpackbits(
+            np.frombuffer(base64.b64decode(trial["labels_packed_b64"]),
+                          dtype=np.uint8), bitorder="big", count=4,
+        )
+        assert labels.shape == (4,)
+        assert set(labels).issubset({0, 1})
+        assert trial["cut_weight"] == cut_weight(edge_arrays(graph), labels)
+    assert not rounds["sdp_optimality_certified"]
+
+
 def gpu_smoke() -> None:
     if not torch.cuda.is_available():
         print("SKIP: no CUDA device", flush=True)
@@ -139,6 +180,7 @@ if __name__ == "__main__":
         "projector": projector,
         "validation": validation,
         "gpu_smoke": gpu_smoke,
+        "gpu_gw_cut": gpu_gw_cut,
         "adaptive_tiny": adaptive_tiny,
         "fixed_rho_legacy": fixed_rho_legacy,
     }
