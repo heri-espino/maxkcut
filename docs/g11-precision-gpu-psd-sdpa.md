@@ -56,7 +56,7 @@ python -c 'import cvxpy as cp,torch; print("solvers",cp.installed_solvers()); pr
 python -m pytest tests/test_precision_psd_benchmark.py -q
 python -m pytest -q
 maxkcut-sdp-batch --graphs G11 --dry-run
-python scripts/precision_psd_benchmark.py --graph G11 --cpu-threads 8 --restarts 20 --admm-iters 120 --eigh-repeats 3
+python scripts/precision_psd_benchmark.py --graph G11 --cpu-threads 8 --restarts 20 --admm-iters 120 --eigh-repeats 3 --push
 ```
 
 **Important**: CUDA package selection differs by driver and platform.
@@ -77,7 +77,7 @@ versions detected on the actual VM.
 ## Optional small smoke run (before expensive G11)
 
 ```bash
-python scripts/precision_psd_benchmark.py --graph G11 --backends gpu-eigh32 gpu-eigh64 --eigh-repeats 1 --timeout-seconds 600
+python scripts/precision_psd_benchmark.py --graph G11 --backends gpu-eigh32 gpu-eigh64 --eigh-repeats 1 --timeout-seconds 600 --output-dir reports/gset/precision-psd-smoke --publish-dir results/gset/precision-psd-smoke
 ```
 
 This is **not** an SDP solve; it isolates symmetric PSD projection
@@ -131,3 +131,32 @@ results; the fresh study has its own raw and publication directories.
   convergence, PSD eigenvalue accuracy and cut results.
 
 No actual VM measurements are claimed by this code-only benchmark.
+
+
+## Reliable GitHub commits from an ephemeral VM
+
+The `--push` flag is **opt-in**: after each completed/failed backend,
+the runner stages, commits and pushes only its tracked public
+`results/gset/precision-psd-benchmark/` tree. These per-backend
+publication checkpoints survive a VM teardown, even if a later solver
+crashes. It never publishes the ignored raw `reports/` directory
+or huge SDP matrices. Push authentication must be configured first.
+
+The study writes `study-plan.json` with the graph SHA and all
+numeric parameters. A second invocation with different settings
+in the same output directory refuses to mix incompatible results.
+For a different graph, precision, budget or backend subset, use
+fresh `--output-dir` and `--publish-dir` values.
+
+After all workers, manually confirm and push the latest results:
+
+`~bash
+git add results/gset/precision-psd-benchmark
+git commit -m "results: G11 CPU SCS SDPA vs CUDA full PSD FP32/FP64" || true
+git push
+`~
+
+The GitHub publisher deliberately never force-pushes or pulls.
+If another agent advances `main` while the experiment is running,
+local commits remain available and GitHub reports a rejected push;
+reconcile the remote explicitly after the experiment.
