@@ -491,3 +491,20 @@ Read instructions → inspect the current branch/files → state the mathematica
   separately published 10-iteration diagnostic.
   See `docs/g77-full-convex-gpu-preflight-windows.md`
   and `tests/test_g77_gpu_preflight.py`.
+
+## Experiment001: FP32 G77 real-cut preflight (unmeasured)
+
+- `docs/g77-gpu-fp32-one-cut.md` is the operational source.
+- `--gpu-gw-rounding` is an opt-in **full-PSD** Gaussian-hyperplane
+  rounder using the final GPU eigensystem; it avoids a second CPU
+  eigendecomposition and stores each bit-packed partition with its
+  exact signed-edge score. It does **not** certify SDP convergence.
+- Never combine `--gpu-gw-rounding` with `--skip-rounding`, use it
+  on CPU solvers, or describe this GW method as spherical clustering.
+- Feature-branch publication requires explicit
+  `--push --push-from-branch`. Legacy `--push` still requires main.
+  Never auto-merge experiment branches.
+- Status: 50-iteration G77 measurement is **not yet performed**.
+  Publish outputs and failures into distinct
+  `results/gset/experiment001-g77-fp32-cut/` once the user's
+  Windows GPU executes it.
