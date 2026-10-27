@@ -5,6 +5,7 @@ keyed by graph source contents, backend/version/device and all hyperparameters.
 The cache never claims that a factor is an SDP certificate.
 """
 from __future__ import annotations
+from .atomic_fs import replace_atomic
 
 import hashlib
 import json
@@ -57,7 +58,7 @@ def save_factor(path: Path, identity: dict, vectors: np.ndarray,
         ) as stream:
             temporary = Path(stream.name)
             np.savez_compressed(stream, **arrays)
-        os.replace(temporary, path)
+        replace_atomic(temporary, path)
     finally:
         if temporary is not None:
             temporary.unlink(missing_ok=True)
