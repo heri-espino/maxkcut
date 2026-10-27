@@ -20,7 +20,7 @@ This is a **new numerical comparison**, not a claim of improved quality or runti
 
 | Backend | Status | Solver status | Seconds | Best cut |
 | --- | --- | --- | ---: | ---: |
-| cpu-scs64 | computed | optimal | 22.01600000000326 | 546.0 |
+| cpu-scs64 | computed | optimal | 41.25 | 546.0 |
 | cpu-sdpa64 | failed | failed | — | — |
 
 ## Scientific caveats
