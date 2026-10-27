@@ -335,20 +335,33 @@ def _publish(results_dir: Path, public_dir: Path, graph: str,
 
         "[logs/](logs/) — sanitized bounded execution-log tails.",
         "",
-        "| Backend | Status | Solver status | Seconds | Best cut |",
-        "| --- | --- | --- | ---: | ---: |",
+        "| Backend | Status | Seconds | SDP objective¹ | Best cut | "
+        "ADMM residual converged | rho start→end | Updates |",
+        "| --- | --- | ---: | ---: | ---: | --- | --- | ---: |",
     ]
     for item in results:
         bests = item.get("rounding", {})
         best = max((v["best"] for v in bests.values()), default=None)
         duration = item.get("solve_seconds", item.get("eigh_total_seconds"))
+        rho_i = item.get("rho_initial")
+        rho_f = item.get("rho_final")
+        rho_track = (f"{rho_i:g} → {rho_f:g}"
+                     if rho_i is not None and rho_f is not None else "—")
+        converged = item.get("admm_converged")
+        convergence = ("yes" if converged is True
+                       else "no" if converged is False
+                       else item.get("solver_status", "—"))
         lines.append(
             f"| {item['backend']} | {item.get('status')} | "
-            f"{item.get('solver_status','—')} | "
             f"{duration if duration is not None else '—'} | "
-            f"{best if best is not None else '—'} |"
+            f"{item.get('continuous_primal_uncertified', '—')} | "
+            f"{best if best is not None else '—'} | "
+            f"{convergence} | {rho_track} | "
+            f"{item.get('rho_updates', '—') if item.get('rho_updates') is not None else '—'} |"
         )
     lines.extend([
+        "",
+        "¹ The displayed SDP numerical primal is **not** a certified upper bound.",
         "",
         "## Scientific caveats",
         "",
