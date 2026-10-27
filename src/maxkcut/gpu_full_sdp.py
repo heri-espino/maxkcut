@@ -116,9 +116,12 @@ def full_sdp_admm_torch(
         z = (q * eigenvalues.clamp_min(0).unsqueeze(0)) @ q.mT
         z = (z + z.mT) * 0.5
         u = u + x - z
-        check_residuals = (
+        log_step = (
             iteration == 1 or iteration % log_every == 0
             or iteration == max_iters
+        )
+        check_residuals = (
+            log_step
             or (adaptive_rho and iteration % rho_update_interval == 0)
         )
         if check_residuals:
@@ -137,15 +140,17 @@ def full_sdp_admm_torch(
                 "min_unprojected_eigenvalue": float(eigenvalues.min().item()),
             }
             history.append(current)
-            if (iteration == 1 or iteration % log_every == 0
-                    or iteration == max_iters):
+            if log_step:
                 print(
                     f"ADMM {device}/{precision} iter={iteration} "
                     f"rho={rho:.6g} "
                     f"primal={r:.4e}/{primal_tol:.4e} "
                     f"dual={d:.4e}/{dual_tol:.4e}", flush=True,
                 )
-            if r <= primal_tol and d <= dual_tol:
+            # Keep the historical fixed-rho stopping cadence for BOTH
+            # variants; extra adaptation diagnostics must not grant the
+            # adaptive backend additional stopping opportunities.
+            if log_step and r <= primal_tol and d <= dual_tol:
                 converged = True
                 break
             # Only adjust after evaluating the stopping test for the
