@@ -100,7 +100,7 @@ def test_publication_includes_failure_and_all_rounding_trials(tmp_path):
         assert len(list(csv.DictReader(file))) == 3
     assert (dest / "logs" / "cpu-scs64.txt").is_file()
     assert "SDPA" in (dest / "README.md").read_text()
-    assert "not a patch to SCS" in (dest / "README.md").read_text()
+    assert "patch to SCS" in (dest / "README.md").read_text()
 
 
 def test_atomic_json_writes_no_nan(tmp_path):
@@ -125,3 +125,33 @@ def test_gpu_smoke_when_cuda_available():
     )
     assert meta["device"] == "cuda"
     assert np.isfinite(matrix).all()
+
+
+def test_push_publication_only_stages_study_folder(monkeypatch, tmp_path):
+    from maxkcut import precision_study as study
+    dest = tmp_path / "results" / "gset" / "precision-psd-benchmark"
+    dest.mkdir(parents=True)
+    (dest / "comparison.csv").write_text("backend,status\n")
+    calls = []
+
+    def fake_run(cmd, **kwargs):
+        calls.append(cmd)
+        if cmd[:3] == ["git", "rev-parse", "--show-toplevel"]:
+            return __import__("subprocess").CompletedProcess(
+                cmd, 0, stdout=str(tmp_path) + "\n",
+            )
+        if cmd[:3] == ["git", "branch", "--show-current"]:
+            return __import__("subprocess").CompletedProcess(
+                cmd, 0, stdout="main\n",
+            )
+        if cmd[:4] == ["git", "diff", "--cached", "--quiet"]:
+            return __import__("subprocess").CompletedProcess(cmd, 1)
+        return __import__("subprocess").CompletedProcess(cmd, 0)
+
+    monkeypatch.setattr(study.subprocess, "run", fake_run)
+    study._push_publication(dest)
+    assert ["git", "add", "-A", "--",
+            "results/gset/precision-psd-benchmark"] in calls
+    assert ["git", "push", "origin", "HEAD:main"] in calls
+    assert not any("--force" in cmd for cmd in calls)
+    assert not any("pull" in cmd for cmd in calls)
