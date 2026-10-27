@@ -4,6 +4,24 @@ Python research library for **Max-Cut** and **Max-$k$-Cut** using semidefinite r
 
 The project is motivated by Ángel Eduardo Rodríguez Fernández's 2021 dissertation (Chapters 6–7). It is experimental research software: **solver success does not imply an exact optimum or a new approximation guarantee**.
 
+## Adaptive penalty for full convex GPU SDP (RTX 4080 SUPER)
+
+A controlled G11 comparison now supports **fixed vs adaptive rho**
+for GPU float32/float64 full-matrix PSD-projection ADMM, preserving
+the original SDP and original fixed-rho baseline. Run in **Windows 11
+PowerShell** (one line):
+
+```powershell
+git pull --ff-only origin main
+python -m pytest -q
+python scripts/precision_psd_benchmark.py --graph G11 --backends gpu-admm32 gpu-admm32-adaptive gpu-admm64 gpu-admm64-adaptive --rho 1 --admm-iters 3000 --admm-abs 1e-5 --admm-rel 1e-4 --rho-update-interval 25 --rho-balance-mu 10 --rho-scale 2 --rho-min 0.0625 --rho-max 16 --cpu-threads 8 --restarts 20 --timeout-seconds 1800 --output-dir reports/gset/g11-adaptive-rho-strict --publish-dir results/gset/g11-adaptive-rho-strict --push
+```
+
+Every rho change is recorded, with correctly rescaled scaled-dual
+iterates. GitHub publishing runs after each backend; adaptive convergence
+and numerical precision are **not guaranteed**. See
+[the Windows adaptive rho runbook](docs/g11-adaptive-rho-gpu-admm.md).
+
 ## G11 RTX 4080 SUPER precision and GPU PSD projection benchmark
 
 A reproducible small-graph study compares original **CPU SCS

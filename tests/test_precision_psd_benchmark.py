@@ -11,7 +11,10 @@ from maxkcut.precision_study import atomic_json, _summary, _publish
 
 
 @pytest.mark.parametrize(
-    "scenario", ["two_vertex", "projector", "validation", "gpu_smoke"]
+    "scenario", [
+        "two_vertex", "projector", "validation", "gpu_smoke",
+        "adaptive_tiny", "fixed_rho_legacy",
+    ]
 )
 def test_torch_backend_in_fresh_process(scenario):
     """PyTorch must not enter pytest's existing SDPA/MKL Windows DLL process.
