@@ -1,9 +1,6 @@
 """Deterministic non-CUDA tests for residual-balanced convex SDP ADMM."""
 from __future__ import annotations
 
-import json
-from pathlib import Path
-
 import pytest
 
 from maxkcut.gpu_full_sdp import balanced_penalty_update
@@ -63,11 +60,14 @@ def test_explicit_adaptive_backends_and_published_rho_headers():
     assert "rho_updates" in precision_study.COLUMNS
 
 
-def test_study_plan_includes_penalty_settings(monkeypatch, tmp_path):
-    """Changing adaptive parameters must never silently mix output cases."""
-    from scipy import sparse
-    import numpy as np
-    # main() is not called: actual G11 tests happen on the Windows VM.
-    # This smoke-check confirms CLI accepts the explicit study backends.
-    # The computational scenarios run in tests/_precision_torch_worker.py.
-    assert "gpu-admm32-adaptive" in precision_study.BACKENDS
+@pytest.mark.parametrize("flag,value", [
+    ("--rho-update-interval", "0"),
+    ("--rho-balance-mu", "1"),
+    ("--rho-scale", "1"),
+    ("--rho-min", "-0.5"),
+    ("--rho-max", "-1"),
+])
+def test_bad_adaptive_cli_config_rejected_before_graph_loading(flag, value):
+    with pytest.raises(SystemExit) as ex:
+        precision_study.main(["--graph", "G11", flag, value])
+    assert ex.value.code == 2
