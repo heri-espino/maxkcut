@@ -479,8 +479,19 @@ def main(argv=None) -> int:
     for backend in args.backends:
         case = args.output_dir / "cases" / (backend + ".json")
         case.unlink(missing_ok=True)  # Never reuse a stale success on a failed rerun.
-        cmd = [
-            sys.executable, "-u", "-m", "maxkcut.precision_study",
+        # On Windows, native DLLs from SDPA/MKL/OpenMP loaded by the
+        # normal maxkcut package can collide with torch's shm.dll. Import
+        # torch FIRST in a clean, backend-specific process when required.
+        # This also isolates CUDA state from all other solver backends.
+        if backend.startswith("gpu-") or backend == "cpu-eigh64":
+            prefix = [
+                sys.executable, "-u", "-c",
+                "import torch; from maxkcut.precision_study import main; "
+                "raise SystemExit(main())",
+            ]
+        else:
+            prefix = [sys.executable, "-u", "-m", "maxkcut.precision_study"]
+        cmd = prefix + [
             "--worker", "--backend", backend,
             "--graph", graph_path.stem,
             "--gset-dir", str(args.gset_dir),
