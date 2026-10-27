@@ -411,3 +411,27 @@ Read instructions → inspect the current branch/files → state the mathematica
   memory capacity, convergence or an SCS-state checkpoint.
 - Tests cover indirect flag propagation and path isolation.
   User-local test execution and numerical feasibility still required.
+
+
+## 2026-10-27 Windows native DLL and atomic checkpoint regression
+
+- A real RTX 4080 SUPER Windows 11 VM successfully loaded PyTorch
+  2.11.0+cu128 in a **standalone process**, but importing torch
+  late during pytest (after other scientific libraries) failed
+  `WinError 127 torch/lib/shm.dll`. Root DLL conflict remains
+  unconfirmed. **Do not** misdiagnose it as CUDA unavailable or
+  suppress numerical tests as skips.
+- GPU and `cpu-eigh64` precision benchmark workers must execute
+  in **fresh Python subprocesses that import torch first**, before
+  `maxkcut`/SciPy/CVXPY. Unit/GPU smoke tests are also executed
+  in subprocesses to avoid pytest native DLL loading order.
+- One Windows archive manifest test failed with `WinError 5`
+  on `os.replace`. Use `src/maxkcut/atomic_fs.py` to retry only
+  bounded transient Windows sharing/access errors, **never**
+  overwrite a destination non-atomically or erase a previous valid
+  manifest on failure.
+- Verify fixes via full `python -m pytest -q` on the actual
+  Windows VM. The patch was developed in GitHub without running
+  native Windows CUDA and does not claim measured GPU results.
+  Preserve test logs and backend failure diagnostics in GitHub
+  rather than hiding errors.
