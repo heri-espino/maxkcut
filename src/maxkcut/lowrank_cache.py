@@ -5,7 +5,6 @@ keyed by graph source contents, backend/version/device and all hyperparameters.
 The cache never claims that a factor is an SDP certificate.
 """
 from __future__ import annotations
-from .atomic_fs import replace_atomic
 
 import hashlib
 import json
@@ -15,6 +14,8 @@ import tempfile
 
 import numpy as np
 
+
+from .atomic_fs import replace_atomic
 
 FACTOR_FORMAT = 1
 
