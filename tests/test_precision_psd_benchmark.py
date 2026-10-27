@@ -13,7 +13,7 @@ from maxkcut.precision_study import atomic_json, _summary, _publish
 @pytest.mark.parametrize(
     "scenario", [
         "two_vertex", "projector", "validation", "gpu_smoke",
-        "adaptive_tiny", "fixed_rho_legacy",
+        "adaptive_tiny", "fixed_rho_legacy", "gpu_gw_cut",
     ]
 )
 def test_torch_backend_in_fresh_process(scenario):
@@ -116,3 +116,41 @@ def test_push_publication_only_stages_study_folder(monkeypatch, tmp_path):
     assert ["git", "push", "origin", "HEAD:main"] in calls
     assert not any("--force" in cmd for cmd in calls)
     assert not any("pull" in cmd for cmd in calls)
+
+
+def test_gpu_rounding_flags_reject_incompatible_modes():
+    """No accidental CPU backend or silent solver-only no-cut run."""
+    from maxkcut.precision_study import main
+
+    for flags in (
+        ["--backends", "cpu-scs64", "--gpu-gw-rounding"],
+        ["--backends", "gpu-admm32", "--skip-rounding",
+         "--gpu-gw-rounding"],
+    ):
+        with pytest.raises(SystemExit) as exc:
+            main(["--graph", "G11", *flags])
+        assert exc.value.code == 2
+
+
+def test_gpu_labels_archive_does_not_break_score_csv(tmp_path):
+    """Per-trial packed assignments remain in JSON, not CSV columns."""
+    import base64
+
+    record = {
+        "backend": "gpu-admm32-adaptive",
+        "status": "computed", "type": "full_convex_sdp",
+        "solver_status": "admm_iteration_limit",
+        "rounding": {"FJ": {"best": 3., "mean": 3., "std": None}},
+        "trials": [{
+            "method": "FJ", "restart": 0, "cut_weight": 3.,
+            "labels_packed_b64": base64.b64encode(bytes([160])).decode(),
+        }],
+    }
+    dest = tmp_path / "results"
+    _publish(tmp_path, dest, "G77", [record])
+    saved = json.loads((dest / "cases" / "gpu-admm32-adaptive.json").read_text())
+    assert saved["trials"][0]["labels_packed_b64"] == "oA=="
+    with (dest / "rounding-trials.csv").open(newline="") as f:
+        rows = list(csv.DictReader(f))
+    assert rows[0]["cut_weight"] == "3.0"
+    assert len(rows) == 1
