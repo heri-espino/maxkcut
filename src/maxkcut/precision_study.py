@@ -426,8 +426,8 @@ def _publish(results_dir: Path, public_dir: Path, graph: str,
 def _push_publication(public_dir: Path, *, allow_feature_branch: bool = False) -> None:
     """Opt-in publish only this experiment's results, never ignored reports.
 
-    Commit/push is non-forced and requires main; a remote divergence
-    must be reconciled manually, without disrupting numerical results.
+    Commit/push is non-forced; main is required by default, with an
+    explicit feature-branch opt-in. Never merges or rewrites history.
     """
     try:
         project = Path(subprocess.run(
@@ -457,7 +457,7 @@ def _push_publication(public_dir: Path, *, allow_feature_branch: bool = False) -
             raise RuntimeError("Failed to compare staged research result files")
         subprocess.run([
             "git", "commit", "-m",
-            "results: checkpoint G11 CPU SDPA SCS GPU FP32/FP64 benchmark",
+            f"results: checkpoint {public_dir.name} SDP study",
             "--", relative,
         ], check=True)
         subprocess.run(
