@@ -15,6 +15,12 @@ from pathlib import Path
 import time
 
 
+# Narrow module-local hooks for tests. Never patch the shared os.replace
+# or time.sleep objects: doing so can intercept pytest and other libraries.
+_replace_file = os.replace
+_retry_sleep = time.sleep
+
+
 def _retryable(error: PermissionError) -> bool:
     if os.name != "nt":
         return False
@@ -33,9 +39,9 @@ def replace_atomic(source: str | Path, destination: str | Path, *,
         raise ValueError("Invalid atomic replacement retry settings")
     for attempt in range(attempts):
         try:
-            os.replace(source, destination)
+            _replace_file(source, destination)
             return
         except PermissionError as exc:
             if not _retryable(exc) or attempt + 1 >= attempts:
                 raise
-            time.sleep(min(0.4, delay * 2 ** attempt))
+            _retry_sleep(min(0.4, delay * 2 ** attempt))
