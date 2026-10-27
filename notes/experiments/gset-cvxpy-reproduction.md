@@ -535,3 +535,25 @@ file-replace failures without sacrificing archive integrity.
 The suspected cause of WinError 127 is DLL-load order; it is
 **not conclusively proved**. All tests require re-execution
 on the affected Win11 VM before comparing numerical speed/quality.
+
+
+## 2026-10-27: adaptive full convex GPU SDP convergence experiment
+
+Motivation is the observed G11 same-graph strict-tolerance comparison:
+CPU SCS 10,000 iterations, `eps=1e-5`, numerical primal 629.075,
+status `optimal_inaccurate` in 2136.03s; full-rank GPU ADMM with
+fixed rho=1, eps_abs=1e-5, eps_rel=1e-4 and 3000 iterations
+obtained objective ~628.1184, with float32 20.45s and float64
+66.87s, **neither converged**. The GPU solver is an independently
+implemented full-size convex PSD-projection ADMM, not GPU SCS.
+
+New opt-in residual-balancing rho adaptation (default interval=25,
+mu=10, scale=2, rho bounds [0.0625,16]) must rescale the scaled
+dual whenever changing rho so the unscaled dual remains invariant.
+A controlled four-backend G11 comparison runs fixed/adaptive both
+in float32 and float64, retaining graph SHA, solver status, residuals,
+rho events, original objective, PSD defect, all rounding trials,
+failures and timings. Export `results/gset/g11-adaptive-rho-strict/`
+with per-backend `--push`. This is an implementation plan, **not yet
+a measured adaptive-run success**. Windows runbook:
+`docs/g11-adaptive-rho-gpu-admm.md`.
