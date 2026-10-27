@@ -27,14 +27,34 @@ def test_atomic_replace_retry_on_transient_windows_access_denied(
             raise PermissionError("simulated transient WinError 5")
         return original(src, dst)
 
-    monkeypatch.setattr(atomic_fs.os, "replace", flaky)
+    # Patch only our module-local hook, never the global os module.
+    # Other pytest/Windows file operations must not affect this counter.
+    monkeypatch.setattr(atomic_fs, "_replace_file", flaky)
     monkeypatch.setattr(atomic_fs, "_retryable", lambda exc: True)
-    monkeypatch.setattr(atomic_fs.time, "sleep", lambda sec: sleeps.append(sec))
+    monkeypatch.setattr(atomic_fs, "_retry_sleep", lambda sec: sleeps.append(sec))
     atomic_fs.replace_atomic(source, target)
     assert attempts == [0, 1, 2]
     assert sleeps == pytest.approx([0.05, 0.10])
+    assert os.replace is original  # Other modules were not monkeypatched.
     assert not source.exists()
     assert target.read_text() == "new"
+
+
+def test_monkeypatch_does_not_intercept_unrelated_renames(monkeypatch, tmp_path):
+    outside_source = tmp_path / "outside.tmp"
+    outside_dest = tmp_path / "outside.json"
+    outside_source.write_text("outside")
+    seen = []
+
+    def patch_only_atomic(src, dst):
+        seen.append((src, dst))
+        raise PermissionError("unrelated failure")
+
+    monkeypatch.setattr(atomic_fs, "_replace_file", patch_only_atomic)
+    # This unrelated file operation must call the original system primitive.
+    os.replace(outside_source, outside_dest)
+    assert outside_dest.read_text() == "outside"
+    assert seen == []
 
 
 def test_atomic_replace_permanent_failure_does_not_truncate_destination(
@@ -48,9 +68,9 @@ def test_atomic_replace_permanent_failure_does_not_truncate_destination(
     def deny(src, dst):
         raise PermissionError("permanent lock")
 
-    monkeypatch.setattr(atomic_fs.os, "replace", deny)
+    monkeypatch.setattr(atomic_fs, "_replace_file", deny)
     monkeypatch.setattr(atomic_fs, "_retryable", lambda exc: True)
-    monkeypatch.setattr(atomic_fs.time, "sleep", lambda sec: None)
+    monkeypatch.setattr(atomic_fs, "_retry_sleep", lambda sec: None)
     with pytest.raises(PermissionError):
         atomic_fs.replace_atomic(source, target, attempts=3)
     assert target.read_text() == "original"
@@ -64,7 +84,7 @@ def test_non_transient_error_is_not_retried(monkeypatch, tmp_path):
         count.append(1)
         raise PermissionError("not a retryable lock")
 
-    monkeypatch.setattr(atomic_fs.os, "replace", fail)
+    monkeypatch.setattr(atomic_fs, "_replace_file", fail)
     monkeypatch.setattr(atomic_fs, "_retryable", lambda exc: False)
     with pytest.raises(PermissionError):
         atomic_fs.replace_atomic(tmp_path / "src", tmp_path / "dest")
