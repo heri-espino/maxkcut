@@ -20,6 +20,7 @@ This is a **new numerical comparison**, not a claim of improved quality or runti
 
 | Backend | Status | Solver status | Seconds | Best cut |
 | --- | --- | --- | ---: | ---: |
+| cpu-eigh64 | computed | not_an_SDP_solve | 0.027923399989958853 | — |
 | cpu-scs64 | computed | optimal | 41.25 | 546.0 |
 | cpu-sdpa64 | failed | failed | — | — |
 | gpu-admm32 | computed | admm_iteration_limit | 0.9272986000287347 | 546.0 |
