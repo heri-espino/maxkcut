@@ -146,9 +146,19 @@ def _solver_worker(args, graph: Path) -> dict:
         (np.dot(degrees, np.diag(matrix)) -
          2 * np.dot(weights, matrix[ii, jj])) / 4
     )
-    methods, trials, min_eig, repair_info = _round(
-        matrix, a, graph.stem, args.restarts, args.seed,
-    )
+    try:
+        methods, trials, min_eig, repair_info = _round(
+            matrix, a, graph.stem, args.restarts, args.seed,
+        )
+        rounding_status, rounding_error = "validated", None
+    except (RuntimeError, ValueError) as exc:
+        # An SDP solver may return an infeasible/indefinite matrix;
+        # preserve its objective and numerical diagnostics for comparison.
+        methods, trials, repair_info = {}, [], {}
+        min_eig = float(np.linalg.eigvalsh((matrix + matrix.T) / 2)[0])
+        rounding_status, rounding_error = "failed_validation", (
+            f"{type(exc).__name__}: {exc}"
+        )
     return {
         "backend": backend, "type": "full_convex_sdp",
         "status": "computed",
@@ -162,6 +172,8 @@ def _solver_worker(args, graph: Path) -> dict:
         "min_eigenvalue": min_eig,
         "max_diag_error": diag_error,
         "repair": repair_info,
+        "rounding_validation": rounding_status,
+        "rounding_error": rounding_error,
         "admm_converged": info.get("converged"),
         "primal_residual": (info.get("residuals") or {}).get("primal_residual"),
         "dual_residual": (info.get("residuals") or {}).get("dual_residual"),
