@@ -557,3 +557,28 @@ failures and timings. Export `results/gset/g11-adaptive-rho-strict/`
 with per-backend `--push`. This is an implementation plan, **not yet
 a measured adaptive-run success**. Windows runbook:
 `docs/g11-adaptive-rho-gpu-admm.md`.
+
+
+## 2026-10-27: G77 full convex GPU ADMM feasibility test plan
+
+G77's canonical `data/G77.txt` header is `14000 28000`;
+G81's is `20000 40000`. G77 is the second-largest
+checked-in G-set instance by vertices. The user has Windows 11
+RTX 4080 SUPER 16GB VRAM and 128GB system RAM. One dense
+float32 PSD variable is 14k²×4 bytes = 748MiB, but
+GPU eigenvectors/workspace require multiples of this,
+and Windows WDDM driver memory/timeout constraints matter.
+Do not claim that system RAM substitutes for VRAM.
+
+The first probe uses exactly one iteration of the
+**original full-rank convex SDP** GPU PSD-ADMM with adaptive
+rho enabled (no rho update at iteration 1),
+with `--skip-rounding` avoiding a second giant CPU
+Gram-factorization. No partition, cut score or convergence
+claim is generated. Publish complete metrics/failure
+to `results/gset/g77-gpu-full-psd-1iter/` on GitHub.
+A separately scoped 10-iteration probe is allowed only after
+checking memory/headroom and the 1-iteration timing.
+Full 3000-iteration G77 optimization is **not pre-approved**
+or claimed practical on 16GB VRAM. See
+`docs/g77-full-convex-gpu-preflight-windows.md`.
