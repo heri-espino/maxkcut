@@ -21,6 +21,7 @@ This is a **new numerical comparison**, not a claim of improved quality or runti
 | Backend | Status | Solver status | Seconds | Best cut |
 | --- | --- | --- | ---: | ---: |
 | gpu-admm32 | computed | admm_residual_converged | 3.1305246999836527 | 548.0 |
+| gpu-admm64 | computed | admm_residual_converged | 9.314830400049686 | 550.0 |
 
 ## Scientific caveats
 
