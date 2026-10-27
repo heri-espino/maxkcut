@@ -28,7 +28,11 @@ from .objective import cut_weight
 from .rounding import factorize, round_fj, round_spherical_kmeans
 
 
-BACKENDS = ("cpu-scs64", "cpu-sdpa64", "gpu-admm32", "gpu-admm64")
+BACKENDS = (
+    "cpu-scs64", "cpu-sdpa64",
+    "gpu-admm32", "gpu-admm64",
+    "gpu-admm32-adaptive", "gpu-admm64-adaptive",
+)
 EIG_BACKENDS = ("cpu-eigh64", "gpu-eigh32", "gpu-eigh64")
 COLUMNS = (
     "backend", "type", "status", "solver_status", "precision",
@@ -36,7 +40,9 @@ COLUMNS = (
     "best_FJ", "best_K-Means2N", "best_K-MeansNM",
     "cut_best", "continuous_primal_uncertified",
     "min_eigenvalue", "max_diag_error", "admm_converged",
-    "primal_residual", "dual_residual", "relative_projector_error",
+    "primal_residual", "dual_residual",
+    "rho_initial", "rho_final", "rho_updates",
+    "relative_projector_error",
     "error",
 )
 
@@ -126,12 +132,18 @@ def _solver_worker(args, graph: Path) -> dict:
         }
     else:
         from .gpu_full_sdp import full_sdp_admm_torch
-        precision = "float32" if backend == "gpu-admm32" else "float64"
+        precision = "float32" if backend.startswith("gpu-admm32") else "float64"
+        adaptive = backend.endswith("-adaptive")
         matrix, info = full_sdp_admm_torch(
             a, device="cuda", precision=precision,
             rho=args.rho, max_iters=args.admm_iters,
             eps_abs=args.admm_abs, eps_rel=args.admm_rel,
             log_every=args.log_every,
+            adaptive_rho=adaptive,
+            rho_update_interval=args.rho_update_interval,
+            rho_balance_mu=args.rho_balance_mu,
+            rho_scale=args.rho_scale,
+            rho_min=args.rho_min, rho_max=args.rho_max,
         )
     matrix = np.asarray(matrix, dtype=np.float64)
     if not np.isfinite(matrix).all():
@@ -178,6 +190,9 @@ def _solver_worker(args, graph: Path) -> dict:
         "admm_converged": info.get("converged"),
         "primal_residual": (info.get("residuals") or {}).get("primal_residual"),
         "dual_residual": (info.get("residuals") or {}).get("dual_residual"),
+        "rho_initial": info.get("rho"),
+        "rho_final": info.get("rho_final"),
+        "rho_updates": info.get("rho_update_count"),
         "solver_metadata": info,
         "rounding": methods, "trials": trials,
         "environment": _environment_info(),
@@ -293,7 +308,7 @@ def _publish(results_dir: Path, public_dir: Path, graph: str,
                 tail, encoding="utf8",
             )
     lines = [
-        f"# {graph} — float32, GPU PSD eigendecomposition and SDPA study",
+        f"# {graph} — full convex SDP GPU precision and penalty-parameter study",
         "",
         "This is a **new numerical comparison**, not a claim of improved "
         "quality or runtime until observed measurements are present.",
@@ -302,7 +317,8 @@ def _publish(results_dir: Path, public_dir: Path, graph: str,
         "",
         "- CPU SCS (float64), original full convex SDP reference.",
         "- CPU SDPA (float64), alternative full convex solver.",
-        "- GPU full-rank PSD ADMM (float32 and float64): the **same convex "
+        "- GPU full-rank PSD ADMM (float32 and float64), fixed or " 
+        "residual-balanced adaptive rho: the **same convex "
         "SDP formulation but a different first-order algorithm**. Its "
         "iteration limit is not an optimality certificate.",
         "- Independent CPU/GPU PSD eigenprojection microbenchmark: "
@@ -337,6 +353,11 @@ def _publish(results_dir: Path, public_dir: Path, graph: str,
         "## Scientific caveats",
         "",
         "- GPU ADMM is a new experimental solver, **not** a patch to SCS.",
+        "- Adaptive rho changes the numerical penalty only, not the original " 
+        "convex SDP; the *scaled* dual is rescaled whenever rho changes.",
+        "- Residual-balanced convergence does not certify SDP optimality " 
+        "or a numerical upper bound. Compare against fixed rho at the same " 
+        "absolute/relative tolerances, graph SHA and iteration budgets.",
         "- Same convex feasible region, but different first-order numerical "
         "iterations, residual criteria and finite-precision effects.",
         "- float32 trades precision for potentially faster matrix operations; "
@@ -427,7 +448,7 @@ def main(argv=None) -> int:
                         help="Commit/push this study's sanitized results after EACH backend")
     parser.add_argument("--backends", nargs="+",
                         choices=(*BACKENDS, *EIG_BACKENDS),
-                        default=[*BACKENDS, *EIG_BACKENDS])
+                        default=[*BACKENDS[:4], *EIG_BACKENDS])
     parser.add_argument("--output-dir", type=Path,
                         default=Path("reports/gset/precision-psd-benchmark"))
     parser.add_argument("--publish-dir", type=Path,
@@ -441,13 +462,21 @@ def main(argv=None) -> int:
     parser.add_argument("--admm-abs", type=float, default=1e-4)
     parser.add_argument("--admm-rel", type=float, default=1e-3)
     parser.add_argument("--rho", type=float, default=1.)
+    parser.add_argument("--rho-update-interval", type=int, default=25)
+    parser.add_argument("--rho-balance-mu", type=float, default=10.)
+    parser.add_argument("--rho-scale", type=float, default=2.)
+    parser.add_argument("--rho-min", type=float, default=0.0625)
+    parser.add_argument("--rho-max", type=float, default=16.)
     parser.add_argument("--log-every", type=int, default=10)
     parser.add_argument("--eigh-repeats", type=int, default=2)
     parser.add_argument("--timeout-seconds", type=int, default=1800)
     args = parser.parse_args(argv)
     if (args.cpu_threads < 1 or args.restarts < 1 or args.admm_iters < 1
             or args.scs_iters < 1 or args.eigh_repeats < 1
-            or args.timeout_seconds < 60):
+            or args.timeout_seconds < 60
+            or args.rho <= 0 or args.rho_update_interval < 1
+            or args.rho_balance_mu <= 1 or args.rho_scale <= 1
+            or args.rho_min <= 0 or args.rho_max < args.rho_min):
         parser.error("Invalid execution budget")
     try:
         from .sweep import discover_graphs
@@ -486,6 +515,10 @@ def main(argv=None) -> int:
         "admm_iters": args.admm_iters,
         "admm_abs": args.admm_abs, "admm_rel": args.admm_rel,
         "rho": args.rho, "eigh_repeats": args.eigh_repeats,
+        "rho_update_interval": args.rho_update_interval,
+        "rho_balance_mu": args.rho_balance_mu,
+        "rho_scale": args.rho_scale,
+        "rho_min": args.rho_min, "rho_max": args.rho_max,
     }
     plan_file = args.output_dir / "study-plan.json"
     if plan_file.is_file() and json.loads(plan_file.read_text()) != study_plan:
@@ -509,6 +542,11 @@ def main(argv=None) -> int:
             "--admm-abs", str(args.admm_abs),
             "--admm-rel", str(args.admm_rel),
             "--rho", str(args.rho),
+            "--rho-update-interval", str(args.rho_update_interval),
+            "--rho-balance-mu", str(args.rho_balance_mu),
+            "--rho-scale", str(args.rho_scale),
+            "--rho-min", str(args.rho_min),
+            "--rho-max", str(args.rho_max),
             "--log-every", str(args.log_every),
             "--eigh-repeats", str(args.eigh_repeats),
         ]
