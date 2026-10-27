@@ -5,7 +5,6 @@ settings/versions. Cached matrices must still pass the usual factorization and
 feasibility diagnostics before scientific use.
 """
 from __future__ import annotations
-from .atomic_fs import replace_atomic
 
 import hashlib
 import importlib.metadata
@@ -16,6 +15,8 @@ import tempfile
 
 import numpy as np
 
+
+from .atomic_fs import replace_atomic
 
 CACHE_FORMAT_VERSION = 1
 
