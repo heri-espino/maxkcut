@@ -21,6 +21,7 @@ This is a **new numerical comparison**, not a claim of improved quality or runti
 | Backend | Status | Solver status | Seconds | Best cut |
 | --- | --- | --- | ---: | ---: |
 | gpu-admm32 | computed | admm_iteration_limit | 20.452002900012303 | 546.0 |
+| gpu-admm64 | computed | admm_iteration_limit | 66.86952469998505 | 546.0 |
 
 ## Scientific caveats
 
