@@ -74,6 +74,52 @@ def validation() -> None:
     ), "Invalid ADMM")
 
 
+def adaptive_tiny() -> None:
+    """Exercise actual scaled-dual rho changes on a solved convex 1-edge SDP."""
+    a = sparse.csr_matrix([[0., 1.], [1., 0.]])
+    for precision in ("float32", "float64"):
+        matrix, meta = full_sdp_admm_torch(
+            a, device="cpu", precision=precision,
+            rho=1., adaptive_rho=True,
+            rho_update_interval=2, rho_balance_mu=2.,
+            rho_scale=2., rho_min=0.125, rho_max=8.,
+            max_iters=100, eps_abs=1e-6, eps_rel=1e-6,
+            log_every=1,
+        )
+        assert meta["adaptive_rho"] is True
+        assert meta["rho_update_count"] >= 1, meta
+        assert len(meta["rho_events"]) == meta["rho_update_count"]
+        for event in meta["rho_events"]:
+            assert 0.125 <= event["new_rho"] <= 8.
+            assert abs(
+                event["previous_rho"] /
+                event["new_rho"] - event["scaled_dual_multiplier"]
+            ) <= 1e-15
+        assert meta["rho_final"] > 0
+        assert abs(matrix[0, 0]-1) < 1e-5
+        assert abs(matrix[1, 1]-1) < 1e-5
+        assert np.linalg.eigvalsh(matrix).min() > -2e-5
+        objective = (matrix[0, 0] + matrix[1, 1]-2*matrix[0, 1])/4
+        assert abs(objective-1) < 2e-3, (precision, objective)
+
+
+def fixed_rho_legacy() -> None:
+    """Do not silently change old fixed-rho results or clipping behavior."""
+    a = sparse.csr_matrix([[0., 1.], [1., 0.]])
+    for rho in (0.01, 1., 100.):
+        matrix, meta = full_sdp_admm_torch(
+            a, device="cpu", precision="float64",
+            rho=rho, adaptive_rho=False,
+            max_iters=20, eps_abs=1e-4, eps_rel=1e-3,
+            log_every=1,
+        )
+        assert meta["rho"] == rho
+        assert meta["rho_final"] == rho
+        assert meta["rho_update_count"] == 0
+        assert not meta["rho_events"]
+        assert np.isfinite(matrix).all()
+
+
 def gpu_smoke() -> None:
     if not torch.cuda.is_available():
         print("SKIP: no CUDA device", flush=True)
@@ -93,6 +139,8 @@ if __name__ == "__main__":
         "projector": projector,
         "validation": validation,
         "gpu_smoke": gpu_smoke,
+        "adaptive_tiny": adaptive_tiny,
+        "fixed_rho_legacy": fixed_rho_legacy,
     }
     if len(sys.argv) != 2 or sys.argv[1] not in actions:
         raise SystemExit("Expected exactly one test scenario")
