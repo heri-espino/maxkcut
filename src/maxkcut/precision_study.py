@@ -350,6 +350,55 @@ def _publish(results_dir: Path, public_dir: Path, graph: str,
     (public_dir / "README.md").write_text("\n".join(lines), encoding="utf8")
 
 
+def _push_publication(public_dir: Path) -> None:
+    """Opt-in publish only this experiment's results, never ignored reports.
+
+    Commit/push is non-forced and requires main; a remote divergence
+    must be reconciled manually, without disrupting numerical results.
+    """
+    try:
+        project = Path(subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            capture_output=True, text=True, check=True,
+        ).stdout.strip()).resolve()
+        relative = public_dir.resolve().relative_to(project).as_posix()
+        if not relative.startswith("results/"):
+            raise ValueError("Refusing to stage outside public results/")
+        branch = subprocess.run(
+            ["git", "branch", "--show-current"],
+            capture_output=True, text=True, check=True,
+        ).stdout.strip()
+        if branch != "main":
+            raise RuntimeError(f"GitHub publishing requires main, not {branch!r}")
+        subprocess.run(["git", "add", "-A", "--", relative], check=True)
+        diff = subprocess.run(
+            ["git", "diff", "--cached", "--quiet", "--", relative],
+            check=False,
+        )
+        if diff.returncode == 0:
+            return
+        if diff.returncode != 1:
+            raise RuntimeError("Failed to compare staged research result files")
+        subprocess.run([
+            "git", "commit", "-m",
+            "results: checkpoint G11 CPU SDPA SCS GPU FP32/FP64 benchmark",
+            "--", relative,
+        ], check=True)
+        subprocess.run(
+            ["git", "push", "origin", "HEAD:main"],
+            check=True, timeout=120,
+            env={**os.environ, "GIT_TERMINAL_PROMPT": "0"},
+        )
+        print("Benchmark checkpoint pushed to GitHub.", flush=True)
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired,
+            RuntimeError, ValueError, OSError) as exc:
+        print(
+            f"WARNING: GitHub publication failed: {type(exc).__name__}: {exc}. "
+            "Local results retained; no forced update attempted.",
+            file=sys.stderr, flush=True,
+        )
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--graph", default="G11",
@@ -357,6 +406,8 @@ def main(argv=None) -> int:
     parser.add_argument("--gset-dir", type=Path, default=Path("data"))
     parser.add_argument("--backend", choices=(*BACKENDS, *EIG_BACKENDS))
     parser.add_argument("--worker", action="store_true")
+    parser.add_argument("--push", action="store_true",
+                        help="Commit/push this study's sanitized results after EACH backend")
     parser.add_argument("--backends", nargs="+",
                         choices=(*BACKENDS, *EIG_BACKENDS),
                         default=[*BACKENDS, *EIG_BACKENDS])
@@ -409,6 +460,21 @@ def main(argv=None) -> int:
                         })
             return 1
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    study_plan = {
+        "graph": graph_path.stem,
+        "graph_sha256": hashlib.sha256(graph_path.read_bytes()).hexdigest(),
+        "backends": list(args.backends), "seed": args.seed,
+        "restarts": args.restarts, "cpu_threads": args.cpu_threads,
+        "scs_eps": args.scs_eps, "scs_iters": args.scs_iters,
+        "admm_iters": args.admm_iters,
+        "admm_abs": args.admm_abs, "admm_rel": args.admm_rel,
+        "rho": args.rho, "eigh_repeats": args.eigh_repeats,
+    }
+    plan_file = args.output_dir / "study-plan.json"
+    if plan_file.is_file() and json.loads(plan_file.read_text()) != study_plan:
+        parser.error("Experiment settings changed; use another --output-dir")
+    atomic_json(plan_file, study_plan)
+    atomic_json(args.publish_dir / "study-plan.json", study_plan)
     for backend in args.backends:
         case = args.output_dir / "cases" / (backend + ".json")
         case.unlink(missing_ok=True)  # Never reuse a stale success on a failed rerun.
@@ -452,8 +518,15 @@ def main(argv=None) -> int:
             if path.stem in args.backends
         ]
         _publish(args.output_dir, args.publish_dir, graph_path.stem, saved)
+        if args.push:
+            _push_publication(args.publish_dir)
     print(f"GitHub-ready files: {args.publish_dir}", flush=True)
-    print("Commit/push the tracked results only after reviewing them.", flush=True)
+    print(
+        "Results are locally preserved. "
+        + ("Per-backend GitHub push was enabled." if args.push else
+           "Use --push to publish after each backend, or commit/push manually."),
+        flush=True,
+    )
     return 0
 
 
