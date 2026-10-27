@@ -511,3 +511,27 @@ supervisor-facing GitHub publication folder
 The comparison will require independent feasibility and
 convergence diagnostics: this is a solver-backend change,
 not a successful 20,000-node SDP claim.
+
+
+## 2026-10-27 Windows 11 GPU benchmark preflight failure and fix
+
+Real user environment: GeForce RTX 4080 SUPER, Windows 11,
+NVIDIA 616.56, PyTorch 2.11.0+cu128, CUDA runtime 12.8.
+Standalone `import torch` reports CUDA available and correct GPU;
+CVXPY reports both SCS and SDPA installed.
+
+First `pytest -q` completed with **108 passes / 5 failures**:
+four late `import torch` calls failed `WinError 127` in
+`torch/lib/shm.dll` within the long-running pytest process,
+whereas the standalone import worked; one unrelated
+`test_sdp_batch.py` test failed with transient
+`PermissionError [WinError 5]` replacing a temporary archive
+manifest. No actual float32/64 GPU SDP benchmark was reported.
+
+A targeted code patch changes PyTorch numerical/smoke tests to
+**fresh process imports**, initializes torch first in the actual
+GPU benchmark workers, and retries transient Windows atomic
+file-replace failures without sacrificing archive integrity.
+The suspected cause of WinError 127 is DLL-load order; it is
+**not conclusively proved**. All tests require re-execution
+on the affected Win11 VM before comparing numerical speed/quality.
