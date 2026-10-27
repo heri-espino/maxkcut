@@ -400,6 +400,22 @@ def _push_publication(public_dir: Path) -> None:
         )
 
 
+def _backend_worker_prefix(backend: str) -> list[str]:
+    """Launch CUDA/torch first, before SciPy/CVXPY load native Windows DLLs.
+
+    Each solver is an independent Python process; keeping torch first
+    avoids Windows shm.dll WinError 127 seen on late torch import after
+    the scientific stack in a long-running pytest session.
+    """
+    if backend.startswith("gpu-") or backend == "cpu-eigh64":
+        return [
+            sys.executable, "-u", "-c",
+            "import torch; from maxkcut.precision_study import main; "
+            "raise SystemExit(main())",
+        ]
+    return [sys.executable, "-u", "-m", "maxkcut.precision_study"]
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--graph", default="G11",
@@ -479,19 +495,7 @@ def main(argv=None) -> int:
     for backend in args.backends:
         case = args.output_dir / "cases" / (backend + ".json")
         case.unlink(missing_ok=True)  # Never reuse a stale success on a failed rerun.
-        # On Windows, native DLLs from SDPA/MKL/OpenMP loaded by the
-        # normal maxkcut package can collide with torch's shm.dll. Import
-        # torch FIRST in a clean, backend-specific process when required.
-        # This also isolates CUDA state from all other solver backends.
-        if backend.startswith("gpu-") or backend == "cpu-eigh64":
-            prefix = [
-                sys.executable, "-u", "-c",
-                "import torch; from maxkcut.precision_study import main; "
-                "raise SystemExit(main())",
-            ]
-        else:
-            prefix = [sys.executable, "-u", "-m", "maxkcut.precision_study"]
-        cmd = prefix + [
+        cmd = _backend_worker_prefix(backend) + [
             "--worker", "--backend", backend,
             "--graph", graph_path.stem,
             "--gset-dir", str(args.gset_dir),
