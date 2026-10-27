@@ -1,0 +1,53 @@
+{
+  "backend": "gpu-eigh64",
+  "eigh_kernel_seconds": 0.02340190001996234,
+  "eigh_repeats": 3,
+  "eigh_total_seconds": 0.02593539998633787,
+  "environment": {
+    "cpu": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "cvxpy": "1.9.3",
+    "logical_cpus": 32,
+    "numpy": "2.5.4",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.16",
+    "scipy": "1.18.1",
+    "scs": "3.3.1",
+    "sdpa-python": "0.2.3",
+    "torch": "2.11.0+cu128"
+  },
+  "graph": "G11",
+  "graph_sha256": "0a43666a1b64f5b0f48f9b0b8d2e450d97ce69173ec0119a7a9ef2a983dadb86",
+  "measurements": [
+    {
+      "cuda_peak_allocated_bytes": 31803904,
+      "device": "cuda",
+      "end_to_end_seconds": 0.22696699999505654,
+      "kernel_seconds": 0.08957660000305623,
+      "min_input_eigenvalue": -1.3969930187648951,
+      "precision": "float64"
+    },
+    {
+      "cuda_peak_allocated_bytes": 40323584,
+      "device": "cuda",
+      "end_to_end_seconds": 0.02722290001111105,
+      "kernel_seconds": 0.024556399963330477,
+      "min_input_eigenvalue": -1.3969930187648951,
+      "precision": "float64"
+    },
+    {
+      "cuda_peak_allocated_bytes": 40323584,
+      "device": "cuda",
+      "end_to_end_seconds": 0.02593539998633787,
+      "kernel_seconds": 0.02340190001996234,
+      "min_input_eigenvalue": -1.3969930187648951,
+      "precision": "float64"
+    }
+  ],
+  "n": 800,
+  "precision": "float64",
+  "reference_numpy_float64_seconds": 0.1410082000074908,
+  "relative_projector_error": 4.669448441348775e-15,
+  "solver_status": "not_an_SDP_solve",
+  "status": "computed",
+  "type": "psd_eigenprojection_only"
+}

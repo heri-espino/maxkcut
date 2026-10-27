@@ -26,6 +26,7 @@ This is a **new numerical comparison**, not a claim of improved quality or runti
 | gpu-admm32 | computed | admm_iteration_limit | 0.9272986000287347 | 546.0 |
 | gpu-admm64 | computed | admm_iteration_limit | 2.730229099979624 | 544.0 |
 | gpu-eigh32 | computed | not_an_SDP_solve | 0.010399800026789308 | — |
+| gpu-eigh64 | computed | not_an_SDP_solve | 0.02593539998633787 | — |
 
 ## Scientific caveats
 
