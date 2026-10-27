@@ -423,7 +423,7 @@ def _publish(results_dir: Path, public_dir: Path, graph: str,
     (public_dir / "README.md").write_text("\n".join(lines), encoding="utf8")
 
 
-def _push_publication(public_dir: Path) -> None:
+def _push_publication(public_dir: Path, *, allow_feature_branch: bool = False) -> None:
     """Opt-in publish only this experiment's results, never ignored reports.
 
     Commit/push is non-forced and requires main; a remote divergence
@@ -441,8 +441,11 @@ def _push_publication(public_dir: Path) -> None:
             ["git", "branch", "--show-current"],
             capture_output=True, text=True, check=True,
         ).stdout.strip()
-        if branch != "main":
-            raise RuntimeError(f"GitHub publishing requires main, not {branch!r}")
+        if branch != "main" and not allow_feature_branch:
+            raise RuntimeError(
+                f"GitHub publishing requires main unless "
+                f"--push-from-branch is explicitly supplied: {branch!r}"
+            )
         subprocess.run(["git", "add", "-A", "--", relative], check=True)
         diff = subprocess.run(
             ["git", "diff", "--cached", "--quiet", "--", relative],
@@ -458,7 +461,7 @@ def _push_publication(public_dir: Path) -> None:
             "--", relative,
         ], check=True)
         subprocess.run(
-            ["git", "push", "origin", "HEAD:main"],
+            ["git", "push", "origin", f"HEAD:{branch}"],
             check=True, timeout=120,
             env={**os.environ, "GIT_TERMINAL_PROMPT": "0"},
         )
@@ -497,6 +500,9 @@ def main(argv=None) -> int:
     parser.add_argument("--worker", action="store_true")
     parser.add_argument("--push", action="store_true",
                         help="Commit/push this study's sanitized results after EACH backend")
+    parser.add_argument("--push-from-branch", action="store_true",
+                        help="Allow opt-in results commits on the current feature branch "
+                             "instead of requiring main; no merge or force push")
     parser.add_argument("--backends", nargs="+",
                         choices=(*BACKENDS, *EIG_BACKENDS),
                         default=[*BACKENDS[:4], *EIG_BACKENDS])
@@ -536,6 +542,8 @@ def main(argv=None) -> int:
             or args.rho_balance_mu <= 1 or args.rho_scale <= 1
             or args.rho_min <= 0 or args.rho_max < args.rho_min):
         parser.error("Invalid execution budget")
+    if args.push_from_branch and not args.push:
+        parser.error("--push-from-branch requires --push")
     selected_backends = ([args.backend] if args.worker else args.backends)
     if args.gpu_gw_rounding and (args.skip_rounding or
             any(b is None or not b.startswith("gpu-admm")
@@ -641,7 +649,7 @@ def main(argv=None) -> int:
         ]
         _publish(args.output_dir, args.publish_dir, graph_path.stem, saved)
         if args.push:
-            _push_publication(args.publish_dir)
+            _push_publication(args.publish_dir, allow_feature_branch=args.push_from_branch)
     print(f"GitHub-ready files: {args.publish_dir}", flush=True)
     print(
         "Results are locally preserved. "
