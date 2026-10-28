@@ -605,3 +605,29 @@ Read instructions → inspect the current branch/files → state the mathematica
   bit-packed partitions. No random MST restarts; report component sizes.
 - See notes/experiments/experiment006-eva-mst-central-edge.md; large
   experiments remain manual and require explicit --max-n, one final push.
+
+
+## Experiment009: multiple original-space MST edges + binary Max-Cut
+
+- Starting from **verified saved exact MSTs** in the full EVA ambient
+  space, remove q longest tree edges (tie-break child index). A forest
+  with q+1 components is NOT a Max-k-Cut for k=q+1; contract the
+  ORIGINAL signed G-set graph onto the components and optimize a
+  **binary** cut there. Then refine original individual vertex labels.
+- `src/maxkcut/eva_mst_multicut.py` is the reusable algorithm;
+  `eva_mst_multicut_cli.py` is archive/CLI handling; corresponding
+  tests and experiment notes are mandatory. No PCA or EVA re-solve.
+- The contracted signed graph must preserve the actual weighted graph
+  cut for ANY assignment constant on forest components. Include the
+  preceding best coarse labeling as a valid nested warm start when q
+  increases, ensuring best coarse cuts cannot decline. Vertex-level
+  refined cuts cannot decrease relative to their own starting cut,
+  but may vary nonmonotonically across q.
+- Save EVERY coarse trial partition plus the final refined partition,
+  independent verifier results, graph/factor/tree checksums, q settings,
+  seeds, signed objective before/after, failures, and one end-of-batch
+  Git push. Do not conflate random component restart budgets with the
+  deterministic fixed MST construction. Compare against the user's
+  G63 K-MeansNM-Flip best feasible score 26,682, not a certified optimum.
+- See notes/experiments/experiment009-mst-multiedge.md for the manual
+  Windows PowerShell reproduction protocol and comparison caveats.
