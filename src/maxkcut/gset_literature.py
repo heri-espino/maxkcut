@@ -92,6 +92,8 @@ def compare(eva_summary: Path, reference_csv: Path) -> list[dict]:
             scores.append(value)
 
         best = max(scores) if len(scores) == len(ROUNDERS) else None
+        if best is not None and best.is_integer():
+            best = int(best)
         comparable = size_match and best is not None
         paper_cut = int(ref["reference_cut"])
         # A graph label and matching n/m are NOT a signed weighted edge proof.
@@ -144,7 +146,8 @@ def write_comparison(eva_summary: Path, reference_csv: Path, output: Path) -> Pa
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--eva-summary", type=Path,
-                        default=Path("results/gset/experiment004-eva-precision/summary.csv"))
+                        default=Path("results/gset/literature-comparison/"
+                                     "experiment004-eva-precision-source.csv"))
     parser.add_argument("--references", type=Path,
                         default=Path("data/gset_literature_reference_71.csv"))
     parser.add_argument("--output", type=Path,
