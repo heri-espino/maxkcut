@@ -42,3 +42,29 @@ python -m maxkcut.eva_benchmark_cli --graphs G1 G11 G55 --output-dir results/gse
 Inspect the new timing and objective-parity report under
 results/gset/experiment003-eva-perf/summary.csv.
 Never overwrite experiment002 factors with the compiled backend.
+
+
+## 2026-10-28: near-machine-precision stop-test regression
+
+The initial `test_eva_numba.py` required identical sweep counts for
+NumPy and compiled EVA even at an angular tolerance of `1e-8`.
+Because this code computes `acos(dot(y_old, y_new))`, cosine
+rounding at double-precision unit vectors can cause the measured
+angle to jump between zero and about `1.49e-8` radians.
+Two mathematically equivalent update loops can therefore reach
+different stop counts despite indistinguishable objective values.
+
+The corrected validation keeps strict parity of sweep count, vectors,
+objective and reported maximum angle at tolerances `1e-3` and
+`1e-5`. It separately verifies identical fixed-sweep trajectories
+and close final results at `1e-8` without requiring identical
+numerically ill-conditioned stopping iterations.
+
+A local minimal reconstruction of both loops passed the replacement
+parity assertions for seeds 1, 2026 and 42, including extreme
+tolerance 1e-8. Run the complete committed pytest suite on Windows
+before declaring the optimized backend production-ready.
+
+The benchmark and normal EVA runs use tolerance `1e-3`.
+The change is isolated to the experimental performance branch;
+no previously saved G-set factors or partitions were modified.
