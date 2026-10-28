@@ -16,11 +16,49 @@ from maxkcut.eva_cli import run_one
 from maxkcut.eva_pipeline_grid import (
     STAGES, evaluate_pipeline, expand_grid,
 )
-from maxkcut.eva_pipeline_grid_cli import run_graph
+from maxkcut.eva_pipeline_grid_cli import run_graph, _aggregate
 from maxkcut.eva_rounding_cli import round_saved_factor, _round_one
 from maxkcut.eva import load_eva_factor
 from maxkcut.io import edge_arrays, load_graph
 from maxkcut.objective import cut_weight
+
+
+
+def test_leaderboard_identical_for_shuffled_parallel_completion():
+    """Completion order must not alter cut metrics or best-restart ties."""
+    configs = expand_grid({
+        "version": 1,
+        "families": [{
+            "name": "Tie", "rounder": "saved-kmeans-flip",
+            "axes": {"kl_passes": [0, 3]},
+        }],
+    })
+    records = []
+    for cfg in configs:
+        for restart, score, seconds in (
+            (7, 9., 0.1), (2, 8., 0.2), (4, 9., 0.3),
+        ):
+            records.append({
+                "configuration_id": cfg["id"],
+                "trials": [{
+                    "restart": restart,
+                    "source_cut": 7.,
+                    "scores": {"Final": score},
+                    "timings": {"total_seconds": seconds},
+                }],
+            })
+    arguments = dict(
+        selected_ids=[7, 2, 4],
+        graph_sha="a" * 64, factor_sha="b" * 64,
+        target=27047., source_best=9., seed=2026,
+    )
+    first = _aggregate(records, configs, **arguments)
+    reversed_jobs = _aggregate(list(reversed(records)), configs, **arguments)
+    assert first == reversed_jobs
+    assert all(row["best_restart"] == 4 for row in first["leaderboard"])
+    assert [row["configuration_id"] for row in first["leaderboard"]] == sorted(
+        cfg["id"] for cfg in configs
+    )
 
 
 def _sample(n=9, seed=4):
