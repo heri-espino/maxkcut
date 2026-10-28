@@ -18,17 +18,17 @@ separate processes), on paired identical source initial partitions:
    Lock each vertex once in a full pass, always select the currently
    highest-gain unlocked vertex (even when the gain is negative), and
    KEEP only the best strictly positive cumulative prefix. Repeat
-   up to \`--kl-passes\` passes or until a pass has no positive prefix.
+   up to `--kl-passes` passes or until a pass has no positive prefix.
    This is **not** classic balanced 2-vertex KL swapping; it is an
    unbalanced, signed-weight single-vertex gain-sequence variant.
 2. **Best-admissible Tabu search.**
    Select the highest-gain non-tabu move (which may worsen the current
    objective), with aspiration if a tabu move strictly exceeds the
    global best recorded score. A vertex is tabu for approximately
-   \`--tabu-tenure\` moves, with independently seeded jitter.
+   `--tabu-tenure` moves, with independently seeded jitter.
    Return the **best-ever visited** partition, not the final
-   possibly inferior search state. Stop at \`--tabu-steps\` or
-   after \`--tabu-stagnation\` moves without improving the incumbent.
+   possibly inferior search state. Stop at `--tabu-steps` or
+   after `--tabu-stagnation` moves without improving the incumbent.
 
 Both methods operate on the SAME original sparse signed G-set graph,
 not on the EVA vector geometry or an MST. No second EVA optimization,
@@ -52,7 +52,7 @@ After flipping i, update gains for the neighbors in O(deg i):
 \(\Delta_j \leftarrow \Delta_j-2w_{ij}s_is_j\).
 
 - KL pass: O(n²+m) operations in compiled Numba; each vertex moves
-  at most once per pass. Max ~\`kl_passes*(n²+m)\` operations.
+  at most once per pass. Max ~`kl_passes*(n²+m)` operations.
 - Tabu: O(steps*n + sum of degrees of moved vertices) operations in
   compiled Numba; O(n+m) memory.
 - Both independently re-score the resulting partition using the
@@ -84,12 +84,12 @@ indices are hard errors. If no input archive exists after switching
 branches, **merge the previously committed branch containing
 experiment008 artifacts** into the current branch; do not rerun EVA.
 
-The same top \`--top-starts\` partitions ranked by their SAVED
+The same top `--top-starts` partitions ranked by their SAVED
 actual Max-Cut scores are handed to KL and Tabu. Thus starts are
 **paired**; selection is explicitly score-biased and not intended as
 an unbiased estimate of the 1,000-restart score distribution.
-Use \`--top-starts 0\` to use all archived inputs. A separate
-\`--source-method FJ-Flip_EVA\` control uses GW/FJ-flip starts.
+Use `--top-starts 0` to use all archived inputs. A separate
+`--source-method FJ-Flip_EVA` control uses GW/FJ-flip starts.
 
 Each source restart index generates a distinct deterministic random
 stream per method independent of scheduling, worker count, and
@@ -119,7 +119,7 @@ and are now absent, merge that exact pushed branch before executing.
 Do not change branches while an experiment is still running.
 
 Test on the user's Conda VM (Numba is required; install existing
-\`eva-fast\` optional dependencies if necessary):
+`eva-fast` optional dependencies if necessary):
 
     $env:PYTHONPATH = Join-Path (Get-Location).Path "src"
     python -m pytest tests/test_eva_escape.py -q
@@ -153,7 +153,7 @@ After verifying output, commit/push everything from the VM:
     git commit -m "experiment010: save G63 parallel KL and Tabu cut results"
     git push
 
-The CLI also accepts \`--push --push-branch experiment010-kmeans-kl-tabu\`,
+The CLI also accepts `--push --push-branch experiment010-kmeans-kl-tabu`,
 which stages/pushes the output directory **ONCE at the end**, after
 all selected graphs. On an interrupted run, already written per-chunk
 archives remain on disk but are not remotely preserved until committed
@@ -161,19 +161,19 @@ and pushed.
 
 ## Output and verification
 
-- \`cases/G63-...-KL-<settingsHash>.json\` and corresponding Tabu case,
+- `cases/G63-...-KL-<settingsHash>.json` and corresponding Tabu case,
   one per source chunk, with immutable input fingerprint and every
   restart score/diagnostic.
-- \`archives/<runId>/G63-k2/graph.npz\` and bit-packed refined binary
+- `archives/<runId>/G63-k2/graph.npz` and bit-packed refined binary
   partitions; each archive independently scores EVERY partition.
-- \`trials/G63-...-<method>-<settingsHash>.jsonl\`, one record per
+- `trials/G63-...-<method>-<settingsHash>.jsonl`, one record per
   identical input restart (initial, final, improvement, termination,
   seconds, algorithm-specific move/pass diagnostics).
-- \`summary.csv\`, one row per source restart * method, including the
+- `summary.csv`, one row per source restart * method, including the
   score difference versus the recorded 26,682 benchmark.
-- \`summaries/G63-K-MeansNM-Flip_EVA-<factorSha16>.json\`,
-  count, best/mean/median/std, fraction improved, and aggregate runtime.
-- \`errors/\` with per-chunk traceback diagnostics if tasks fail.
+- `summaries/G63-K-MeansNM-Flip_EVA-<factorSha16>-<settingsHash>.json`,
+  count, best/mean/median/std, fraction improved, and aggregate runtime.\n  Top-200 and full-1,000 summaries coexist under distinct hashes.
+- `errors/` with per-chunk traceback diagnostics if tasks fail.
 
 Independent source/rescoring checks catch mismatched graph/partition
 artifacts. Output archives are verified immediately, and an identical
