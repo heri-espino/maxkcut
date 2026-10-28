@@ -184,3 +184,33 @@ iterated KL on a richer ELITE pool and exact small-subset ILP
 neighborhoods, maintaining signed graph scoring and independent
 verification. A score of 27,047 on G63 would be a feasible cut,
 not a proof of a global maximum without a certified upper bound.
+
+## Deterministic leaderboard correction after Windows tests
+
+The first user Windows test of the experiment013 suite returned
+20 passed and one failed: the archive and promotion integration test
+compared the leaderboard from a fresh two-worker run with that from
+an identical verified-cache rerun. Both computed identical original
+signed Max-Cut scores (10 in the tiny G11 synthetic case), but
+worker chunks arrived in nondeterministic order. The former
+aggregation iterated in arrival order, affecting the first returned
+best-restart ID for tied scores and potentially floating-point
+summation. Runtime was also an unstable score-tie ranking criterion.
+
+The runner now sorts all trials by ORIGINAL restart ID before
+computing mean, median, standard deviation, best-restart and time
+aggregates. Leaderboard ranking uses (best cut descending, mean cut
+descending, configuration ID ascending). Runtime is still measured
+and reported but is not a tie-breaker. A synthetic regression test
+explicitly reverses worker-completion order and requires byte-equivalent
+leaderboard objects, including the deterministic restart tie.
+
+The numerical optimization routines and saved binary partitions are
+unchanged. Run these from the same current local branch after pulling:
+
+    git pull --ff-only origin experiment013-eva-pipeline-grid
+    python -m pytest tests/test_eva_pipeline_grid.py tests/test_eva_cutaware_kmeans.py -q
+
+This correction has been committed to the experiment013 branch; the
+full Windows rerun remains for the user to verify. Existing verified
+archives can be reused without regenerating EVA factors or roundings.
