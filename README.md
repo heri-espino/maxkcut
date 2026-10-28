@@ -658,3 +658,28 @@ python -m maxkcut.eva_pipeline_grid_cli --graphs G63 --top-starts 40 --workers 4
 Observed G63 benchmark remains **26,886** (Experiment010 KL);
 27,047 is a target, not a certificate of optimality. See the
 [full protocol and promotion commands](notes/experiments/experiment013-eva-pipeline-grid.md).
+
+### Experiment014: optimize the EVA matrix directly for raw GW rounding
+
+G63 best user-observed feasible cut: **26,917** (Experiment013);
+numerical target: **27,047**. Rather than adding more K-means
+variants, Experiment014 reoptimizes the saved FULL-DIMENSIONAL unit-row
+EVA factor (G63: 7000×119) for the exact **expected signed Max-Cut of
+raw Gaussian random-hyperplane rounding**:
+
+    E[Cut] = sum_{i<j} w_ij * arccos(y_i dot y_j) / pi.
+
+The reoptimization uses Numba sparse tangent gradients and a
+backtracked row-normalized ascent on unit spheres. It independently
+verifies that the expected value does not decrease relative to the
+original EVA factor. Distinct parameter combinations vary smoothing
+noise, tangent jitter, step size, and optimizer seed. No K-means,
+new SDP solve, PCA or original EVA restart is involved.
+
+Compare matched original/new raw GW hyperplane partitions, then KL
+on the same paired draw indices; preserve ALL binary partitions and
+EVERY optimized matrix in verified, resumable Git-backed archives.
+
+    python -m maxkcut.eva_gw_expected_cli --graphs G63 --epsilons 0 --jitters 0 0.05 --steps 0.05 --optimize-seeds 2026 --max-sweeps 20 --rounds 150 --kl-top 10 --workers 2 --target 27047
+
+See [experiment014 protocol](notes/experiments/experiment014-gw-expected-refine.md).
