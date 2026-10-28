@@ -552,3 +552,22 @@ no PCA. The longest-edge method is saved alongside the new balanced,
 diameter-center and original-Max-Cut-best edge criteria. Full-corpus
 instructions and once-at-end push flags are in
 [experiment006 notes](../notes/experiments/experiment006-eva-mst-central-edge.md).
+
+
+## Experiment009 — multiple longest MST edges with Max-Cut optimization
+
+After saving/pushing the earlier experiments and switching to branch
+`experiment009-mst-multiedge-refine`, re-use the original unprojected
+EVA MSTs. For each q remove q longest tree edges; the resulting q+1
+fragments are assigned to exactly TWO groups using a contracted
+signed-weight Max-Cut, followed by full original-graph vertex flips.
+
+    $env:PYTHONPATH = Join-Path (Get-Location).Path "src"
+    python -m pytest tests/test_eva_mst_multicut.py -q
+    python -m maxkcut.eva_mst_multicut_cli --graphs G63 --metrics l1 l2 linf --q-values 1 2 4 8 16 32 64 128 --coarse-restarts 20 --coarse-sweeps 20 --vertex-sweeps 20 --mst-dir results/gset/experiment005-eva-mst --output-dir results/gset/experiment009-mst-multiedge
+
+There is no second EVA optimization or PCA. Source trees must have been
+saved under experiment005 and can be verified. All candidate component
+partitions and the final locally optimized partition are independently
+archived, with metadata in `summary.csv`. See
+[experiment009 research notes](../notes/experiments/experiment009-mst-multiedge.md).
