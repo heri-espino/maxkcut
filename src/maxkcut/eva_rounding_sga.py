@@ -317,3 +317,37 @@ def optimize_soft_sga(
         "termination": "target_reached" if target is not None and best_score>=target else "step_limit",
         "seconds": time.monotonic()-began,
     }
+
+
+
+def soft_signed_cut_and_gradient(graph, vectors, normal, temperature):
+    """Exact signed-edge Bernoulli surrogate and Euclidean gradient.
+
+    Intended for numerical finite-difference verification of the
+    soft-SGA stochastic edge-minibatch gradient, NOT an assertion
+    that this surrogate equals raw shared-hyperplane Max-Cut.
+    """
+    if temperature <= 0 or not np.isfinite(temperature):
+        raise ValueError("Temperature must be positive and finite")
+    y = np.asarray(vectors, dtype=float)
+    r = np.asarray(normal, dtype=float)
+    if (y.ndim != 2 or r.shape != (y.shape[1],)
+            or graph.shape[0] != y.shape[0]):
+        raise ValueError("Invalid graph/factor/normal dimensions")
+    u, v, w = edge_arrays(graph)
+    p = expit((y@r)/temperature)
+    expectation = float(
+        w @ (p[u]+p[v]-2.*p[u]*p[v])
+    )
+    derivative = p*(1.-p)/temperature
+    coefficients = (
+        np.bincount(
+            u, weights=w*(1.-2.*p[v])*derivative[u],
+            minlength=len(p),
+        )
+        + np.bincount(
+            v, weights=w*(1.-2.*p[u])*derivative[v],
+            minlength=len(p),
+        )
+    )
+    return expectation, y.T@coefficients
