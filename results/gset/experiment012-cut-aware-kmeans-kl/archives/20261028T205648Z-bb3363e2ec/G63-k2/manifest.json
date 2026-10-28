@@ -1,0 +1,152 @@
+{
+  "argv": [
+    "experiment012",
+    "data\\G63.txt"
+  ],
+  "created_utc": "2026-10-28T20:56:48.732245+00:00",
+  "git": {
+    "commit": "26fd41376cf217abb3a6d97c88b9de58d64e329a",
+    "dirty": false
+  },
+  "graph": "G63",
+  "graph_diagnostics": {
+    "density": 0.0016924458596125978,
+    "negative_edges": 0,
+    "positive_edges": 41459,
+    "sum_of_absolute_edge_weights": 41459.0,
+    "sum_of_edge_weights": 41459.0,
+    "weight_max": 1.0,
+    "weight_min": 1.0,
+    "zero_edges": 0
+  },
+  "graph_sha256": "4b18d3df87d09e128e7cc4a1f175fa9ba2e374567405a231eef6135b1b40c946",
+  "graph_snapshot": "graph.npz",
+  "graph_source": "C:\\Users\\175199\\maxkcut\\data\\G63.txt",
+  "k": 2,
+  "m": 41459,
+  "methods": {
+    "Exp012-CutAwareKMeansKL_EVA": {
+      "best_cut": 26851.0,
+      "best_restart": 7,
+      "encoding": "bits-little",
+      "mean_cut": 26843.4,
+      "median_cut": 26844.0,
+      "partition_file": "Exp012-CutAwareKMeansKL_EVA.npz",
+      "restarts": 10,
+      "sample_std_cut": 7.705697747626608,
+      "worst_cut": 26825.0
+    },
+    "Exp012-CutAwarePreKL_EVA": {
+      "best_cut": 26109.0,
+      "best_restart": 0,
+      "encoding": "bits-little",
+      "mean_cut": 26082.5,
+      "median_cut": 26083.5,
+      "partition_file": "Exp012-CutAwarePreKL_EVA.npz",
+      "restarts": 10,
+      "sample_std_cut": 13.023483063724202,
+      "worst_cut": 26060.0
+    },
+    "Exp012-KMeansNMFlipInput_EVA": {
+      "best_cut": 26647.0,
+      "best_restart": 0,
+      "encoding": "bits-little",
+      "mean_cut": 26646.1,
+      "median_cut": 26646.0,
+      "partition_file": "Exp012-KMeansNMFlipInput_EVA.npz",
+      "restarts": 10,
+      "sample_std_cut": 0.3162277660168379,
+      "worst_cut": 26646.0
+    },
+    "Exp012-KMeansNMFlipKL_EVA": {
+      "best_cut": 26861.0,
+      "best_restart": 8,
+      "encoding": "bits-little",
+      "mean_cut": 26845.2,
+      "median_cut": 26845.0,
+      "partition_file": "Exp012-KMeansNMFlipKL_EVA.npz",
+      "restarts": 10,
+      "sample_std_cut": 8.121302577515232,
+      "worst_cut": 26832.0
+    }
+  },
+  "n": 7000,
+  "platform": {
+    "logical_cpus": 32,
+    "os": "Windows-11-10.0.26100-SP0",
+    "python": "3.12.15"
+  },
+  "results_jsonl": "C:\\Users\\175199\\maxkcut\\results\\gset\\experiment012-cut-aware-kmeans-kl\\trials\\G63-CutAware-981e815e62aaeb24ba94.jsonl",
+  "run_id": "20261028T205648Z-bb3363e2ec",
+  "schema_version": 1,
+  "settings": {
+    "direction_trials": 256,
+    "factor_sha256": "ae14711285d29ab1050a508de108e6e8da9fce5c1debe7f600c6aad28d3efc24",
+    "graph_sha256": "4b18d3df87d09e128e7cc4a1f175fa9ba2e374567405a231eef6135b1b40c946",
+    "input_cuts": [
+      26647.0,
+      26646.0,
+      26646.0,
+      26646.0,
+      26646.0,
+      26646.0,
+      26646.0,
+      26646.0,
+      26646.0,
+      26646.0
+    ],
+    "input_source_method": "K-MeansNM-Flip_EVA",
+    "kl_passes": 30,
+    "kmeans_iters": 100,
+    "objective": "original_signed_weighted_max_cut",
+    "perturb_scales": [
+      0.03,
+      0.08,
+      0.16,
+      0.35
+    ],
+    "restarts": [
+      846,
+      147,
+      153,
+      194,
+      200,
+      251,
+      272,
+      477,
+      525,
+      548
+    ],
+    "rounding_seed": 2026,
+    "seed": 2026,
+    "source_npz_sha256": [
+      "a85edcee82f8bd6192a0e69c7e0e2a6369a5557b08561a6d05e181dae10e3d4e"
+    ],
+    "target": 27047.0,
+    "version": "experiment012-kmeans-threshold-direction-kl-v1"
+  },
+  "solver_info": {
+    "best_by_stage": {
+      "CutAwareKMeansKL": 26851.0,
+      "CutAwarePreKL": 26109.0,
+      "KMeansNMFlipInput": 26647.0,
+      "KMeansNMFlipKL": 26861.0
+    },
+    "no_eva_rerun": true,
+    "no_pca": true,
+    "stage1": "Full-space antipodal spherical K-MeansNM",
+    "stage2": "Exact signed Max-Cut threshold plus sampled direction improvements",
+    "stage3": "Generalized KL, Numba heap"
+  },
+  "status": "complete",
+  "versions": {
+    "clarabel": "0.11.1",
+    "cvxpy": "1.9.3",
+    "maxkcut": "0.1.0",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "scs": "3.3.1",
+    "sdpa-python": "0.2.3",
+    "threadpoolctl": "3.7.0"
+  }
+}
