@@ -79,3 +79,31 @@ session. Preserve `factors/`, `logs/`, `trials/`, `archives/`,
 `cases/`, `errors/` and `summary.csv` and commit/push before VM removal.
 
 Full PowerShell commands: `docs/eva-reproduction.md`.
+
+
+## Follow-up: append-only rounding from cached EVA factors
+
+The separate `maxkcut-eva-round` CLI reuses the saved EVA factor
+without running its optimizer or SCS. Using the same seed and
+`--start-restart 20 --restarts 80` produces exactly 80 new
+initializations for each of the original GW, K-Means2N, K-MeansNM
+rounders. Combined with the original 20, this gives 100 per method.
+The exact 20 original partitions remain in the original archive;
+new segments retain their own independent, verifiable archives.
+
+The optional new `FJ-Flip_EVA` and `K-MeansNM-Flip_EVA` variants
+apply improving sparse signed-weight vertex flips after GW/antipodal
+k-means, respectively. For paired identical restart seeds, each final
+cut must score at least as well as its corresponding unmodified
+initial rounding. This is a numerical monotonicity property, **not**
+a newly proved approximation factor.
+
+Each extension preserves an immutable copy of its exact n-by-p
+vector factor, raw per-trial JSONL, bit-packed full partitions,
+graph SHA256, factor SHA256, and all algorithm settings. Different
+factor hashes are separate experiment campaigns; no comparison is
+a claim that changed factors test rounding alone. Synthetic tests
+live in `tests/test_eva_rounding.py`.
+
+No actual G77/71-graph EVA rounding extension has been computed in
+the authoring session. See `docs/eva-reproduction.md` for commands.
