@@ -326,3 +326,67 @@ def load_sweep_log(name, root=None, source=DEFAULT_EVA):
     # Resumed logs may contain duplicate sweep indices; last wins.
     return sorted({int(row["sweep"]): row for row in rows}.values(),
                   key=lambda row: int(row["sweep"]))
+
+
+def eva_coordinate_diagnostics(graph, vectors):
+    """Explain the *current* EVA greedy coordinate update, without applying it.
+
+    For h_i = sum_j w_ij y_j, the optimal local direction is -h_i/||h_i||
+    and the gain from replacing y_i is (||h_i|| + y_i dot h_i)/2.
+    This describes the frozen saved factor's coordinate stationarity;
+    it does not create historical EVA iterates.
+    """
+    vectors = np.asarray(vectors, dtype=float)
+    if vectors.ndim != 2 or vectors.shape[0] != graph.shape[0]:
+        raise ValueError("Factor and graph vertex counts do not agree")
+    field = graph @ vectors
+    norms = np.linalg.norm(field, axis=1)
+    dot = np.einsum("ij,ij->i", vectors, field)
+    cosine = np.ones(len(vectors))
+    active = norms > 1e-15
+    cosine[active] = np.clip(-dot[active] / norms[active], -1, 1)
+    direction = np.zeros_like(field)
+    direction[active] = -field[active] / norms[active, None]
+    gains = np.zeros(len(vectors))
+    gains[active] = np.maximum(0., 0.5 * (norms[active] + dot[active]))
+    return {
+        "angle_degrees": np.rad2deg(np.arccos(cosine)),
+        "potential_cut_relaxation_gain": gains,
+        "field_norm": norms,
+        "target_direction": direction,
+        "active": active,
+    }
+
+
+def discover_eva_snapshots(name, root=None, source=DEFAULT_EVA):
+    """Find optional immutable pre-recorded vectors (never reconstruct them).
+
+    Snapshot schema: trajectory/Gxx/sweep-00001.npz with arrays
+    vectors[n,p], sweep=integer, graph_sha256=str.
+    These snapshots are NOT currently emitted by experiment002.
+    """
+    root = repo_root() if root is None else Path(root)
+    folder = root / source / "trajectory" / name
+    return sorted(folder.glob("sweep-*.npz"))
+
+
+def load_eva_snapshots(name, graph_sha, shape, *, root=None,
+                       source=DEFAULT_EVA, maximum=32):
+    """Read only saved trajectory frames; consistent graph and dimensions."""
+    all_paths = discover_eva_snapshots(name, root, source)
+    if not all_paths:
+        return []
+    selection = sample_vertices(len(all_paths), min(maximum, len(all_paths)))
+    frames = []
+    for index in selection:
+        path = all_paths[index]
+        with np.load(path, allow_pickle=False) as saved:
+            y = np.asarray(saved["vectors"], dtype=float).copy()
+            sweep = int(saved["sweep"].item())
+            hash_value = str(saved["graph_sha256"].item())
+        if (hash_value != graph_sha or y.shape != tuple(shape)
+                or not np.isfinite(y).all()
+                or np.max(np.abs(np.linalg.norm(y, axis=1) - 1)) > 1e-5):
+            raise ValueError(f"Invalid EVA trajectory frame {path}")
+        frames.append({"sweep": sweep, "vectors": y})
+    return sorted(frames, key=lambda item: item["sweep"])
