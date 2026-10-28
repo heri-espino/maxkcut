@@ -7,13 +7,14 @@ import hashlib
 import json
 import platform
 import subprocess
+import traceback
 import sys
 from pathlib import Path
 
 import numpy as np
 import scipy
 
-from .archive import new_archive, new_run_id, save_method, update_manifest
+from .archive import new_archive, new_run_id, save_method, update_manifest, verify_archive
 from .eva import load_eva_factor, solve_eva
 from .hardware import blas_limit
 from .io import edge_arrays, load_graph
@@ -53,43 +54,91 @@ def _git_push(root: Path, label: str, *, allowed_branch: str):
     subprocess.run(["git", "push", "origin", f"HEAD:{branch}"], check=True)
 
 
-def _full_sdp_comparison(graph: str, input_hash: str, folder: Path, eva_stats):
-    """Compare verified-identity method scores, not unmatched SDP optima."""
-    case_path = folder / "cases" / f"{graph}.json"
-    if not case_path.exists():
-        return {"status": "unavailable", "reason": "No full SDP case"}
-    case = json.loads(case_path.read_text(encoding="utf8"))
-    if case.get("status") != "complete":
-        return {"status": "unavailable", "reason": f"Full SDP {case.get('status')}"}
-    if case.get("input_sha256") != input_hash:
-        return {"status": "graph_mismatch", "reason": "Different input graph SHA256"}
-    source = Path(case["source_jsonl"])
-    if not source.exists():
-        return {"status": "unavailable", "reason": "Full SDP trial JSONL missing"}
-    distributions = {name: [] for name in ("FJ", "K-Means2N", "K-MeansNM")}
-    for line in source.read_text(encoding="utf8").splitlines():
-        if line.strip():
-            row = json.loads(line)
-            if row.get("graph") == graph and row.get("method") in distributions:
-                distributions[row["method"]].append(float(row["cut_weight"]))
-    if not all(distributions.values()):
-        return {"status": "unavailable", "reason": "Incomplete SDP rounding records"}
-    pairs = {}
-    for name, values in distributions.items():
-        eva = eva_stats[f"{name}_EVA"]
-        pairs[name] = {
-            "convex_best": max(values), "convex_mean": float(np.mean(values)),
-            "convex_trials": len(values), "eva_best": eva["best"],
-            "eva_mean": eva["mean"], "eva_trials": eva["restarts"],
-            "best_difference_eva_minus_convex": eva["best"] - max(values),
-        }
-    return {
-        "status": "compared", "graph_sha256": input_hash,
-        "convex_solver_status": case.get("sdp_solver_status"),
-        "caution": "Different continuous factors; not an isolated rounding comparison",
-        "methods": pairs,
-    }
+def _full_sdp_comparison(graph: str, input_hash: str, folders, eva_stats):
+    """First complete matching full-SDP archive in caller-specified directory order.
 
+    Never select a benchmark on best score: preserve predeclared input ordering.
+    Missing or unmatched full SDP cases are not numeric comparisons.
+    """
+    if isinstance(folders, (str, Path)):
+        folders = [Path(folders)]
+    issues = []
+    for folder in folders:
+        folder = Path(folder)
+        case_path = folder / "cases" / f"{graph}.json"
+        if not case_path.is_file():
+            issues.append(f"{folder}: case not found")
+            continue
+        try:
+            case = json.loads(case_path.read_text(encoding="utf8"))
+            if case.get("status") != "complete":
+                issues.append(f"{folder}: status {case.get('status')}")
+                continue
+            if case.get("input_sha256") != input_hash:
+                issues.append(f"{folder}: graph SHA256 mismatch")
+                continue
+            source = Path(case["source_jsonl"])
+            if not source.is_file():
+                attempt = int(case.get("attempts", 1))
+                source = (folder / "runs" / graph
+                          / f"attempt-{attempt:03d}" / f"{graph}.jsonl")
+            if not source.is_file():
+                issues.append(f"{folder}: per-trial JSONL unavailable")
+                continue
+            archive_path = Path(case.get("archive_path", ""))
+            if not archive_path.is_dir():
+                issues.append(f"{folder}: original partition archive unavailable")
+                continue
+            verified = verify_archive(archive_path)
+            if verified["status"] != "complete" or verified["graph"] != graph:
+                issues.append(f"{folder}: SDP archive failed verification")
+                continue
+            distributions = {name: [] for name in ("FJ", "K-Means2N", "K-MeansNM")}
+            rows = []
+            for line in source.read_text(encoding="utf8").splitlines():
+                if line.strip():
+                    row = json.loads(line)
+                    if row.get("graph") == graph and row.get("method") in distributions:
+                        distributions[row["method"]].append(float(row["cut_weight"]))
+                        rows.append(row)
+            if not all(distributions.values()):
+                issues.append(f"{folder}: missing SDP rounding records")
+                continue
+            if any(
+                len(distributions[method]) != verified["methods"][method]["verified_partitions"]
+                for method in distributions
+            ):
+                issues.append(f"{folder}: incomplete SDP rounding counts")
+                continue
+            pairs = {}
+            for name, values in distributions.items():
+                eva = eva_stats[f"{name}_EVA"]
+                pairs[name] = {
+                    "convex_best": max(values),
+                    "convex_mean": float(np.mean(values)),
+                    "convex_trials": len(values),
+                    "eva_best": eva["best"], "eva_mean": eva["mean"],
+                    "eva_trials": eva["restarts"],
+                    "best_difference_eva_minus_convex": eva["best"] - max(values),
+                }
+            return {
+                "status": "compared", "graph_sha256": input_hash,
+                "convex_source": str(folder),
+                "selection_policy": "first complete and archive-verified matching folder",
+                "convex_solver_status": case.get("sdp_solver_status"),
+                "convex_objective_primal_uncertified":
+                    rows[0].get("sdp_objective_primal"),
+                "convex_solver_seconds_original":
+                    rows[0].get("sdp_original_solve_seconds"),
+                "caution": "Different continuous factors; not an isolated rounding comparison",
+                "methods": pairs,
+            }
+        except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+            issues.append(f"{folder}: invalid data ({type(exc).__name__}: {exc})")
+    return {
+        "status": "unavailable",
+        "reason": "; ".join(issues) if issues else "No convex SDP directory configured",
+    }
 
 def run_one(path: Path, args):
     root = args.output_dir
@@ -102,7 +151,51 @@ def run_one(path: Path, args):
     if args.push and not args.push_branch:
         raise ValueError("--push requires --push-branch for explicit branch authorization")
     input_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+    case_path = root / "cases" / f"{name}.json"
     factor_path = root / "factors" / f"{name}.npz"
+    if case_path.is_file():
+        previous = json.loads(case_path.read_text(encoding="utf8"))
+        old = previous.get("provenance", {})
+        expected_rank = args.rank if args.rank is not None else int(np.ceil(np.sqrt(2 * (n + 1))))
+        matches = (
+            previous.get("graph_sha256") == input_hash
+            and int(previous.get("factor_rank", -1)) == expected_rank
+            and old.get("seed") == args.seed
+            and old.get("tolerance") == args.tolerance
+            and old.get("rounding_seed") == args.rounding_seed
+            and old.get("restarts") == args.restarts
+        )
+        if not matches:
+            raise ValueError(
+                f"{name}: saved result has different graph/settings; "
+                "use a separate --output-dir to preserve previous experiments"
+            )
+        factor, factor_meta = load_eva_factor(factor_path)
+        archive = Path(previous["archive_path"])
+        verified = verify_archive(archive)
+        finished = (
+            factor_meta.get("identity", {}).get("graph_csr_sha256")
+            and all(
+                m in verified["methods"]
+                and verified["methods"][m]["verified_partitions"] == args.restarts
+                for m in METHODS
+            )
+            and verified["status"] == "complete"
+            and factor_meta.get("sweeps") == previous.get("factor_sweeps")
+            and factor.shape == (n, expected_rank)
+        )
+        if finished and (factor_meta.get("converged")
+                         or factor_meta.get("sweeps", 0) >= args.max_sweeps):
+            if args.convex_dir:
+                previous["comparison_to_full_sdp"] = _full_sdp_comparison(
+                    name, input_hash, args.convex_dir, previous["methods"]
+                )
+                _write_json(case_path, previous)
+            print(f"{name}: verified resume skip (all partitions preserved)", flush=True)
+            return previous
+        if not finished:
+            raise ValueError(f"{name}: existing result archive is incomplete or invalid")
+        print(f"{name}: continuing factor optimization to {args.max_sweeps} sweeps", flush=True)
     log_path = root / "logs" / f"{name}-sweeps.jsonl"
     log_path.parent.mkdir(parents=True, exist_ok=True)
     # The sweep log may extend past the last complete checkpoint if a VM
@@ -230,10 +323,70 @@ def run_one(path: Path, args):
         "comparison_to_full_sdp": comparisons,
         "provenance": provenance,
     }
-    _write_json(root / "cases" / f"{name}.json", result)
+    _write_json(case_path, result)
     if args.push:
         _git_push(root, f"{name} factor and all roundings", allowed_branch=args.push_branch)
     return result
+
+
+
+def _write_batch_summary(root: Path, graph_paths):
+    """Refresh compact public CSV after each graph, including missing/failures."""
+    columns = (
+        "graph", "status", "vertices", "edges", "eva_rank", "eva_sweeps",
+        "eva_converged", "eva_objective_primal_uncertified", "eva_seconds",
+        "eva_FJ_best", "eva_KMeans2N_best", "eva_KMeansNM_best",
+        "convex_status", "convex_source", "convex_solver_status",
+        "convex_objective_primal_uncertified", "convex_seconds",
+        "convex_FJ_best", "convex_KMeans2N_best", "convex_KMeansNM_best",
+        "best_cut_eva_minus_convex", "graph_sha256",
+    )
+    output = root / "summary.csv"
+    output.parent.mkdir(parents=True, exist_ok=True)
+    temporary = output.with_suffix(".csv.tmp")
+    with temporary.open("w", newline="", encoding="utf8") as stream:
+        writer = csv.DictWriter(stream, fieldnames=columns)
+        writer.writeheader()
+        for path in graph_paths:
+            name = path.stem
+            case_path = root / "cases" / f"{name}.json"
+            if not case_path.is_file():
+                error = root / "errors" / f"{name}.json"
+                writer.writerow({"graph": name, "status": "failed" if error.exists() else "pending"})
+                continue
+            case = json.loads(case_path.read_text(encoding="utf8"))
+            methods = case.get("methods", {})
+            compare = case.get("comparison_to_full_sdp", {})
+            groups = compare.get("methods", {})
+            eva_best = max((v["best"] for v in methods.values()), default=None)
+            convex_best = max((v["convex_best"] for v in groups.values()), default=None)
+            writer.writerow({
+                "graph": name, "status": case.get("status"),
+                "vertices": case.get("vertices"), "edges": case.get("edges"),
+                "eva_rank": case.get("factor_rank"),
+                "eva_sweeps": case.get("factor_sweeps"),
+                "eva_converged": case.get("status") == "converged",
+                "eva_objective_primal_uncertified": case.get("objective_vector_relaxation"),
+                "eva_seconds": case.get("factor_elapsed_seconds"),
+                "eva_FJ_best": methods.get("FJ_EVA", {}).get("best"),
+                "eva_KMeans2N_best": methods.get("K-Means2N_EVA", {}).get("best"),
+                "eva_KMeansNM_best": methods.get("K-MeansNM_EVA", {}).get("best"),
+                "convex_status": compare.get("status"),
+                "convex_source": compare.get("convex_source"),
+                "convex_solver_status": compare.get("convex_solver_status"),
+                "convex_objective_primal_uncertified":
+                    compare.get("convex_objective_primal_uncertified"),
+                "convex_seconds": compare.get("convex_solver_seconds_original"),
+                "convex_FJ_best": groups.get("FJ", {}).get("convex_best"),
+                "convex_KMeans2N_best": groups.get("K-Means2N", {}).get("convex_best"),
+                "convex_KMeansNM_best": groups.get("K-MeansNM", {}).get("convex_best"),
+                "best_cut_eva_minus_convex": (
+                    eva_best - convex_best
+                    if eva_best is not None and convex_best is not None else None
+                ),
+                "graph_sha256": case.get("graph_sha256"),
+            })
+    temporary.replace(output)
 
 
 def main():
@@ -251,7 +404,10 @@ def main():
     parser.add_argument("--rounding-seed", type=int, default=2026)
     parser.add_argument("--restarts", type=int, default=20)
     parser.add_argument("--output-dir", type=Path, default=Path("results/gset/experiment002-eva"))
-    parser.add_argument("--convex-dir", type=Path, help="Existing full-SDP batch output for graph-verified comparison")
+    parser.add_argument("--convex-dir", type=Path, nargs="+",
+                        help="Existing full-SDP batch directories, searched in stated order")
+    parser.add_argument("--continue-on-error", action="store_true",
+                        help="Record per-graph errors and continue to later graphs")
     parser.add_argument("--push", action="store_true", help="Commit and push checkpoints/results; explicit branch only")
     parser.add_argument("--push-branch", help="Required exact branch name when --push is used")
     parser.add_argument("--push-every", type=int, default=0, help="Push checkpoint every N sweeps; requires --push and N divisible by checkpoint interval")
@@ -265,9 +421,36 @@ def main():
         parser.error("--push-every must be a multiple of --checkpoint-every")
     if args.push and not args.push_branch:
         parser.error("--push needs explicit --push-branch")
-    for path in discover_graphs(args.gset_dir, args.graphs):
-        result = run_one(path, args)
-        print(f"{result['graph']}: {result['status']} / {result['factor_sweeps']} sweeps", flush=True)
+    graph_paths = discover_graphs(args.gset_dir, args.graphs)
+    graph_paths.sort(key=lambda path: int(path.stem[1:]))
+    if args.push and (args.output_dir.parts[:1] == ("reports",)):
+        parser.error("Tracked EVA outputs must not be under ignored reports/")
+    failures = 0
+    for index, path in enumerate(graph_paths, 1):
+        print(f"[{index}/{len(graph_paths)}] {path.stem}", flush=True)
+        try:
+            result = run_one(path, args)
+            (args.output_dir / "errors" / f"{path.stem}.json").unlink(missing_ok=True)
+            print(f"{result['graph']}: {result['status']} / {result['factor_sweeps']} sweeps", flush=True)
+        except (OSError, ValueError, RuntimeError, ArithmeticError, KeyError,
+                ImportError) as exc:
+            failures += 1
+            _write_json(args.output_dir / "errors" / f"{path.stem}.json", {
+                "graph": path.stem, "error": f"{type(exc).__name__}: {exc}",
+                "traceback": traceback.format_exc(), "command": sys.argv,
+            })
+            print(f"{path.stem}: FAILED: {type(exc).__name__}: {exc}", flush=True)
+            if args.push:
+                _git_push(args.output_dir, f"{path.stem} failure log",
+                          allowed_branch=args.push_branch)
+            if not args.continue_on_error:
+                raise
+        _write_batch_summary(args.output_dir, graph_paths)
+        if args.push:
+            _git_push(args.output_dir, "updated all-graph summary",
+                      allowed_branch=args.push_branch)
+    print(f"EVA graphs: {len(graph_paths)}, failed: {failures}, summary: "
+          f"{args.output_dir / 'summary.csv'}", flush=True)
 
 
 if __name__ == "__main__":
