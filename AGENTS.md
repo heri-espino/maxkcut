@@ -540,3 +540,28 @@ Read instructions → inspect the current branch/files → state the mathematica
   weighted cuts, numerical full-SDP primal objectives and best rounding
   distributions. Push only from the designated experiment branch, never
   silently merge the draft PR.
+
+
+## 2026-10-27: reusable EVA factors, append-only rounding
+
+- Never rerun EVA simply to change `--restarts`; `maxkcut-eva-round`
+  reuses the existing complete factor and independently checks graph,
+  SHA256, dimensions and optimizer metadata.
+- Preserve original 20×3 archived partitions. Additional starts
+  (e.g. `--start-restart 20 --restarts 80`) go to separate,
+  nonoverwriting bit-packed archives. Refuse overlaps, and verify
+  saved archives before skipping a repeated command.
+- Preserve the *exact* factor used by each rounding campaign with an
+  immutable SHA256-named factor snapshot. Changing the factor's
+  checksum starts a separate study and never rewrites older results.
+- New named rounders can extend
+  `src/maxkcut/eva_rounding_cli.py::_round_one`. Existing GW and
+  k-means randomized seed schedule must remain stable; apply new
+  local search with a separate RNG stream and score signed edges
+  with `objective.cut_weight`.
+- Publish factors, all trial scores, all partitions and failure
+  diagnostics under tracked `results/gset/experiment002-eva/` with
+  user-opted `--push --push-branch experiment002-eva-factor-reproduction`.
+- See `docs/eva-reproduction.md` and
+  `tests/test_eva_rounding.py`. Do not assert experimental results
+  without actually running the workflow on user hardware.
