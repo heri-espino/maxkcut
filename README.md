@@ -560,3 +560,31 @@ recomputed; there is no PCA or second EVA optimization.
 The G63 benchmark to beat is **26,682** from the observed 1,000-restart
 K-MeansNM plus local search run. No MST multi-edge result is claimed yet.
 See [experiment009 protocol](notes/experiments/experiment009-mst-multiedge.md).
+
+
+### Experiment010: Concurrent KL-style and Tabu local Max-Cut optimization
+
+Experiment010 reuses the **archived, independently verified** G63
+`K-MeansNM-Flip_EVA` partitions (experiment008's 1,000 rounds, best
+feasible cut **26,682**) and refines *identical paired starting
+partitions* with two independent signed-weight sparse heuristics:
+
+- **Generalized KL-style** locked gain-sequence search: move each vertex
+  at most once per pass and retain the best positive cumulative prefix.
+- **Tabu** best-admissible signed gain search: allows temporary negative
+  moves with tabu tenure, aspiration, stagnation cutoff and best-so-far
+  recovery.
+
+These solvers run in **two Windows-safe worker processes** by default,
+using compiled Numba O(n+m)-memory routines. No new EVA factor, SDP
+solve, MST, PCA or randomized rounding is required. Each chunk saves
+all improved partitions and independently verified original weighted
+Max-Cut scores to resumable archives.
+
+```powershell
+python -m maxkcut.eva_escape_cli --graphs G63 --source-dir results/gset/experiment008-eva-rounding-flips --output-dir results/gset/experiment010-eva-kl-tabu --methods KL Tabu --top-starts 200 --workers 2 --kl-passes 30 --tabu-steps 40000 --tabu-tenure 25 --tabu-stagnation 8000 --benchmark 26682
+```
+
+Use `--top-starts 1000` to run the full archive, automatically skipping
+verified already-completed chunks under the same settings.
+See [Experiment010 protocol](notes/experiments/experiment010-kmeans-kl-tabu.md).
