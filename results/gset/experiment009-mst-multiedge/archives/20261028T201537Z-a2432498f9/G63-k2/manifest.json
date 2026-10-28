@@ -1,0 +1,122 @@
+{
+  "argv": [
+    "C:\\Users\\175199\\maxkcut\\src\\maxkcut\\eva_mst_multicut_cli.py",
+    "--graphs",
+    "G63",
+    "--metrics",
+    "l1",
+    "l2",
+    "linf",
+    "--q-values",
+    "1",
+    "2",
+    "4",
+    "8",
+    "16",
+    "32",
+    "64",
+    "128",
+    "--coarse-restarts",
+    "20",
+    "--coarse-sweeps",
+    "20",
+    "--vertex-sweeps",
+    "20",
+    "--mst-dir",
+    "results/gset/experiment005-eva-mst",
+    "--output-dir",
+    "results/gset/experiment009-mst-multiedge"
+  ],
+  "created_utc": "2026-10-28T20:15:37.357097+00:00",
+  "git": {
+    "commit": "a2467b4c747448c3a2a15f99c92238308d959a5c",
+    "dirty": false
+  },
+  "graph": "G63",
+  "graph_diagnostics": {
+    "density": 0.0016924458596125978,
+    "negative_edges": 0,
+    "positive_edges": 41459,
+    "sum_of_absolute_edge_weights": 41459.0,
+    "sum_of_edge_weights": 41459.0,
+    "weight_max": 1.0,
+    "weight_min": 1.0,
+    "zero_edges": 0
+  },
+  "graph_sha256": "4b18d3df87d09e128e7cc4a1f175fa9ba2e374567405a231eef6135b1b40c946",
+  "graph_snapshot": "graph.npz",
+  "graph_source": "C:\\Users\\175199\\maxkcut\\data\\G63.txt",
+  "k": 2,
+  "m": 41459,
+  "methods": {
+    "MST-Multi-Linf-q8-Coarse_EVA": {
+      "best_cut": 96.0,
+      "best_restart": 0,
+      "encoding": "bits-little",
+      "mean_cut": 96.0,
+      "median_cut": 96.0,
+      "partition_file": "MST-Multi-Linf-q8-Coarse_EVA.npz",
+      "restarts": 21,
+      "sample_std_cut": 0.0,
+      "worst_cut": 96.0
+    },
+    "MST-Multi-Linf-q8-Flip_EVA": {
+      "best_cut": 25741.0,
+      "best_restart": 0,
+      "encoding": "bits-little",
+      "mean_cut": 25741.0,
+      "median_cut": 25741.0,
+      "partition_file": "MST-Multi-Linf-q8-Flip_EVA.npz",
+      "restarts": 1,
+      "sample_std_cut": null,
+      "worst_cut": 25741.0
+    }
+  },
+  "n": 7000,
+  "platform": {
+    "logical_cpus": 32,
+    "os": "Windows-11-10.0.26100-SP0",
+    "python": "3.12.15"
+  },
+  "results_jsonl": "C:\\Users\\175199\\maxkcut\\results\\gset\\experiment009-mst-multiedge\\trials\\G63-mst-linf-q8-6ffdf15da6b0d162.jsonl",
+  "run_id": "20261028T201537Z-a2432498f9",
+  "schema_version": 1,
+  "settings": {
+    "algorithm_version": "nested-fullspace-mst-multicut-v1",
+    "coarse_sweeps": 20,
+    "factor_sha256": "ae14711285d29ab1050a508de108e6e8da9fce5c1debe7f600c6aad28d3efc24",
+    "graph_sha256": "4b18d3df87d09e128e7cc4a1f175fa9ba2e374567405a231eef6135b1b40c946",
+    "metric": "linf",
+    "nested_q_prefix": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "q": 8,
+    "restarts": 20,
+    "seed": 2026,
+    "tree_sha256": "67a886b9e18223f45ee1cf9875b518bea219bcf6be47d5d1ce75f34556eb0ff6",
+    "vertex_sweeps": 20
+  },
+  "solver_info": {
+    "coarse_best_cut": 96.0,
+    "components": 9,
+    "final_cut": 25741.0,
+    "flip_termination": "local_optimum",
+    "geometric_mst_reused": true,
+    "pca_projection": false,
+    "solver": "contracted signed Max-Cut + positive-gain vertex flips"
+  },
+  "status": "complete",
+  "versions": {
+    "clarabel": "0.11.1",
+    "cvxpy": "1.9.3",
+    "maxkcut": "0.1.0",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "scs": "3.3.1",
+    "sdpa-python": "0.2.3",
+    "threadpoolctl": "3.7.0"
+  }
+}
