@@ -488,3 +488,20 @@ See [the all-graph EVA command and setup](docs/eva-reproduction.md)
 and [experiment design](notes/experiments/experiment002-eva-reproduction.md).
 No all-graph EVA numerical results have been claimed or produced in the
 authoring environment.
+
+
+### Extend archived EVA factors without another optimization solve
+
+After EVA completes a graph, use `maxkcut-eva-round` to add 80 more
+roundings per original method (20 + 80 = 100 each) without changing the
+EVA factor, restarting its optimizer, or overwriting any partition:
+
+```powershell
+python -m maxkcut.eva_rounding_cli --graphs G77 --start-restart 20 --restarts 80 --methods FJ_EVA K-Means2N_EVA K-MeansNM_EVA --push --push-branch experiment002-eva-factor-reproduction
+```
+
+Two new optional hybrid methods are `FJ-Flip_EVA` and
+`K-MeansNM-Flip_EVA`, each followed by signed-edge one-vertex
+local improvement. New results include immutable factor snapshots and
+all partitions under `results/gset/experiment002-eva/rounding-extensions/`.
+See [the runbook](docs/eva-reproduction.md).
