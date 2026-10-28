@@ -38,7 +38,7 @@ def test_metric_center_is_weighted_diameter_midpoint():
     parent = np.array([-1, 0, 1, 2, 3])
     lengths = np.array([0., 2., 2., 2., 2.])
     child, stats = diameter_center_edge(parent, lengths)
-    assert child == 2
+    assert child == 3  # Incoming diameter edge at the midpoint vertex
     assert stats["tree_diameter_length"] == 8.
     assert stats["midpoint_at_vertex"] is True
     assert sorted(np.bincount(labels_cutting_edge(parent, child)).tolist()) == [2, 3]
