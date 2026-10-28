@@ -565,3 +565,32 @@ Read instructions → inspect the current branch/files → state the mathematica
 - See `docs/eva-reproduction.md` and
   `tests/test_eva_rounding.py`. Do not assert experimental results
   without actually running the workflow on user hardware.
+
+
+## experiment004 — read-only interactive geometry (isolated visualization branch)
+
+- Visualization branch: `feature/interactive-sdp-eva-geometry`, based on
+  experiment002's archived factors/partitions. **Never trigger or modify**
+  convex SDP/EVA solvers merely to plot; their caches and artifacts are
+  loaded read-only, verified by graph/factor checksum.
+- `src/maxkcut/geometry_viz.py`: data provenance, PCA/nonlinear
+  projections, graph and degree labels, sampled cosine spectrum,
+  deterministic **rounding-only** k-means replay.
+- `src/maxkcut/geometry_dashboard.py`: Streamlit app with 3D PCA,
+  t-SNE/optional UMAP, cutside, positive-edge communities, degrees,
+  gallery, diagnostics, EVA history and replay controls.
+- Plotting `Y` factors is not visualization of an SDP certificate.
+  `Y@Y.T` represents EVA's nonconvex feasible Gram, while CVXPY/SCS
+  cached `X` is a separate numerical convex result. The latter uses
+  top-three uncentered Gram eigenpairs, labeled as such; do not call it
+  exactly the same PCA as the EVA full-factor projection.
+- PCA does not preserve the full unit sphere. t-SNE/UMAP do not preserve
+  global geometry. Different G-sets have separate coordinate frames,
+  and positive-edge community heuristics ignore negative weights.
+- Existing EVA logs contain objective and angle scalars, **not** the
+  3D motion of every vertex. Never fabricate intermediate vectors
+  from final factors. Show truthful objective history; replay clustering
+  from the saved fixed factor when explaining Ángel's k-means.
+- Synthetic tests: `tests/test_geometry_viz.py`; run Streamlit on
+  Windows per `docs/geometry-dashboard.md`. Commit artifacts and
+  handoff on this separate branch; no merge without explicit permission.
