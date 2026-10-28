@@ -5,6 +5,7 @@ on:
     paths:
       - "src/maxkcut/geometry_*.py"
       - "tests/test_geometry_viz.py"
+      - "tests/test_geometry_dashboard.py"
       - "pyproject.toml"
       - ".github/workflows/visualization-smoke.yml"
   workflow_dispatch:
@@ -26,6 +27,6 @@ jobs:
       - name: Compile visualization modules
         run: python -m compileall -q src/maxkcut/geometry_viz.py src/maxkcut/geometry_dashboard.py
       - name: Test cached artifact readers and projections
-        run: python -m pytest tests/test_geometry_viz.py -q
+        run: python -m pytest tests/test_geometry_viz.py tests/test_geometry_dashboard.py -q
       - name: Import Streamlit dashboard
         run: python -c "import maxkcut.geometry_dashboard; print('dashboard import successful')"
