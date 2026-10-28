@@ -455,3 +455,34 @@ The 2026 Glass–Feder paper covers **17 toroidal instances**; only rows with
 matching paper cut and certified upper bound have a proven optimal cut.
 A filename match alone does not guarantee the older MAT file is canonical.
 See [the new data comparison guide](docs/canonical-data-comparison.md).
+
+
+## All 71 G-set literature cuts and an EVA comparison (experiment013)
+
+The full **source-attributed 71-graph reference table** is
+[data/gset_literature_reference_71.csv](data/gset_literature_reference_71.csv).
+It explicitly distinguishes published **proven optima** (with matching
+independent upper bounds) from **unproved feasible cuts**. Sources
+include OpenIsing's historical table, Glass–Feder (2026) Table 1,
+Liu et al. (2025) Table 4 and Khan–Shukla (2025) for G63.
+
+The reproducible [experiment004 EVA versus literature comparison](
+results/gset/literature-comparison/experiment004-eva-precision-comparison.csv)
+contains all 71 graph identifiers, method-specific best cuts, solver
+convergence status, source citation, differences and graph SHA256.
+The original numerical data come from the pinned, separately
+maintained experiment004 branch; no optimization is rerun.
+Graph matching by number of vertices/edges alone is **not** proof
+that our signed weighted graph exactly equals the one in each paper.
+
+Recreate or update the offline comparison in PowerShell:
+
+~~~powershell
+$env:PYTHONPATH = Join-Path (Get-Location).Path "src"
+python -m pytest tests/test_gset_literature.py -q
+python -m maxkcut.gset_literature
+~~~
+
+See [experiment013's research note](
+notes/experiments/experiment013-gset-literature-audit.md) and
+[reference proof-status conventions](docs/gset-reference-values.md).
