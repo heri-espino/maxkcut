@@ -10,7 +10,7 @@ does **not** re-run EVA, SCS, a full SDP, or any other continuous optimizer.
 Run only after the current EVA/G-set numerical process has finished;
 concurrent Git branch changes during ongoing publication can cause push races.
 
-\`\`\`powershell
+```powershell
 cd C:\Users\175199\maxkcut
 conda activate maxkcut
 git fetch origin
@@ -19,15 +19,15 @@ $env:PYTHONPATH = Join-Path (Get-Location).Path "src"
 python -m pip install "streamlit>=1.45" "plotly>=5.24" "pandas>=2.2" "scikit-learn>=1.4" "networkx>=3.2"
 python -m pytest tests/test_geometry_viz.py -q
 python -m streamlit run src/maxkcut/geometry_dashboard.py
-\`\`\`
+```
 
 For UMAP only (optional):
 
-\`\`\`powershell
+```powershell
 python -m pip install "umap-learn>=0.5.7"
-\`\`\`
+```
 
-Streamlit prints a localhost URL, normally \`http://localhost:8501\`.
+Streamlit prints a localhost URL, normally `http://localhost:8501`.
 Use the browser on the **same machine**. For a remote VM, expose the port
 only via authenticated tunneling; do not publicly expose research files.
 
@@ -51,7 +51,7 @@ finish. Do not merge into the running experiment branch without review.
    and per-step signed-weight cut, including best cut so far. Play/pause
    controls and a slider show the actual clustering trajectory.
 3. **EVA progress**: scalar objective and maximum-angle vs sweep from
-   the existing \`logs/Gxx-sweeps.jsonl\`. These logs **do not contain**
+   the existing `logs/Gxx-sweeps.jsonl`. These logs **do not contain**
    intermediate vector coordinates: they cannot show the authentic
    evolving high-dimensional sphere without saved intermediate factors.
 4. **Compare G-sets**: up to six independently projected 3D clouds
@@ -59,7 +59,7 @@ finish. Do not merge into the running experiment branch without review.
    explained variance; **not** one jointly aligned embedding.
 5. **Diagnostics**: pairwise cosine histogram from sampled vertex
    pairs (no dense n×n Gram), factor eigenvalue spectrum via small
-   \`Y.T @ Y\`, and distributions for *all* archived cut methods.
+   `Y.T @ Y`, and distributions for *all* archived cut methods.
 
 The default graph is G22 if available. At the time of implementation,
 archived G22 has a complete factor and 100 saved rounding restarts per
@@ -87,7 +87,7 @@ coordinates \(U_3\sqrt{\Lambda_3}\). This uses a partial symmetric
 eigensolver and avoids the second full-rank spectral factorization,
 but is not identical to centered PCA. Currently disabled for
 \(n>7500\) to prevent a very large full matrix read. Cache files
-live under ignored \`reports/gset/sdp_cache/\` and must be available
+live under ignored `reports/gset/sdp_cache/` and must be available
 *on the same machine*; they are not downloaded automatically from GitHub.
 
 The SDP tab overlays **EVA cut labels** when coloring by a partition;
@@ -140,7 +140,7 @@ to a **future solver run** is a separate solver/provenance change.
 
 ## Remaining validation
 
-Run the committed \`tests/test_geometry_viz.py\` on the real Windows
+Run the committed `tests/test_geometry_viz.py` on the real Windows
 environment. The original Streamlit visual rendering and full G-set
 interaction require a manual browser smoke test; the authoring
 environment cannot access the Windows VM or its ignored Gram caches.
@@ -148,6 +148,6 @@ environment cannot access the Windows VM or its ignored Gram caches.
 ## Next research steps
 
 Once explicitly requested, a separate prospective experiment can
-capture \`Y(t)\` snapshots during future EVA runs to enable fixed-basis
+capture `Y(t)` snapshots during future EVA runs to enable fixed-basis
 3D trajectory animations (with optional orthogonal Procrustes
 alignment), ensuring hashes and time indices are recorded.
