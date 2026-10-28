@@ -90,3 +90,36 @@ independent graph-level observations. For broader inference, compare
 methods across independent graph instances and consider differences in
 runtime and cut value as well as success probabilities for reaching a
 specified known cut.
+
+
+## Full 71-graph source-attributed benchmark table (experiment013)
+
+The 17 toroidal proof-status entries above remain the primary
+references for the corresponding graphs. For **all 71 canonical
+G-set instances**, see
+[data/gset_literature_reference_71.csv](
+../data/gset_literature_reference_71.csv).
+The table retains an earlier OpenIsing cut and cites the selected
+published cut *for each graph*, distinguishing its status:
+
+- **published_proven_optimum:** published feasible cut equals an
+  independently published upper bound in Glass–Feder (2026),
+  Table 1, conditional on identical signed weighted graph input.
+- **reported_feasible_cut_unproved:** a cited cut exists, but no
+  matching optimum certificate is supplied by the selected source.
+
+The selected references supersede historical entries using
+Glass–Feder (17 toroidal rows), Khan–Shukla (G63=27047), and
+Liu et al. (eight further large graphs). The remaining rows use
+OpenIsing's historical table. This is a **dated curated snapshot**,
+not a definitive continuously maintained best-known leaderboard.
+An unproved reference is a feasible lower bound, never a dual bound.
+
+[Experiment004 versus literature CSV](
+../results/gset/literature-comparison/experiment004-eva-precision-comparison.csv)
+preserves every EVA score's method, graph SHA256, source URL, convergence
+status, percentage and gap. It explicitly reports
+"size_and_edge_count_match_only" because graph label and dimensions
+are insufficient to independently verify all published signed edges.
+See [experiment013 source and regeneration protocol](
+../notes/experiments/experiment013-gset-literature-audit.md).

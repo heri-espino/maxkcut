@@ -491,3 +491,25 @@ Read instructions → inspect the current branch/files → state the mathematica
   separately published 10-iteration diagnostic.
   See `docs/g77-full-convex-gpu-preflight-windows.md`
   and `tests/test_g77_gpu_preflight.py`.
+
+
+## Source-attributed G-set literature snapshot (experiment013)
+
+- The curated **71-instance** G-set literature references now live in
+  data/gset_literature_reference_71.csv, preserving historical
+  OpenIsing scores *and* newer independently cited cuts. Do not
+  silently replace a source row without provenance or describe every
+  historical value as the up-to-date best-known cut.
+- For the 17 toroidal entries in Glass–Feder (2026), distinguish
+  published independent upper bounds and exactly matching feasible
+  scores (proven optima) from rows with a positive gap. A proof
+  applies to a local graph only after identical weighted-edge identity
+  has been confirmed, NOT from graph name and n/m alone.
+- The frozen experiment004 high-precision EVA comparison is tracked
+  at results/gset/literature-comparison/ and can be regenerated
+  using python -m maxkcut.gset_literature. No solver calls are made.
+  Read notes/experiments/experiment013-gset-literature-audit.md.
+- Experimental score gap to a published feasible cut is not a duality
+  gap or rigorous optimality certificate. Preserve optimizer status,
+  including 100000-sweep iteration_limit, per-method scores, source
+  URLs and graph SHA256 whenever reporting percentage values.

@@ -129,3 +129,24 @@ All results retain exact weighted cuts, rank-r factors, optimizer histories,
 timings, GPU identity and every rounded partition. Compare them to the
 full convex SDP/rounding baseline only on canonical identical graphs and
 at disclosed compute budgets. See [CUDA low-rank guide](cuda-lowrank.md).
+
+
+## Reproducible comparison against all 71 literature reference cuts
+
+The [curated benchmark CSV](../data/gset_literature_reference_71.csv)
+includes a feasible reference cut for every canonical G-set graph,
+with paper-specific provenance and matching-upper-bound proof labels
+where available. The reproducible [experiment004 output](
+../results/gset/literature-comparison/experiment004-eva-precision-comparison.csv)
+is an offline join; it never initiates optimization or rounding.
+
+~~~powershell
+$env:PYTHONPATH = Join-Path (Get-Location).Path "src"
+python -m pytest tests/test_gset_literature.py -q
+python -m maxkcut.gset_literature
+~~~
+
+Follow the provenance rules in
+[experiment013](../notes/experiments/experiment013-gset-literature-audit.md).
+In particular, matching graph ID, n and m is not yet verification
+of the same original signed weighted edges used in cited papers.
