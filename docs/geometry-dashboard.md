@@ -151,3 +151,28 @@ Once explicitly requested, a separate prospective experiment can
 capture `Y(t)` snapshots during future EVA runs to enable fixed-basis
 3D trajectory animations (with optional orthogonal Procrustes
 alignment), ensuring hashes and time indices are recorded.
+
+
+## EVA's one-vertex update inspector and future snapshots
+
+The sixth dashboard tab evaluates (h_i = sum_j w_{ij}y_j) at the
+**existing saved factor**, showing the angular difference between
+(y_i) and (-h_i/|h_i|), and the potential continuous objective gain
+
+[
+Delta_i = rac12(|h_i| + y_i^	op h_i).
+]
+
+These measurements indicate near-coordinate-stationarity of the saved
+factor. They are not the historical update path and are **not**
+discrete Max-Cut flip improvements.
+
+The third tab can also visualize *actual* intermediate EVA factors
+if these are archived prospectively under
+`results/gset/experiment002-eva/trajectory/Gxx/sweep-00001.npz`
+with `vectors` (n-by-p), `sweep` (integer), and `graph_sha256`
+(string) arrays. Their identity, shape, finite entries and row norms
+are verified. All frames are placed on the **same final-factor PCA
+basis**, so they can be compared without repeatedly refitting PCA.
+Existing experiment002 runs did not record these snapshots, and this
+visualization branch does not generate missing snapshots by solving EVA.
