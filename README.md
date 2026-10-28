@@ -505,3 +505,18 @@ Two new optional hybrid methods are `FJ-Flip_EVA` and
 local improvement. New results include immutable factor snapshots and
 all partitions under `results/gset/experiment002-eva/rounding-extensions/`.
 See [the runbook](docs/eva-reproduction.md).
+
+
+### Experiment005: exact one-edge MST rounding (no PCA)
+
+For each **saved EVA factor**, form the conceptual complete graph of
+full-dimensional row vectors and compute an exact MST using L1, L2 or
+L-infinity distances. Remove the single longest MST edge, yielding
+**two components**; score the resulting binary partition on the original
+weighted G-set graph. The implementation uses Numba Prim (O(n^2 p)
+time, O(n p) memory), not a dense distance matrix or PCA projection.
+Each metric is deterministic: there are no meaningful MST restarts.
+
+    python -m maxkcut.eva_mst_cli --graphs G63 --metrics l1 l2 linf --max-n 10000 --source-dir results/gset/experiment003-eva-numba --output-dir results/gset/experiment005-eva-mst
+
+See [experiment005 protocol](notes/experiments/experiment005-eva-mst.md).
