@@ -102,7 +102,7 @@ def multi_edge_candidates(
     coarse_restarts=20, coarse_sweeps=20, flip_sweeps=20,
     seed=2026, graph_number=0, metric_index=2,
 ):
-    """Return all q-level experiments; each includes all coarse trials.
+    """Yield one q-level experiment at a time; include all coarse trials.
 
     The first trial at each q inherits the previous best component
     partition, guaranteeing that the *best coarse* cut does not decline
@@ -126,7 +126,6 @@ def multi_edge_candidates(
     original_edges = edge_arrays(graph)
     previous_best = None
     previous_score = float("-inf")
-    records = []
     for q in q_values:
         components, removed = longest_edge_forest(parent, lengths, q)
         coarse_graph = contracted_adjacency(graph, components)
@@ -212,7 +211,7 @@ def multi_edge_candidates(
         final_score = float(cut_weight(original_edges, final_labels))
         if final_score + 1e-8 < best_coarse_score:
             raise AssertionError("Vertex refinement worsened MST multi-edge cut")
-        records.append({
+        yield {
             "q": q,
             "forest_component_count": q + 1,
             "removed_edge_children": removed.tolist(),
@@ -232,5 +231,4 @@ def multi_edge_candidates(
             "vertex_sweeps": int(final_diag["sweeps"]),
             "vertex_termination": final_diag["termination"],
             "vertex_seconds": float(final_diag["seconds"]),
-        })
-    return records
+        }
