@@ -193,3 +193,74 @@ Quick result inspection:
 Import-Csv results/gset/experiment002-eva/summary.csv | Group-Object status | Format-Table Name,Count
 Import-Csv results/gset/experiment002-eva/summary.csv | Where-Object {$_.convex_status -eq 'compared'} | Format-Table graph,eva_KMeansNM_best,convex_KMeansNM_best,best_cut_eva_minus_convex -AutoSize
 ```
+
+
+## Reuse saved factors for 100+ roundings and new algorithms
+
+**No EVA or SDP optimization is repeated in this workflow.** The new
+`maxkcut-eva-round` CLI reads the archived EVA factor for each completed
+graph and independently verifies its graph SHA256, settings, dimension
+and sweep count.
+
+For an existing graph with 20 GW, 20 K-Means2N and 20 K-MeansNM cuts,
+generate **80 new** seeded partitions *per method*, bringing the total
+to 100 per method. The old 60 partitions stay in their original archive:
+
+```powershell
+$env:PYTHONPATH = Join-Path (Get-Location).Path "src"
+python -m pytest tests/test_eva_rounding.py -q
+python -m maxkcut.eva_rounding_cli --graphs G11 G60 G61 G62 G77 --start-restart 20 --restarts 80 --methods FJ_EVA K-Means2N_EVA K-MeansNM_EVA --push --push-branch experiment002-eva-factor-reproduction --continue-on-error
+```
+
+Omit `--graphs` and use `--graphs ALL` to extend all completed
+canonical graph cases. Missing EVA factors are *reported as failures*
+rather than solved implicitly.
+
+Two example **additional** rounding algorithms have also been added:
+`FJ-Flip_EVA` (GW hyperplane followed by sparse signed one-vertex
+improvements) and `K-MeansNM-Flip_EVA` (antipodal spherical k-means
+followed by the same local search). These methods are separate
+baselines; neither modifies or replaces the existing three.
+
+To compare these new methods with 100 independent seeded starts each:
+
+```powershell
+python -m maxkcut.eva_rounding_cli --graphs G77 --start-restart 0 --restarts 100 --methods FJ-Flip_EVA K-MeansNM-Flip_EVA --push --push-branch experiment002-eva-factor-reproduction
+```
+
+For another increment (e.g. 100 -> 200), use
+`--start-restart 100 --restarts 100` for the original three methods.
+The restart indices are zero-based. A repeated identical command
+verifies and skips previously archived batches, rather than duplicating
+them. Overlapping ranges are refused.
+
+Each new segment is stored under
+`results/gset/experiment002-eva/rounding-extensions/`, with:
+
+- `factor-snapshots/Gxx-<hash>.npz`: **immutable** exact vector
+  factor used by that extension, preserved if optimization later changes.
+- `segments/Gxx-<hash>/<method>/r00020-00100.json`: metadata,
+  seed, per-trial cut and timing, pointers to a verified bit-packed
+  immutable graph/partition archive.
+- `archives/<run-id>/Gxx-k2/`: compressed complete partition
+  assignments and normalized graph snapshot.
+- `summaries/Gxx-<hash>.json` and `summary.csv`: combined baseline
+  plus extended per-method best, mean, median, std and number of trials.
+- `errors/Gxx.json`: explicit failures (when `--continue-on-error`
+  is used).
+
+Changing the saved EVA vectors changes the factor checksum and
+starts a **separate** rounding experiment; it does not overwrite
+old partitions or the frozen old factor.
+
+Changing the base EVA optimizer seed, rank, or tolerance also
+requires a distinct base EVA experiment directory; rerounding
+cannot invent a factor that has not yet been optimized and saved.
+
+New rounding methods can be registered with a named branch in
+`src/maxkcut/eva_rounding_cli.py::_round_one`, with a matching
+fixed-seed test under `tests/test_eva_rounding.py`. The baseline
+methods are preserved unchanged for scientific comparison.
+
+**Current status:** committed code and synthetic tests; actual Windows
+G-set computations have not yet been executed or verified.
