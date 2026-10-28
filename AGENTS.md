@@ -677,3 +677,27 @@ Read instructions → inspect the current branch/files → state the mathematica
 - Always commit/push results from active VM before branch changes;
   never substitute a guessed G63 score for actual verified results.
   See notes/experiments/experiment011-kl-elite-search.md.
+
+
+## Experiment012 — objective-aware K-MeansNM rounding then KL
+
+- Reproduce the initial K-MeansNM rounder's seed and Lloyd center
+  trajectory using the same original full-dimensional saved EVA factor.
+  Optimize the original **signed weighted Max-Cut**, not cluster
+  inertia, by exhaustive O(n log n+m) sweep of threshold partitions
+  for each candidate hyperplane direction (ties move together).
+  Optimize direction by a heuristic, not an alleged exact proof.
+- On the same archived experiment008 restart, compare the old saved
+  KMeansNMFlipInput, improved CutAwarePreKL, direct KMeansNMFlipKL
+  (experiment010 KL seed matched), and CutAwareKMeansKL. Do not imply
+  that an unrefined threshold cut dominates a previously flip-refined
+  baseline. Check all four partitions on original signed graph.
+- Require exact source factor and graph SHA256 and independent archive
+  verification. No EVA reruns, PCA, or MST. Preserve 1,000 source
+  partitions, emit per-chunk packed binary partitions, trials,
+  checkpoint verification and one end-of-batch opt-in Git push.
+- Source: src/maxkcut/eva_cutaware_kmeans.py and companion CLI.
+  Correctness tests: tests/test_eva_cutaware_kmeans.py.
+  Research notes: notes/experiments/experiment012-cut-aware-kmeans-kl.md.
+  Numerical G63 objective target 27,047 is NOT a certificate;
+  earlier best verified by user is 26,886 (KL).
