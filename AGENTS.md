@@ -565,3 +565,24 @@ Read instructions → inspect the current branch/files → state the mathematica
 - See `docs/eva-reproduction.md` and
   `tests/test_eva_rounding.py`. Do not assert experimental results
   without actually running the workflow on user hardware.
+
+
+## Experiment005: exact geometric MST rounding
+
+- For each saved, verified EVA factor of shape n-by-p, construct an
+  **exact complete-graph MST in its original p-dimensional ambient
+  embedding** for L1, Euclidean L2 and L-infinity. No PCA, feature
+  truncation, low-dimensional projection or kNN graph approximation.
+- Remove exactly ONE longest MST edge, obtaining two connected
+  components, and score the resulting Max-Cut on original signed G-set
+  edges. The metric MST must NOT use the original signed adjacency as
+  distances. Each fixed-factor/metric run is deterministic, so never
+  claim independent random restarts or compare one MST result to
+  best-of-1000 randomized cuts without identifying the budget difference.
+- Store the full tree parents/edge lengths, graph/partition archive,
+  immutable factor snapshot, raw scores, timings, two component sizes,
+  source graph and factor SHA256, and failures under a new experiment005
+  tree. Re-run must independently verify and skip completed methods.
+- The exact Numba Prim approach costs O(n^2*p) time with O(n*p)
+  factor memory; high-n runs are manual and require explicit --max-n.
+  Manual experiment005 guide: notes/experiments/experiment005-eva-mst.md.
