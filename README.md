@@ -526,3 +526,18 @@ Full 71-graph mode (saved factors only, no optimizer) searches the
 Numba output first, then the original NumPy output:
 
     python -m maxkcut.eva_mst_cli --graphs ALL --metrics l1 l2 linf --max-n 20000 --source-dir results/gset/experiment003-eva-numba --fallback-source-dir results/gset/experiment002-eva --output-dir results/gset/experiment005-eva-mst --continue-on-error --push --push-branch experiment005-eva-mst-single-linkage
+
+
+### Experiment006: is the largest MST edge the right one to cut?
+
+The longest geometric MST edge is only one option. The new exact
+`maxkcut-eva-mst-center` command can reuse the same saved original-space
+MST and compare: **most balanced edge** (largest tree-edge betweenness),
+**weighted tree-diameter midpoint edge**, and **edge with the largest
+original G-set weighted Max-Cut**. The third is score-informed rather
+than a geometric center. Each rule yields one deterministic two-group
+partition; no PCA, optimizer reruns, or random restarts.
+
+    python -m maxkcut.eva_mst_center_cli --graphs G63 --metrics l1 l2 linf --rules balanced diameter_center bestcut --max-n 10000 --source-dir results/gset/experiment003-eva-numba --output-dir results/gset/experiment005-eva-mst
+
+See [experiment006 notes](notes/experiments/experiment006-eva-mst-central-edge.md).
