@@ -403,5 +403,39 @@ def main():
                    "The factor spectrum uses YᵀY, which shares nonzero eigenvalues with YYᵀ.")
 
 
+    with tab6:
+        st.subheader("EVA's greedy direction update — frozen factor inspection")
+        st.latex(r"h_i=\sum_j w_{ij}y_j,\qquad y_i^{\rm new}=-h_i/\|h_i\|")
+        st.write("Each vertex is moved opposite to the signed weighted sum of its "
+                 "neighbors. These values describe the **saved final factor**; "
+                 "no solver iteration is executed.")
+        detail = eva_coordinate_diagnostics(graph, vectors)
+        vertex = st.number_input("Inspect vertex (1-based)", min_value=1,
+                                 max_value=len(vectors), value=1)
+        i = int(vertex) - 1
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Neighbor-field norm", f"{detail['field_norm'][i]:.5f}")
+        c2.metric("Potential relaxation gain",
+                  f"{detail['potential_cut_relaxation_gain'][i]:.7f}")
+        c3.metric("Direction update angle", f"{detail['angle_degrees'][i]:.4f}°")
+        st.caption("For a zero neighbor-field, the direction is undetermined; "
+                   "the angle is displayed as zero by convention.")
+        a, b = st.columns(2)
+        with a:
+            st.plotly_chart(go.Figure(go.Histogram(
+                x=detail["angle_degrees"], nbinsx=55
+            )).update_layout(title="Saved factor: update angle distribution",
+                            xaxis_title="Degrees", height=340),
+                            use_container_width=True)
+        with b:
+            st.plotly_chart(go.Figure(go.Histogram(
+                x=detail["potential_cut_relaxation_gain"], nbinsx=55
+            )).update_layout(title="Potential local continuous improvements",
+                            xaxis_title="EVA objective gain", height=340),
+                            use_container_width=True)
+        st.info("These are one-coordinate **continuous** improvements at the "
+                "saved factor, not past movements or discrete Max-Cut flips.")
+
+
 if __name__ == "__main__":
     main()
