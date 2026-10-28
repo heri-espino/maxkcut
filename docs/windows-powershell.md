@@ -527,3 +527,12 @@ For the remaining large G-set instances, explicitly choose
 edges, component sizes and weighted cuts are archived. The `--push`
 option pushes **once after all graphs**, unlike EVA sweep checkpoints.
 See [MST research protocol](../notes/experiments/experiment005-eva-mst.md).
+
+
+To attempt the full 71-instance corpus from *existing* factors only,
+add `--graphs ALL --max-n 20000` and use the fallback NumPy factors:
+
+    python -m maxkcut.eva_mst_cli --graphs ALL --max-n 20000 --metrics l1 l2 linf --source-dir results/gset/experiment003-eva-numba --fallback-source-dir results/gset/experiment002-eva --output-dir results/gset/experiment005-eva-mst --continue-on-error --push --push-branch experiment005-eva-mst-single-linkage
+
+The command produces no new EVA solution, only three exact MST cuts
+per available frozen factor; missing graphs remain recorded as errors.
