@@ -145,3 +145,16 @@ trajectories and diversity across elite sources, then consider stronger
 very-large-neighborhood search, exact optimization of small vertex
 subsets via MILP, or alternate elite recombination rules. Respect
 matched compute budget when comparing methods or reporting claims.
+
+## Preliminary verification completed outside the user's VM
+
+A standalone Python reference and separately compiled Numba version of
+our indexed-heap KL pass were compared with the original O(n^2)
+full-scan pass on randomized signed symmetric sparse graphs. The
+Python heap comparison matched on 500 trials; the separately compiled
+Numba heap comparison matched on 300 trials (n=4,7,10,18,40,80).
+These checks validate the gain-selection/prefix algorithm but were not
+imports from the connected GitHub repository and are not equivalent
+to running the committed pytest suite in the user's Windows Conda
+installation. The actual experiment011 full tests and G63 run remain
+pending; no new G63 cut value is claimed.
