@@ -473,3 +473,18 @@ See the [EVA reproduction runbook](docs/eva-reproduction.md) and
 [experiment protocol](notes/experiments/experiment002-eva-reproduction.md).
 The numerical G-set reproduction has **not yet been run**; repository
 code and documentation do not establish a result.
+
+
+## All-graph EVA vs full-SDP benchmark
+
+The independent experiment002 branch now supports an explicitly bounded
+\`maxkcut-eva --graphs ALL --max-n 20000 --continue-on-error\` run
+over the 71 checked-in canonical G-set graphs. Each graph archives the
+complete EVA factor, all 60 rounded cuts, sweep logs, and a resumable
+status; a per-graph summary CSV compares it against any existing
+archive-verified full convex SCS SDP result on an identical input SHA256.
+
+See [the all-graph EVA command and setup](docs/eva-reproduction.md)
+and [experiment design](notes/experiments/experiment002-eva-reproduction.md).
+No all-graph EVA numerical results have been claimed or produced in the
+authoring environment.
