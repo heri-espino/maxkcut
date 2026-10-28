@@ -15,7 +15,7 @@ import numpy as np
 import scipy
 
 from .archive import new_archive, new_run_id, save_method, update_manifest, verify_archive
-from .eva import load_eva_factor, solve_eva
+from .eva import _identity, _prepared_graph, load_eva_factor, solve_eva
 from .hardware import blas_limit
 from .io import edge_arrays, load_graph
 from .objective import cut_weight
@@ -136,7 +136,9 @@ def _full_sdp_comparison(graph: str, input_hash: str, folders, eva_stats):
         except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
             issues.append(f"{folder}: invalid data ({type(exc).__name__}: {exc})")
     return {
-        "status": "unavailable",
+        "status": ("graph_mismatch" if issues and
+                   all("graph SHA256 mismatch" in issue for issue in issues)
+                   else "unavailable"),
         "reason": "; ".join(issues) if issues else "No convex SDP directory configured",
     }
 
@@ -161,6 +163,7 @@ def run_one(path: Path, args):
             previous.get("graph_sha256") == input_hash
             and int(previous.get("factor_rank", -1)) == expected_rank
             and old.get("seed") == args.seed
+            and old.get("cpu_threads_requested") == args.cpu_threads
             and old.get("tolerance") == args.tolerance
             and old.get("rounding_seed") == args.rounding_seed
             and old.get("restarts") == args.restarts
@@ -174,7 +177,9 @@ def run_one(path: Path, args):
         archive = Path(previous["archive_path"])
         verified = verify_archive(archive)
         finished = (
-            factor_meta.get("identity", {}).get("graph_csr_sha256")
+            factor_meta.get("identity") == _identity(
+                _prepared_graph(graph), expected_rank, args.seed, args.tolerance
+            )
             and all(
                 m in verified["methods"]
                 and verified["methods"][m]["verified_partitions"] == args.restarts
@@ -183,6 +188,7 @@ def run_one(path: Path, args):
             and verified["status"] == "complete"
             and factor_meta.get("sweeps") == previous.get("factor_sweeps")
             and factor.shape == (n, expected_rank)
+            and (root / "trials" / f"{name}.jsonl").is_file()
         )
         if finished and (factor_meta.get("converged")
                          or factor_meta.get("sweeps", 0) >= args.max_sweeps):
