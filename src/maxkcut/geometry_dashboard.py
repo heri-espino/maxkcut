@@ -19,7 +19,7 @@ import streamlit as st
 from plotly.subplots import make_subplots
 
 from maxkcut.geometry_viz import (
-    DEFAULT_EVA, archived_roundings, discover_eva_cases,
+    CACHE_DIR, DEFAULT_EVA, archived_roundings, discover_eva_cases,
     eva_coordinate_diagnostics, load_convex_embedding,
     load_eva_artifacts, load_eva_snapshots, load_sweep_log,
     pairwise_cosines, positive_edge_communities, project_vectors,
@@ -178,6 +178,8 @@ def main():
     with st.sidebar:
         st.header("Data and visualization")
         source = Path(st.text_input("EVA result directory", str(DEFAULT_EVA)))
+        cache_folder = Path(st.text_input("Existing convex SDP cache", str(CACHE_DIR),
+                                          help="Can be an absolute path to another worktree/VM disk."))
         graphs = discover_eva_cases(root, source)
         if not graphs:
             st.error("No completed EVA cases found. Select a directory containing cases/ and factors/.")
@@ -242,7 +244,9 @@ def main():
                 try:
                     if projection != "PCA":
                         st.warning("Convex cache supports top-three Gram eigenvectors, not nonlinear embeddings.")
-                    _g, full_coords, info = load_convex_embedding(name, root)
+                    _g, full_coords, info = load_convex_embedding(
+                        name, root, cache_dir=cache_folder
+                    )
                     sample = sample_vertices(len(full_coords), limit, seed)
                     coords = full_coords[sample]
                 except (OSError, ValueError, MemoryError) as exc:
