@@ -1,0 +1,42 @@
+name: Build illustrated Max-Cut tutorial PDF
+
+on:
+  push:
+    branches:
+      - docs/illustrated-maxcut-sdp-eva-tutorial-20261028
+    paths:
+      - docs/tutorials/maxcut_sdp_eva_rounding_tutorial.tex
+      - .github/workflows/build-maxcut-tutorial.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out documentation branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Compile two-column LaTeX to PDF
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: docs/tutorials/maxcut_sdp_eva_rounding_tutorial.tex
+          work_in_root_file_dir: true
+      - name: Save PDF to repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          pdf=docs/tutorials/maxcut_sdp_eva_rounding_tutorial.pdf
+          test -s "$pdf"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f "$pdf"
+          if ! git diff --cached --quiet; then
+            git commit -m "docs: compile illustrated Max-Cut SDP EVA tutorial PDF"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          else
+            echo "PDF already up to date"
+          fi
