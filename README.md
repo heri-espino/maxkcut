@@ -505,3 +505,27 @@ Two new optional hybrid methods are `FJ-Flip_EVA` and
 local improvement. New results include immutable factor snapshots and
 all partitions under `results/gset/experiment002-eva/rounding-extensions/`.
 See [the runbook](docs/eva-reproduction.md).
+
+
+## Interactive 3D SDP / EVA geometry browser (experiment004)
+
+This **read-only** Streamlit dashboard uses saved EVA vector factors and
+rounded partitions, or existing local CVXPY/SCS Gram caches—without
+solving SDP or EVA again. It displays PCA/t-SNE/optional UMAP projections,
+cut-side and k-means labels, positive-edge graph communities, degrees,
+pairwise-cosine distributions, EVA objective histories, replayed clustering
+iterations, and separate G-set 3D comparison views.
+
+```powershell
+conda activate maxkcut
+python -m pip install "streamlit>=1.45" "plotly>=5.24" "pandas>=2.2" "scikit-learn>=1.4" "networkx>=3.2"
+$env:PYTHONPATH = Join-Path (Get-Location).Path "src"
+python -m streamlit run src/maxkcut/geometry_dashboard.py
+```
+
+See [visualization guide](docs/geometry-dashboard.md). This branch is
+**only visualization**; no solver, checkpoints or existing results changed.
+Actual 3D EVA vertex-motion animation requires intermediate factor
+snapshots not present in the existing sweep logs; the UI instead shows
+recorded objective/angle histories and a faithful rounding-only
+k-means evolution replay.
