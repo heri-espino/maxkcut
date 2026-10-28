@@ -152,6 +152,7 @@ def run_graph(path, *, source, dest, metrics):
             "factor_rank": int(vectors.shape[1]),
             "factor_sweeps": int(eva_case["factor_sweeps"]),
             "factor_snapshot": str(factor_snapshot),
+            "source_dir": str(source),
             "archive_path": str(archive["path"]),
             "tree_path": str(tree_path),
             "trial_path": str(trial_path),
@@ -211,6 +212,9 @@ def main():
                         default=Path("results/gset/experiment003-eva-numba"))
     parser.add_argument("--output-dir", type=Path,
                         default=Path("results/gset/experiment005-eva-mst"))
+    parser.add_argument("--fallback-source-dir", type=Path, nargs="*", default=[],
+                        help="Additional archived EVA factor directories, searched "
+                             "in order only if the preferred source has no case/factor")
     parser.add_argument("--metrics", nargs="+", choices=METRICS,
                         default=list(METRICS))
     parser.add_argument("--max-n", type=int, default=2000,
@@ -243,8 +247,17 @@ def main():
                 )
     for path in paths:
         try:
+            sources = [args.source_dir] + args.fallback_source_dir
+            selected_source = next((folder for folder in sources if
+                (folder / "cases" / f"{path.stem}.json").is_file() and
+                (folder / "factors" / f"{path.stem}.npz").is_file()), None)
+            if selected_source is None:
+                raise FileNotFoundError(
+                    f"No completed saved EVA factor for {path.stem} in "
+                    f"{[str(folder) for folder in sources]}"
+                )
             run_graph(
-                path, source=args.source_dir, dest=args.output_dir,
+                path, source=selected_source, dest=args.output_dir,
                 metrics=args.metrics,
             )
             (args.output_dir / "errors" / f"{path.stem}.json").unlink(
