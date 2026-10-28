@@ -7,7 +7,7 @@ A tree has distinct possible centers:
 
 No PCA, no distance recalculation, no EVA optimization, no random seeds.
 For n vertices, m original graph edges, candidate cut scores for ALL
-n-1 tree edges cost O(n + m log n) using binary LCA and tree-path sums.
+n-1 tree edges cost O((n + m) log n) using binary LCA and tree-path sums.
 """
 from __future__ import annotations
 
