@@ -20,7 +20,8 @@ from plotly.subplots import make_subplots
 
 from maxkcut.geometry_viz import (
     DEFAULT_EVA, archived_roundings, discover_eva_cases,
-    load_convex_embedding, load_eva_artifacts, load_sweep_log,
+    eva_coordinate_diagnostics, load_convex_embedding,
+    load_eva_artifacts, load_eva_snapshots, load_sweep_log,
     pairwise_cosines, positive_edge_communities, project_vectors,
     replay_kmeans, repo_root, sample_vertices, vertex_metrics,
 )
@@ -206,7 +207,7 @@ def main():
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "3D geometry", "Clustering replay", "EVA progress",
-        "Compare G-sets", "Diagnostics"
+        "Compare G-sets", "Diagnostics", "EVA update geometry"
     ])
 
     with tab1:
@@ -245,8 +246,12 @@ def main():
                     sample = sample_vertices(len(full_coords), limit, seed)
                     coords = full_coords[sample]
                 except (OSError, ValueError, MemoryError) as exc:
-                    st.warning(f"Cached convex SDP unavailable for this graph: {exc}")
-                    st.stop()
+                    st.warning(f"Cached convex SDP unavailable: {exc}")
+                    st.info("Showing saved EVA vectors instead. No SDP is solved.")
+                    coords, sample, info = projection_resource(
+                        name, str(source), updated, projection, limit, seed
+                    )
+                    source_type = "Saved EVA vectors"
             try:
                 selected = selected_colors(graph, name, case, factor_sha, source,
                                            coloring, chosen_method, chosen_restart,
@@ -314,10 +319,28 @@ def main():
                                file_name=f"{name}-eva-history.csv")
         else:
             st.info("No intermediate objective history is available for this graph.")
-        st.warning("The existing logs contain scalar objective/angle measurements, not "
-                   "intermediate vertex coordinates Y(t). Therefore a genuine "
-                   "3D animation of EVA's moving vectors cannot be reconstructed "
-                   "without rerunning EVA. This dashboard does not rerun it.")
+        snapshots = load_eva_snapshots(
+            name, case["graph_sha256"], vectors.shape,
+            root=root, source=source
+        )
+        if snapshots:
+            from sklearn.decomposition import PCA
+            basis = PCA(n_components=3, svd_solver="randomized",
+                        random_state=seed).fit(vectors)
+            frame = st.slider("Recorded EVA frame", 0, len(snapshots) - 1, 0)
+            sampled = sample_vertices(len(vectors), limit, seed)
+            projected = basis.transform(snapshots[frame]["vectors"][sampled])
+            st.plotly_chart(scatter_cloud(
+                projected, vertex_metrics(graph)["Degree"][sampled],
+                "Degree", sampled, point_size=size,
+                title=f"Recorded EVA sweep {snapshots[frame]['sweep']}"
+            ), use_container_width=True)
+            st.caption("True saved factor snapshots, projected onto one fixed final PCA basis.")
+        else:
+            st.warning("EVA's existing logs contain objective/angle scalars, "
+                       "not historical vertex coordinates. A genuine moving-vector "
+                       "animation needs snapshots saved during optimization; "
+                       "the dashboard does not reconstruct or rerun EVA.")
 
     with tab4:
         st.subheader("Separate views across G-set instances")
