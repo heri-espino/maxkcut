@@ -455,3 +455,21 @@ The 2026 Glass–Feder paper covers **17 toroidal instances**; only rows with
 matching paper cut and certified upper bound have a proven optimal cut.
 A filename match alone does not guarantee the older MAT file is canonical.
 See [the new data comparison guide](docs/canonical-data-comparison.md).
+
+## EVA vector-relaxation reproduction (experiment002)
+
+A separate research backend now reproduces the sequential greedy
+**Efficient Vector Ascent (EVA)** method (Gonzalez-Torres et al., 2026).
+Unlike the full convex CVXPY/SCS method, EVA directly optimizes an
+`n x p` factor and is **nonconvex**; its numerical objective is not
+an SDP certificate. The initial target is published G-set graphs and
+our existing full-SDP results, with independent GW, K-Means2N and
+K-MeansNM roundings applied to the saved EVA factor.
+
+The `maxkcut-eva` command writes full factor checkpoints, objective
+histories, every signed weighted cut partition and verified graph
+snapshots into the tracked `results/gset/experiment002-eva/` directory.
+See the [EVA reproduction runbook](docs/eva-reproduction.md) and
+[experiment protocol](notes/experiments/experiment002-eva-reproduction.md).
+The numerical G-set reproduction has **not yet been run**; repository
+code and documentation do not establish a result.
