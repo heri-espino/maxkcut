@@ -52,3 +52,30 @@ For experiment progress on temporary VMs, use the opt-in
 --push-every 250`.
 
 **No benchmark figures or accuracy claims until the actual VM runs.**
+
+
+## Extension: full 71-instance G-set sweep
+
+`maxkcut-eva --graphs ALL --max-n 20000 --continue-on-error`
+runs all 71 canonical G-set graphs sequentially and resumes verified
+EVA factors and rounded partition archives. The experiment compares
+against the first independently archive-verified full convex SDP case
+with a matching graph checksum, searching in the declared order:
+
+1. `reports/gset/full-sdp-batch` (previous smaller graph experiments)
+2. `reports/gset/full-sdp-threads32` (subsequent large graph experiments)
+
+The user reported the following **rounded cuts** from successful
+full convex SCS runs: G60=13663, G61=5270, G62=4628; G63 was interrupted.
+These values are user-observed solver output, **not** measured EVA
+objectives or cut scores, and need the on-machine saved archives for
+independent verification.
+
+The tracked `results/gset/experiment002-eva/summary.csv` separates
+uncertified continuous primal objectives, rounded cut values for
+all three methods, runtime, convergence status, and missing references.
+Actual large EVA experiments have not yet been run by this authoring
+session. Preserve `factors/`, `logs/`, `trials/`, `archives/`,
+`cases/`, `errors/` and `summary.csv` and commit/push before VM removal.
+
+Full PowerShell commands: `docs/eva-reproduction.md`.
