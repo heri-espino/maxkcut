@@ -101,8 +101,11 @@ def _factor_and_case(path, source):
     factor_file = source / "factors" / f"{path.stem}.npz"
     y, meta = load_eva_factor(factor_file)
     saved = case.get("provenance", {})
+    prepared_for_identity = _prepared_graph(graph)
+    if saved.get("optimizer_backend", "numpy") == "numba":
+        prepared_for_identity.sort_indices()
     identity = _identity(
-        _prepared_graph(graph), y.shape[1],
+        prepared_for_identity, y.shape[1],
         saved["seed"], saved["tolerance"],
     )
     if saved.get("optimizer_backend", "numpy") == "numba":
