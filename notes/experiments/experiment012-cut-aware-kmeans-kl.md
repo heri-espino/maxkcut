@@ -121,3 +121,29 @@ If threshold optimization helps, run experiment011's iterated KL
 and complement-aligned elite recombination using the new
 CutAwareKMeansKL partitions as additional elite starts. Always
 keep signed objective and matched compute budgets in comparisons.
+
+## Regression correction: raw baseline must exclude new directions
+
+The initial Windows pilot test run showed 3 failures in
+test_cut_aware_kmeans_preserves_same_seed_raw_kmeans for seeds
+2, 5, and 13: raw_kmeans_best_cut was incorrectly updated in a
+shared candidate evaluator used both for the original Lloyd
+trajectory and NEW direction perturbations. Example: seed 2 reported
+35 when the archived-style original K-Means trajectory scored 20.
+The bug affected this diagnostic; the cut-aware candidate optimizer
+was not the source of that mismatch.
+
+The implementation now tracks raw_kmeans_best_cut and
+raw_kmeans_labels ONLY in the original seeded Lloyd iteration loop.
+Candidate-direction score evaluation no longer mutates the original
+baseline diagnostic. Regression tests verify exact original
+same-seed baseline score and labels with zero or 18 extra direction
+trials, while separately confirming the cut-aware score is not lower
+than the zero-extra-direction score. Re-run the full Windows test
+suite before any G63 production experiments:
+
+    git pull --ff-only origin experiment012-cut-aware-kmeans-kl
+    python -m pytest tests/test_eva_cutaware_kmeans.py -q
+
+No G63 improvement beyond the previously observed 26,886 is claimed
+until the user's own saved original signed graph results verify it.
