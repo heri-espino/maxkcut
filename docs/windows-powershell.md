@@ -592,3 +592,21 @@ be resumed without repeating saved work. Increase to `--top-starts
 If the source segments are not present on this branch, merge their
 committed Git branch before running; do not rerun EVA.
 See [experiment010 notes](../notes/experiments/experiment010-kmeans-kl-tabu.md).
+
+
+## Experiment011 — search past the 26,886 G63 KL plateau toward 27,047
+
+Save/push experiment010's KL outputs before switching to
+`experiment011-kl-elite-search`. These saved partitions are the
+starting states; the method does NOT rerun EVA, rounding, or MST.
+
+```powershell
+$env:PYTHONPATH = Join-Path (Get-Location).Path "src"
+python -m pytest tests/test_eva_elite_search.py tests/test_eva_escape.py -q
+python -m maxkcut.eva_elite_cli --graphs G63 --methods ILS-KL EliteMix-KL Tabu-KL --top-elites 8 --replicates 2 --cycles 24 --kl-passes 8 --tabu-steps 3000 --tabu-stagnation 1000 --workers 3 --chunk-size 4 --target 27047 --source-dir results/gset/experiment010-eva-kl-tabu --output-dir results/gset/experiment011-elite-search
+```
+
+Then run the large-budget 240-episode, 19,200-cycle ILS/elite
+recombination study using the documented command in
+[experiment011 protocol](../notes/experiments/experiment011-kl-elite-search.md).
+Outputs are append-only and saved under experiment011-elite-search.
