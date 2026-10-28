@@ -171,7 +171,7 @@ def _create_archived_tree(tmp_path):
         "archive_path": str(archive["path"]),
         "tree_path": str(tree_path),
         "removed_edge_child": int(removed[0]),
-        "component_sizes": list(np.bincount(labels, minlength=2)),
+        "component_sizes": np.bincount(labels, minlength=2).tolist(),
     }
     case_path = mst_dir / "cases" / (
         f"G11-{factor_sha[:16]}-mst-l2.json"
