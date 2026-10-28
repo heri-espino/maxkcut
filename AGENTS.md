@@ -586,3 +586,22 @@ Read instructions → inspect the current branch/files → state the mathematica
 - The exact Numba Prim approach costs O(n^2*p) time with O(n*p)
   factor memory; high-n runs are manual and require explicit --max-n.
   Manual experiment005 guide: notes/experiments/experiment005-eva-mst.md.
+
+
+## Experiment006: what is the center MST edge?
+
+- The tree `center` is not a unique MST edge. Experiment006 compares
+  (1) experiment005 longest geometric edge, (2) balanced split maximizing
+  s(n-s), (3) edge containing the **weighted tree diameter midpoint**,
+  and (4) edge maximizing the original signed Max-Cut over all n-1
+  tree-edge splits. Only (4) uses original graph weights to SELECT an edge;
+  it must be labeled score-informed, not geometric center.
+- Reuse the **same exact full-p ambient EVA MST** for all edge criteria,
+  without PCA, and persist all variants as separate exact partition
+  archives with source factor/graph SHA256. Do not rerun the EVA optimizer.
+- Fast score of every tree-edge cut: sum original signed weight on the
+  unique MST path for every original graph edge, using LCA and tree
+  differences O((n+m)log n). Compare against independently rescored
+  bit-packed partitions. No random MST restarts; report component sizes.
+- See notes/experiments/experiment006-eva-mst-central-edge.md; large
+  experiments remain manual and require explicit --max-n, one final push.
