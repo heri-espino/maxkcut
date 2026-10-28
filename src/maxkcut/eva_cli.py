@@ -16,6 +16,7 @@ import scipy
 
 from .archive import new_archive, new_run_id, save_method, update_manifest, verify_archive
 from .eva import _identity, _prepared_graph, load_eva_factor, solve_eva
+from .eva_numba import solve_eva_numba
 from .hardware import blas_limit
 from .io import edge_arrays, load_graph
 from .objective import cut_weight
@@ -143,6 +144,9 @@ def _full_sdp_comparison(graph: str, input_hash: str, folders, eva_stats):
     }
 
 def run_one(path: Path, args):
+    backend = getattr(args, "backend", "numpy")
+    if backend not in ("numpy", "numba"):
+        raise ValueError("Unsupported EVA backend")
     root = args.output_dir
     root.mkdir(parents=True, exist_ok=True)
     name = path.stem
@@ -160,7 +164,8 @@ def run_one(path: Path, args):
         old = previous.get("provenance", {})
         expected_rank = args.rank if args.rank is not None else int(np.ceil(np.sqrt(2 * (n + 1))))
         matches = (
-            previous.get("graph_sha256") == input_hash
+            old.get("optimizer_backend", "numpy") == backend
+            and previous.get("graph_sha256") == input_hash
             and int(previous.get("factor_rank", -1)) == expected_rank
             and old.get("seed") == args.seed
             and old.get("cpu_threads_requested") == args.cpu_threads
@@ -176,10 +181,13 @@ def run_one(path: Path, args):
         factor, factor_meta = load_eva_factor(factor_path)
         archive = Path(previous["archive_path"])
         verified = verify_archive(archive)
+        expected_identity = _identity(
+            _prepared_graph(graph), expected_rank, args.seed, args.tolerance
+        )
+        if backend == "numba":
+            expected_identity["algorithm"] = "eva-sequential-numba-v1"
         finished = (
-            factor_meta.get("identity") == _identity(
-                _prepared_graph(graph), expected_rank, args.seed, args.tolerance
-            )
+            factor_meta.get("identity") == expected_identity
             and all(
                 m in verified["methods"]
                 and verified["methods"][m]["verified_partitions"] == args.restarts
@@ -229,8 +237,9 @@ def run_one(path: Path, args):
                 and state["sweeps"] % args.push_every == 0):
             _git_push(root, f"{name} sweep {state['sweeps']}", allowed_branch=args.push_branch)
 
+    optimizer = solve_eva_numba if backend == "numba" else solve_eva
     with blas_limit(args.cpu_threads):
-        vectors, diagnostics = solve_eva(
+        vectors, diagnostics = optimizer(
             graph, rank=args.rank, tolerance=args.tolerance,
             max_sweeps=args.max_sweeps, seed=args.seed,
             checkpoint_path=factor_path, checkpoint_every=args.checkpoint_every,
@@ -250,7 +259,12 @@ def run_one(path: Path, args):
         raise RuntimeError("Inconsistent EVA continuous objective")
 
     provenance = {
-        "backend": "EVA sequential NumPy float64 (nonconvex vector relaxation)",
+        "backend": (
+            "EVA sequential compiled Numba float64 (nonconvex vector relaxation)"
+            if backend == "numba" else
+            "EVA sequential NumPy float64 (nonconvex vector relaxation)"
+        ),
+        "optimizer_backend": backend,
         "input_sha256": input_hash, "input_file": str(path),
         "code_source": "https://github.com/b3r8/EVA/blob/main/EVA.m",
         "paper_doi": "10.1016/j.rico.2026.100759",
@@ -401,6 +415,9 @@ def main():
     parser.add_argument("--gset-dir", type=Path, default=Path("data"))
     parser.add_argument("--max-n", type=int, default=2000)
     parser.add_argument("--rank", type=int, help="Embedding dimension; default ceil(sqrt(2(n+1)))")
+    parser.add_argument("--backend", choices=("numpy", "numba"), default="numpy",
+                        help="Numba compiles the original sequential EVA update; "
+                             "use a separate output directory for this backend")
     parser.add_argument("--tolerance", type=float, default=1e-3)
     parser.add_argument("--max-sweeps", type=int, default=10000)
     parser.add_argument("--checkpoint-every", type=int, default=25)
