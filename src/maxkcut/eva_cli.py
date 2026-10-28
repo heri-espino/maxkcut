@@ -44,7 +44,9 @@ def _git_push(root: Path, label: str, *, allowed_branch: str):
     subprocess.run(["git", "add", "--", str(rel)], check=True)
     diff = subprocess.run(["git", "diff", "--cached", "--quiet", "--", str(rel)])
     if diff.returncode == 1:
-        subprocess.run(["git", "commit", "-m", f"experiment002: {label}"], check=True)
+        subprocess.run([
+            "git", "commit", "-m", f"experiment002: {label}", "--", str(rel)
+        ], check=True)
     elif diff.returncode != 0:
         raise RuntimeError("Git could not inspect staged results")
     subprocess.run(["git", "push", "origin", f"HEAD:{branch}"], check=True)
