@@ -114,3 +114,54 @@ def test_convex_comparison_rejects_graph_mismatch(tmp_path):
     }))
     result = _full_sdp_comparison("G11", "expected", full, {})
     assert result["status"] == "graph_mismatch"
+
+
+def test_eva_second_run_skips_verified_factor_and_roundings(tmp_path, monkeypatch):
+    """All-graph reruns must never recalculate already completed partitions."""
+    graph_path = tmp_path / "G1.txt"
+    graph_path.write_text("3 3\n1 2 1\n2 3 1\n1 3 1\n", encoding="utf8")
+    root = tmp_path / "results"
+    args = SimpleNamespace(
+        max_n=10, output_dir=root, rank=None, tolerance=1e-3,
+        max_sweeps=10, seed=2026, checkpoint_every=2,
+        rounding_seed=2026, restarts=2, convex_dir=None,
+        cpu_threads=1, push=False, push_branch=None, push_every=0,
+    )
+    first = run_one(graph_path, args)
+    def should_not_solve(*_args, **_kwargs):
+        raise AssertionError("Cached EVA run should not solve again")
+    monkeypatch.setattr("maxkcut.eva_cli.solve_eva", should_not_solve)
+    second = run_one(graph_path, args)
+    assert first["archive_path"] == second["archive_path"]
+    assert first["factor_sweeps"] == second["factor_sweeps"]
+    assert first["methods"] == second["methods"]
+
+
+def test_all_graph_summary_pending_failure_and_completed(tmp_path):
+    from maxkcut.eva_cli import _write_batch_summary
+    root = tmp_path / "results"
+    paths = [tmp_path / f"G{j}.txt" for j in (1, 2, 3)]
+    (root / "cases").mkdir(parents=True)
+    (root / "errors").mkdir(parents=True)
+    (root / "errors" / "G2.json").write_text("{}")
+    (root / "cases" / "G1.json").write_text(json.dumps({
+        "graph": "G1", "status": "converged", "vertices": 4, "edges": 4,
+        "factor_rank": 4, "factor_sweeps": 5,
+        "objective_vector_relaxation": 5.5, "factor_elapsed_seconds": 2.0,
+        "graph_sha256": "abc",
+        "methods": {"FJ_EVA": {"best": 4}, "K-Means2N_EVA": {"best": 5},
+                    "K-MeansNM_EVA": {"best": 5}},
+        "comparison_to_full_sdp": {
+            "status": "compared", "convex_source": "old",
+            "methods": {"FJ": {"convex_best": 3},
+                        "K-Means2N": {"convex_best": 4},
+                        "K-MeansNM": {"convex_best": 4}},
+        },
+    }))
+    _write_batch_summary(root, paths)
+    with (root / "summary.csv").open(newline="", encoding="utf8") as stream:
+        import csv
+        rows = list(csv.DictReader(stream))
+    assert [row["status"] for row in rows] == ["converged", "failed", "pending"]
+    assert float(rows[0]["best_cut_eva_minus_convex"]) == 1
+    assert rows[1]["convex_status"] == ""
