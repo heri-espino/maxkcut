@@ -10,6 +10,7 @@ overwrite/resume original EVA factors with a different backend.
 from __future__ import annotations
 
 import time
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
@@ -20,6 +21,7 @@ from .eva import (
 )
 
 
+@lru_cache(maxsize=1)
 def _compiled_sweep():
     try:
         from numba import njit
