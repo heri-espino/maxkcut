@@ -443,7 +443,11 @@ def main():
             failures += 1
             _write_json(args.output_dir / "errors" / f"{path.stem}.json", {
                 "graph": path.stem, "error": f"{type(exc).__name__}: {exc}",
-                "traceback": traceback.format_exc(), "command": sys.argv,
+                "traceback": traceback.format_exc().replace(
+                    str(Path.home()), "<HOME>"
+                ).replace(str(Path.cwd()), "<REPO>"),
+                "command": [str(arg).replace(str(Path.home()), "<HOME>")
+                            for arg in sys.argv],
             })
             print(f"{path.stem}: FAILED: {type(exc).__name__}: {exc}", flush=True)
             if args.push:
