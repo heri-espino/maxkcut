@@ -363,7 +363,7 @@ def run_graph(
             })
     budget = {
         "cycles": cycles, "kl_passes": kl_passes,
-        "kick_sizes": tuple(int(k) for k in kick_sizes),
+        "kick_sizes": [int(k) for k in kick_sizes],
         "boundary_fraction": boundary_fraction,
         "temperature": temperature,
         "tabu_steps": tabu_steps,
