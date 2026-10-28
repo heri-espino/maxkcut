@@ -248,21 +248,34 @@ def round_saved_factor(path, *, source, dest, methods, first, restarts,
             "start_restart": first, "stop_restart_exclusive": stop,
             "max_flip_sweeps": max_flip_sweeps,
         }
+        jsonl_path = dest / "trials" / path.stem / method / (
+            f"r{first:05d}-{stop:05d}.jsonl"
+        )
         archive = new_archive(
             dest / "archives", new_run_id(), path, count, edges, 2,
-            settings, jsonl_output=dest / "trials" / path.stem / method,
+            settings, jsonl_output=jsonl_path,
             argv=sys.argv,
         )
         archive["manifest"]["graph_source"] = str(path)
-        archive["manifest"]["results_jsonl"] = (
-            f"rounding-extensions/segments/{path.stem}/{method}"
-        )
+        archive["manifest"]["results_jsonl"] = str(jsonl_path)
         update_manifest(archive)
         save_method(archive, method, labels_list, scores, k=2)
         update_manifest(archive, status="complete")
         checked = verify_archive(archive["path"])
         if checked["methods"][method]["verified_partitions"] != restarts:
             raise RuntimeError("The new extension archive did not verify")
+        jsonl_path.parent.mkdir(parents=True, exist_ok=True)
+        temporary_jsonl = jsonl_path.with_suffix(".jsonl.tmp")
+        with temporary_jsonl.open("w", encoding="utf8") as out:
+            for offset, trial in enumerate(trial_details):
+                out.write(json.dumps({
+                    **trial, "archive_run_id": archive["manifest"]["run_id"],
+                    "partition_index": offset,
+                    "partition_archive": str(archive["path"]),
+                    "factor_sha256": factor_sha,
+                    "graph_sha256": graph_sha,
+                }, sort_keys=True) + "\n")
+        os.replace(temporary_jsonl, jsonl_path)
         segment.parent.mkdir(parents=True, exist_ok=True)
         record = {
             "graph": path.stem, "method": method,
@@ -270,6 +283,7 @@ def round_saved_factor(path, *, source, dest, methods, first, restarts,
             "rounding_seed": seed, "max_flip_sweeps": max_flip_sweeps,
             "start_restart": first, "stop_restart_exclusive": stop,
             "archive_path": str(archive["path"]),
+            "trial_jsonl": str(jsonl_path),
             "factor_path": str(snapshot),
             "trial_details": trial_details,
         }
@@ -291,6 +305,7 @@ def round_saved_factor(path, *, source, dest, methods, first, restarts,
                 "count": len(samples), "best": max(samples.values()),
                 "mean": float(np.mean(list(samples.values()))),
                 "median": float(np.median(list(samples.values()))),
+                "best_restart": max(samples, key=samples.get),
                 "std": float(np.std(list(samples.values()), ddof=1))
                 if len(samples) > 1 else None,
                 "restart_indices": sorted(samples),
@@ -298,6 +313,11 @@ def round_saved_factor(path, *, source, dest, methods, first, restarts,
             for method, samples in combined.items() if samples
         },
     }
+    best_method = max(
+        summary["methods"], key=lambda m: summary["methods"][m]["best"]
+    )
+    summary["best_cut"] = summary["methods"][best_method]["best"]
+    summary["best_method"] = best_method
     _write_json(dest / "summaries" / f"{path.stem}-{factor_sha[:16]}.json", summary)
     return summary
 
