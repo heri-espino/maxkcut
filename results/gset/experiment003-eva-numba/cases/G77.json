@@ -1,0 +1,89 @@
+{
+  "archive_path": "results\\gset\\experiment003-eva-numba\\archives\\20261028T125419Z-515836738e\\G77-k2",
+  "comparison_to_full_sdp": {
+    "reason": "reports\\gset\\full-sdp-batch: status skipped_size; reports\\gset\\full-sdp-threads32: case not found",
+    "status": "unavailable"
+  },
+  "edges": 28000,
+  "factor_elapsed_seconds": 25.782000000588596,
+  "factor_max_angle": 0.0009985198287638555,
+  "factor_path": "results\\gset\\experiment003-eva-numba\\factors\\G77.npz",
+  "factor_rank": 168,
+  "factor_sweeps": 628,
+  "graph": "G77",
+  "graph_sha256": "6f7081a83b0ec924b083a51d0d696047e82c047ded8bdd5a7bdd99d9cd5ccd85",
+  "methods": {
+    "FJ_EVA": {
+      "best": 8954.0,
+      "mean": 8889.0,
+      "median": 8888.0,
+      "restarts": 20,
+      "std": 44.572826274595414
+    },
+    "K-Means2N_EVA": {
+      "best": 8870.0,
+      "mean": 8868.7,
+      "median": 8869.0,
+      "restarts": 20,
+      "std": 1.4903196407411894
+    },
+    "K-MeansNM_EVA": {
+      "best": 9024.0,
+      "mean": 8943.4,
+      "median": 8943.0,
+      "restarts": 20,
+      "std": 45.33895733948432
+    }
+  },
+  "objective_vector_relaxation": 11043.808309102056,
+  "provenance": {
+    "backend": "EVA sequential compiled Numba float64 (nonconvex vector relaxation)",
+    "code_source": "https://github.com/b3r8/EVA/blob/main/EVA.m",
+    "command": [
+      "C:\\Users\\175199\\maxkcut\\src\\maxkcut\\eva_cli.py",
+      "--graphs",
+      "G77",
+      "G81",
+      "--backend",
+      "numba",
+      "--max-n",
+      "20000",
+      "--max-sweeps",
+      "10000",
+      "--tolerance",
+      "0.001",
+      "--restarts",
+      "20",
+      "--cpu-threads",
+      "1",
+      "--continue-on-error",
+      "--convex-dir",
+      "reports/gset/full-sdp-batch",
+      "reports/gset/full-sdp-threads32",
+      "--output-dir",
+      "results/gset/experiment003-eva-numba",
+      "--push",
+      "--push-branch",
+      "perf/eva-numba-sequential-20261028",
+      "--push-every",
+      "250"
+    ],
+    "cpu_threads_requested": 1,
+    "input_file": "data\\G77.txt",
+    "input_sha256": "6f7081a83b0ec924b083a51d0d696047e82c047ded8bdd5a7bdd99d9cd5ccd85",
+    "machine": "Windows-11-10.0.26100-SP0",
+    "max_sweeps": 10000,
+    "numpy": "2.5.4",
+    "optimizer_backend": "numba",
+    "paper_doi": "10.1016/j.rico.2026.100759",
+    "python": "3.12.15 | packaged by conda-forge | (main, Oct 13 2026, 16:44:09) [MSC v.1944 64 bit (AMD64)]",
+    "rank": 168,
+    "restarts": 20,
+    "rounding_seed": 2026,
+    "scipy": "1.18.1",
+    "seed": 2026,
+    "tolerance": 0.001
+  },
+  "status": "converged",
+  "vertices": 14000
+}
