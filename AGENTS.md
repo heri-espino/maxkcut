@@ -517,3 +517,26 @@ Read instructions → inspect the current branch/files → state the mathematica
 - See `docs/eva-reproduction.md`,
   `notes/experiments/experiment002-eva-reproduction.md`, and
   `tests/test_eva.py` before running real workloads on Windows.
+
+
+## experiment002 — Full canonical G-set EVA sweep and SCS comparisons
+
+- \`maxkcut-eva --graphs ALL --max-n 20000 --continue-on-error\` selects
+  all 71 checked-in canonical G-set text files, not only the 67 graph
+  subset used in EVA's published evaluation. Keep numerical cases
+  strictly sequential and preserve the actual selected input SHA256.
+- EVA directly optimizes a **nonconvex vector factorization** of the
+  $k=2$ convex SDP relaxation; do not conflate an EVA converged
+  approximate KKT solution with a certified full convex SDP optimizer.
+- Reuse persisted EVA factor checkpoints and verify saved entire rounded
+  partitions before marking completed graphs skipped; preserve failure
+  diagnostics, all 60 partitions and every sweep's objective log.
+- The multi-SCS comparison option \`--convex-dir folder1 folder2\`
+  chooses the first completed, graph-matched and archive-verified case
+  in stated order. No cherry-picking between SCS case archives, no
+  fabricated G63/G77 SDP result; an interrupted SCS run is unavailable.
+- \`summary.csv\` under tracked \`results/gset/experiment002-eva/\`
+  is refreshed per graph and distinguishes EVA vectors from exact
+  weighted cuts, numerical full-SDP primal objectives and best rounding
+  distributions. Push only from the designated experiment branch, never
+  silently merge the draft PR.
