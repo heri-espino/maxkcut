@@ -609,3 +609,26 @@ python -m maxkcut.eva_elite_cli --graphs G63 --methods ILS-KL EliteMix-KL --top-
 No EVA rerun, PCA, MST or new rounding. All per-cycle traces and
 signed-weight verified final partitions are archived with resumable
 per-chunk checkpoints. See [experiment011 notes](notes/experiments/experiment011-kl-elite-search.md).
+
+
+### Experiment012: improve K-MeansNM rounding before KL
+
+Instead of applying KL only to the original archived EVA K-MeansNM-Flip
+partitions, this experiment improves the **rounding geometry first**:
+reproduce each seeded antipodal spherical K-Means trajectory in the
+**full, original EVA ambient space**, optimize the signed Max-Cut
+threshold EXACTLY along each resulting direction, and explore
+additional graph-cut-scored directions before running accelerated KL.
+A paired control applies KL to the original saved K-MeansNM-Flip cut
+with the same restart and original experiment010 KL seed schedule.
+Every restart archives all four stages and original weighted graph
+score verification. It reuses saved EVA factors and rounding archives:
+no PCA, no EVA optimization, no MST.
+
+```powershell
+python -m maxkcut.eva_cutaware_kmeans_cli --graphs G63 --top-starts 40 --direction-trials 48 --kl-passes 30 --workers 4 --target 27047
+```
+
+The observed prior KL best for G63 is 26,886; **27,047 is an
+experimental target, not a certified optimum**. See
+[Experiment012 protocol](notes/experiments/experiment012-cut-aware-kmeans-kl.md).
