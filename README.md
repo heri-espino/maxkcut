@@ -541,3 +541,22 @@ partition; no PCA, optimizer reruns, or random restarts.
     python -m maxkcut.eva_mst_center_cli --graphs G63 --metrics l1 l2 linf --rules balanced diameter_center bestcut --max-n 10000 --source-dir results/gset/experiment003-eva-numba --output-dir results/gset/experiment005-eva-mst
 
 See [experiment006 notes](notes/experiments/experiment006-eva-mst-central-edge.md).
+
+
+### Experiment009: multiple longest MST edges plus signed Max-Cut refinement
+
+Starting from the saved exact full-dimensional EVA MSTs, remove
+`q=1,2,4,8,16,32,64,128` longest edges. This creates `q+1`
+connected tree fragments, which are optimized into just **two** Max-Cut
+labels by contracting the original signed G-set graph and running
+sparse local improvement. Then refine the resulting binary assignment
+with unrestricted **vertex flips** on the original graph. The previous
+best coarse result is inherited at increasing `q`, so the best
+component-level cut cannot decrease. Exact trees are reused, not
+recomputed; there is no PCA or second EVA optimization.
+
+    python -m maxkcut.eva_mst_multicut_cli --graphs G63 --metrics l1 l2 linf --q-values 1 2 4 8 16 32 64 128 --coarse-restarts 20 --vertex-sweeps 20 --mst-dir results/gset/experiment005-eva-mst --output-dir results/gset/experiment009-mst-multiedge
+
+The G63 benchmark to beat is **26,682** from the observed 1,000-restart
+K-MeansNM plus local search run. No MST multi-edge result is claimed yet.
+See [experiment009 protocol](notes/experiments/experiment009-mst-multiedge.md).
