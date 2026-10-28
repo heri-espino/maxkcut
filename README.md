@@ -658,3 +658,35 @@ python -m maxkcut.eva_pipeline_grid_cli --graphs G63 --top-starts 40 --workers 4
 Observed G63 benchmark remains **26,886** (Experiment010 KL);
 27,047 is a target, not a certificate of optimality. See the
 [full protocol and promotion commands](notes/experiments/experiment013-eva-pipeline-grid.md).
+
+### Experiment015: optimize the ROUNDING normal directly (exact + stochastic gradient)
+
+Instead of further optimizing the EVA matrix or running K-Means,
+Experiment015 keeps the original full-space EVA factor Y **frozen**
+and directly optimizes the random-hyperplane rounding vector r
+in the original signed weighted Max-Cut C(sign(Yr)).
+
+Methods: **exact great-semicircle signed Max-Cut line sweeps**,
+**antithetic Gaussian-smoothed stochastic gradient ascent (ES-SGA)**
+on the actual hard cut, **signed-edge minibatch logistic soft-SGA**,
+and hybrids that run an exact sweep after each SGA method. KL
+postprocessing is a separate paired control. All begin from the SAME
+saved original GW random-hyperplane seed schedule, but do NOT rerun
+EVA or K-Means.
+
+Mathematically, ES-SGA estimates the gradient of
+F_h(r)=E[C(sign(Y(r+h eps)))] using
+E[(C(r+h eps)-C(r-h eps))*eps]/(2h), followed by
+Adam and unit-sphere projection. Soft-SGA uses a different,
+differentiable independently Bernoulli-rounded surrogate.
+Both retain and archive the highest ACTUAL original signed
+Max-Cut found, not the surrogate value.
+
+```powershell
+python -m maxkcut.eva_direct_rounding_cli --graphs G63 --methods linesweep es-sga es-sga-sweep soft-sga soft-sga-sweep --restarts 10 --chunk-size 2 --workers 4 --sga-steps 100 --sga-population 8 --line-directions 40 --kl-passes 25 --target 27047
+```
+
+Every raw/optimized direction and raw/after-KL binary partition is
+saved in SHA-verified, independently rescored and resumable archives.
+Observed G63 best is 26,917, target is 27,047 (not a proof of optimality).
+See [Experiment015 notes](notes/experiments/experiment015-direct-hyperplane-cut.md).
