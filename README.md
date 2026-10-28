@@ -478,7 +478,7 @@ code and documentation do not establish a result.
 ## All-graph EVA vs full-SDP benchmark
 
 The independent experiment002 branch now supports an explicitly bounded
-\`maxkcut-eva --graphs ALL --max-n 20000 --continue-on-error\` run
+`maxkcut-eva --graphs ALL --max-n 20000 --continue-on-error` run
 over the 71 checked-in canonical G-set graphs. Each graph archives the
 complete EVA factor, all 60 rounded cuts, sweep logs, and a resumable
 status; a per-graph summary CSV compares it against any existing
