@@ -176,3 +176,33 @@ are verified. All frames are placed on the **same final-factor PCA
 basis**, so they can be compared without repeatedly refitting PCA.
 Existing experiment002 runs did not record these snapshots, and this
 visualization branch does not generate missing snapshots by solving EVA.
+
+
+## Do not interrupt an active EVA experiment: separate Windows worktree
+
+If the original directory is currently running the EVA experiment,
+**do not switch its branch while it is writing or pushing results**.
+Open another PowerShell and create a read-only visualization worktree:
+
+```powershell
+cd C:\Users\175199\maxkcut
+git fetch origin
+git worktree add --detach ..\maxkcut-geometry origin/feature/interactive-sdp-eva-geometry
+cd ..\maxkcut-geometry
+conda activate maxkcut
+$env:PYTHONPATH = Join-Path (Get-Location).Path "src"
+python -m pip install -e ".[visualization]"
+python -m streamlit run src/maxkcut/geometry_dashboard.py
+```
+
+The new worktree contains the EVA factors **already committed when
+the visualization branch was created**. Newly pushed experiment002
+factors are not automatically pulled into that snapshot. Do not claim
+that the visualization contains newer data until an explicit, safe
+Git integration is performed.
+
+Ignored convex SDP caches are also **not shared across worktrees**.
+Use the dashboard sidebar's *Existing convex SDP cache* field to
+point to the original directory, e.g.
+`C:\Users\175199\maxkcut\reports\gset\sdp_cache`.
+This reads the existing cache; it does not copy or rewrite it.
