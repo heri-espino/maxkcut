@@ -160,13 +160,13 @@ def solve_eva(
             "objective": objective, "max_angle": max_angle,
             "elapsed_seconds": elapsed_prior + time.monotonic() - started,
         }
-        if on_sweep is not None:
-            on_sweep(dict(state))
         if checkpoint is not None and (
             sweep % checkpoint_every == 0 or state["converged"]
             or sweep == max_sweeps
         ):
             _write_checkpoint(checkpoint, y, state, rng)
+        if on_sweep is not None:
+            on_sweep(dict(state))
         if state["converged"]:
             break
     return y, state
