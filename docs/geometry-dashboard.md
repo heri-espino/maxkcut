@@ -155,13 +155,13 @@ alignment), ensuring hashes and time indices are recorded.
 
 ## EVA's one-vertex update inspector and future snapshots
 
-The sixth dashboard tab evaluates (h_i = sum_j w_{ij}y_j) at the
+The sixth dashboard tab evaluates \(h_i = \sum_j w_{ij}y_j\) at the
 **existing saved factor**, showing the angular difference between
-(y_i) and (-h_i/|h_i|), and the potential continuous objective gain
+\(y_i\) and \(-h_i/\|h_i\|\), and the potential continuous objective gain
 
-[
-Delta_i = rac12(|h_i| + y_i^	op h_i).
-]
+\[
+\Delta_i = \frac12(\|h_i\| + y_i^\top h_i).
+\]
 
 These measurements indicate near-coordinate-stationarity of the saved
 factor. They are not the historical update path and are **not**
