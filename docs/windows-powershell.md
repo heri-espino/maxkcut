@@ -652,3 +652,23 @@ Then promote the best configurations to 200 and all 1000 starts,
 with completed chunks automatically reused. The exact promotion
 commands and reproducibility caveats are in
 [Experiment013 protocol](../notes/experiments/experiment013-eva-pipeline-grid.md).
+
+## Experiment015: direct stochastic gradient on GW rounding, NO K-means
+
+**Optimize the rounding direction r only**, with the original saved
+EVA factor Y unchanged. Exact great-semicircle Max-Cut sweeps,
+antithetic Gaussian-smoothed stochastic gradient ascent, and a
+signed-edge minibatch soft surrogate run on the same FJ/GW start
+indices; hybrid SGA + exact sweep and paired KL controls are included.
+
+```powershell
+$env:PYTHONPATH = Join-Path (Get-Location).Path "src"
+python -m pytest tests/test_eva_direct_rounding.py -q
+python -m maxkcut.eva_direct_rounding_cli --graphs G63 --methods linesweep es-sga es-sga-sweep soft-sga soft-sga-sweep --restarts 10 --chunk-size 2 --workers 4 --sga-steps 100 --sga-population 8 --line-directions 40 --kl-passes 25 --target 27047
+```
+
+Output under results/gset/experiment015-direct-rounding stores every
+raw vs optimized GW normal, original signed graph cut, optional
+KL-refined partition and independently verified append-only archives.
+The main large-budget 100-restart run and research methodology are in
+[Experiment015 notes](../notes/experiments/experiment015-direct-hyperplane-cut.md).
