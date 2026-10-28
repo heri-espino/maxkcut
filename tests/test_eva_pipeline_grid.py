@@ -137,6 +137,35 @@ def test_original_kmeans_restart_schedule_matches_same_seed_rounding():
         assert scores["Round"] == cut_weight(edges, original_label)
 
 
+
+
+def test_saved_kmeans_kl_zero_repeat_reproduces_historical_experiment010_seed():
+    # experiment010 used SeedSequence([seed, graph_id, restart, 101])
+    from maxkcut.eva_escape import optimize_kl
+    graph, y = _sample(12, 51)
+    edges = edge_arrays(graph)
+    saved = np.random.default_rng(9).integers(
+        0, 2, size=12, dtype=np.int8,
+    )
+    expected, _ = optimize_kl(
+        graph, saved.copy(),
+        np.random.default_rng(np.random.SeedSequence(
+            [2026, 11, 17, 101],
+        )), passes=6,
+    )
+    cfg = _one_cfg(
+        "saved-kmeans-flip", kl_passes=6, kl_repeats=1,
+    )
+    stages, scores, _, _ = evaluate_pipeline(
+        graph, y, saved_labels=saved,
+        saved_score=cut_weight(edges, saved),
+        restart=17, graph_number=11,
+        rounding_seed=2026, search_seed=2026,
+        config=cfg,
+    )
+    np.testing.assert_array_equal(stages["KL"], expected)
+    assert scores["KL"] == cut_weight(edges, expected)
+
 def _source_archive(tmp):
     path = tmp / "G11.txt"
     path.write_text(
