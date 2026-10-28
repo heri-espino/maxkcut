@@ -205,7 +205,7 @@ def main():
     st.caption(f"Solver: EVA factorized vector relaxation (not a certified convex SDP optimum) · "
                f"Graph SHA256: {case['graph_sha256'][:20]}…")
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         "3D geometry", "Clustering replay", "EVA progress",
         "Compare G-sets", "Diagnostics", "EVA update geometry"
     ])
