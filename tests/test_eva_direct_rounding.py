@@ -246,8 +246,10 @@ def test_parallel_all_methods_archives_and_resume(tmp_path):
                     )
     archive_count = len(list((dest/"archives").iterdir()))
     repeated = run_graph(path, **options)
-    assert [rec["best_by_stage"] for rec in repeated] == [
-        rec["best_by_stage"] for rec in first
-    ]
+    assert {
+        rec["id"]: rec["best_by_stage"] for rec in repeated
+    } == {
+        rec["id"]: rec["best_by_stage"] for rec in first
+    }
     assert len(list((dest/"archives").iterdir())) == archive_count
     assert (dest/"summary.csv").is_file()
