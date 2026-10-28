@@ -83,7 +83,7 @@ def test_cli_archives_every_partition(tmp_path):
         max_n=20, output_dir=root, rank=None,
         tolerance=1e-6, max_sweeps=12, seed=2026,
         checkpoint_every=3, rounding_seed=2026,
-        restarts=2, convex_dir=None, push=False,
+        restarts=2, convex_dir=None, cpu_threads=1, push=False,
         push_branch=None, push_every=0,
     )
     result = run_one(graph_path, args)
