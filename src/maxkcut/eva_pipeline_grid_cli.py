@@ -60,7 +60,7 @@ def _worker_init(path, factor_dir, expected):
 
 def _job_identity(config, selected, *, graph_sha, factor_sha,
                   source_partition_sha, source_segment_sha,
-                  seed, rounding_seed):
+                  seed, rounding_seed, target):
     settings = {
         "version": "experiment013-eva-grid-v1",
         "graph_sha256": graph_sha,
@@ -72,6 +72,7 @@ def _job_identity(config, selected, *, graph_sha, factor_sha,
         "source_scores": [float(x["source_cut"]) for x in selected],
         "rounding_seed": int(rounding_seed),
         "search_seed": int(seed),
+        "target": float(target),
         "configuration": config,
     }
     key = hashlib.sha256(json.dumps(
@@ -375,6 +376,7 @@ def run_graph(
                 cfg, chunk, graph_sha=graph_sha, factor_sha=factor_sha,
                 source_partition_sha=parts_sha, source_segment_sha=segment_sha,
                 seed=seed, rounding_seed=rounding_seed,
+                target=target,
             )
             name = f"{path.stem}-grid-{cfg['id']}-{token}"
             jobs.append({
