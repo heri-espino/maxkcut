@@ -220,9 +220,17 @@ def evaluate_pipeline(
         kl_result = flipped.copy()
         repeated_scores = []
         for repeat in range(cfg["kl_repeats"]):
-            kl_rng = np.random.default_rng(np.random.SeedSequence(
-                [search_seed, graph_number, restart, 101, repeat],
-            ))
+            # repeat=0 reproduces experiment010's exact historical KL
+            # seed convention for the saved K-MeansNM-Flip control.
+            # Additional repeats use distinct, order-independent streams.
+            seed_parts = (
+                [search_seed, graph_number, restart, 101]
+                if repeat == 0 else
+                [search_seed, graph_number, restart, 101, repeat]
+            )
+            kl_rng = np.random.default_rng(
+                np.random.SeedSequence(seed_parts),
+            )
             result, diag = optimize_kl_fast(
                 graph, flipped.copy(), kl_rng, passes=cfg["kl_passes"],
             )
