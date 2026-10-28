@@ -94,7 +94,7 @@ def test_graph_hash_mismatch_is_rejected(archive_fixture):
     record = json.loads(case_path.read_text())
     record["graph_sha256"] = "not-the-original"
     case_path.write_text(json.dumps(record))
-    with pytest.raises(ValueError, match="Graph input"):
+    with pytest.raises(ValueError, match="checksum|graph"):
         load_eva_artifacts("G22", root, source)
 
 
@@ -166,3 +166,24 @@ def test_extension_uses_exact_factor_fingerprint(archive_fixture):
     assert result["FJ_EVA"][0][0] == 20
     no_match = archived_roundings("G22", case, "other-factor", root, source)
     assert "FJ_EVA" not in no_match
+
+
+def test_same_weighted_graph_with_different_newline_bytes_is_accepted(archive_fixture):
+    """Windows CRLF and Git-normalized LF must share mathematical identity."""
+    root, source, graph, y, case, factor_file, *_ = archive_fixture
+    path = root / "data" / "G22.txt"
+    contents = path.read_bytes()
+    path.write_bytes(contents.replace(b"\n", b"\r\n"))
+    graph_loaded, v, saved, _ = load_eva_artifacts("G22", root, source)
+    assert saved["file_sha256_differs_but_weighted_graph_matches"]
+    np.testing.assert_allclose(v, y)
+    assert graph_loaded.nnz == graph.nnz
+
+
+def test_changed_weighted_edge_is_not_accepted(archive_fixture):
+    root, source, graph, y, case, factor_file, *_ = archive_fixture
+    path = root / "data" / "G22.txt"
+    contents = path.read_text()
+    path.write_text(contents.replace("1 2 2", "1 2 8"))
+    with pytest.raises(ValueError, match="weighted edges"):
+        load_eva_artifacts("G22", root, source)
