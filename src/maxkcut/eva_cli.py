@@ -181,8 +181,11 @@ def run_one(path: Path, args):
         factor, factor_meta = load_eva_factor(factor_path)
         archive = Path(previous["archive_path"])
         verified = verify_archive(archive)
+        prepared_for_identity = _prepared_graph(graph)
+        if backend == "numba":
+            prepared_for_identity.sort_indices()
         expected_identity = _identity(
-            _prepared_graph(graph), expected_rank, args.seed, args.tolerance
+            prepared_for_identity, expected_rank, args.seed, args.tolerance
         )
         if backend == "numba":
             expected_identity["algorithm"] = "eva-sequential-numba-v1"
