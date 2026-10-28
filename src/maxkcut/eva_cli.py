@@ -115,7 +115,7 @@ def run_one(path: Path, args):
             if line.strip() and json.loads(line)["sweep"] <= completed:
                 kept.append(line)
         log_path.write_text(
-            "\\n".join(kept) + ("\\n" if kept else ""), encoding="utf8"
+            chr(10).join(kept) + (chr(10) if kept else ""), encoding="utf8"
         )
     print(f"{name}: EVA n={n}; storing factor at {factor_path}", flush=True)
 
