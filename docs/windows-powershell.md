@@ -652,3 +652,21 @@ Then promote the best configurations to 200 and all 1000 starts,
 with completed chunks automatically reused. The exact promotion
 commands and reproducibility caveats are in
 [Experiment013 protocol](../notes/experiments/experiment013-eva-pipeline-grid.md).
+
+## Experiment014: reoptimize the original EVA matrix for raw GW rounding
+
+Preserve and push Experiment013 results, then switch to
+experiment014-gw-expected-refine. The source EVA checkpoint remains
+immutable; this computes and archives SECOND-stage factors Y by
+maximizing the expected original-graph signed Max-Cut of raw GW
+hyperplane rounding, without K-means, SDP or PCA.
+
+    $env:PYTHONPATH = Join-Path (Get-Location).Path "src"
+    python -m pytest tests/test_eva_gw_expected.py -q
+    python -m maxkcut.eva_gw_expected_cli --graphs G63 --epsilons 0 --jitters 0 0.05 --steps 0.05 --optimize-seeds 2026 --max-sweeps 20 --patience 8 --rounds 150 --kl-top 10 --kl-passes 20 --workers 2 --target 27047
+
+The output in results/gset/experiment014-gw-expected includes
+every optimized 7000×119 factor, old/new raw Gaussian partitions,
+matching KL comparisons, and independently verified signed Max-Cut
+scores. The full 16-matrix grid command is in
+[experiment014 research notes](../notes/experiments/experiment014-gw-expected-refine.md).

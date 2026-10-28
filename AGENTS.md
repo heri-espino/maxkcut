@@ -730,3 +730,34 @@ Read instructions → inspect the current branch/files → state the mathematica
   experiment JSON, trials, archives, summary/leaderboard, and logs
   in GitHub. Numerical target 27,047 is NOT a certified optimum.
   See notes/experiments/experiment013-eva-pipeline-grid.md.
+
+## Experiment014: reoptimize EVA matrix using expected RAW GW cut
+
+- User-observed best feasible G63 value now 26,917 after Experiment013;
+  27,047 is an objective target, NOT a certified optimum (gap 130).
+- Reuse the exact saved original full-dimensional EVA factor and
+  original signed G-set edge weights. Do NOT rerun EVA initial solver,
+  SDP, PCA, MST, or K-means.
+- New continuous objective over unit-row factors Y:
+  sum_{i<j} w_ij arccos(<y_i,y_j>) / pi, which is the EXACT
+  expectation of raw Gaussian random-hyperplane Max-Cut. Negative
+  weights retain their signs. For epsilon>0, the exact alternative
+  is the Gaussian-noise GW distribution with correlation
+  (1-epsilon)<y_i,y_j>; do not call it ordinary GW.
+- Project tangent gradients onto row unit spheres, accept moves only
+  if the exact expected objective improves, preserve original factor
+  as the incumbent. A nondecreased continuous expected objective
+  DOES NOT guarantee a better actual rounded or KL-refined cut.
+- Couple original and optimized raw rounding using IDENTICAL random
+  directions (and noise). Save every before/after raw GW partition;
+  select SAME draw indices for paired post-GW KL; independently
+  verify all original-graph signed Max-Cut values.
+- Optimized 7000×119 factor must itself be preserved in Git, verified
+  by SHA256, original factor never overwritten. Source and outputs:
+  eva_gw_expected.py, eva_gw_expected_cli.py,
+  tests/test_eva_gw_expected.py,
+  notes/experiments/experiment014-gw-expected-refine.md.
+- Complete 16-config parallel parameter grid by increasing
+  --epsilons, --jitters, --steps, --optimize-seeds with raw and KL
+  budgets; save case fingerprints, factor snapshots, trials,
+  independently checked graph archives and summary to GitHub.
