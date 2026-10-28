@@ -1,7 +1,7 @@
 """Objective-aware spherical K-MeansNM rounding for signed weighted Max-Cut.
 
 For k=2, nearest-centroid spherical K-Means is a HOMOGENEOUS hyperplane
-split: label_i = 1[(Y_i) @ (c_1-c_0) >= 0]. Unlike clustering inertia,
+split: label_i = 1[(Y_i) @ (c_1-c_0) > 0]. Unlike clustering inertia,
 our objective is the ORIGINAL signed G-set weighted Max-Cut.
 
 This experiment first creates the exact same seeded K-MeansNM direction
@@ -206,16 +206,17 @@ def improve_kmeans_direction(
 
     def consider(direction, origin):
         nonlocal best_cut, best_labels, best_direction, best_threshold
-        nonlocal evaluated, best_source, zero_best, zero_labels
+        nonlocal evaluated, best_source
         direction = _unit(direction)
         if direction is None:
             return False
         z = y @ direction
         zero_partition = (z > 0).astype(np.int8)
         score_zero = float(cut_weight(edges, zero_partition))
-        if score_zero > zero_best:
-            zero_best = score_zero
-            zero_labels = zero_partition.copy()
+        # Important: do NOT update raw_kmeans_best_cut here. This
+        # helper is also called for new perturbed/guided directions;
+        # that diagnostic must ONLY measure the original, seeded
+        # spherical K-MeansNM Lloyd trajectory below.
         if threshold_search:
             part, diag = optimal_threshold(graph, z)
         else:
