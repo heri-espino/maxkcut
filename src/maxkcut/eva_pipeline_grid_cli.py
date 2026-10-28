@@ -240,7 +240,14 @@ def _aggregate(records, configs, *, selected_ids, graph_sha,
         by_config[record["configuration_id"]].extend(record["trials"])
     standings = []
     for cfg in configs:
-        rows = by_config[cfg["id"]]
+        # Jobs finish in arbitrary order under ProcessPoolExecutor.
+        # Sort paired trials before floating-point aggregation, argmax
+        # tie-breaking, and summary serialization. Otherwise a verified
+        # rerun can produce a different leaderboard from identical cuts.
+        rows = sorted(
+            by_config[cfg["id"]],
+            key=lambda trial: int(trial["restart"]),
+        )
         if len(rows) != len(selected_ids):
             raise RuntimeError("Incomplete grid configuration in current ranking")
         if sorted(x["restart"] for x in rows) != sorted(selected_ids):
@@ -266,8 +273,12 @@ def _aggregate(records, configs, *, selected_ids, graph_sha,
             "seconds_mean": float(timings.mean()),
             "gap_to_target": float(target-final.max()),
         })
+    # Rank purely by original-graph Max-Cut statistics. Runtime remains
+    # reported but is intentionally NOT a tie-breaker: small wall-clock
+    # differences across fresh runs would otherwise change promotion
+    # selections despite identical cuts and seeds.
     standings.sort(key=lambda x: (
-        -x["best_cut"], -x["mean_cut"], x["seconds_total"], x["configuration_id"],
+        -x["best_cut"], -x["mean_cut"], x["configuration_id"],
     ))
     for position, entry in enumerate(standings, 1):
         entry["rank"] = position
