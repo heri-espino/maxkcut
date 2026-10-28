@@ -85,6 +85,21 @@ def test_cut_aware_kmeans_preserves_same_seed_raw_kmeans(seed):
     assert detail["raw_kmeans_best_cut"] == pytest.approx(
         cut_weight(graph_edges, raw_labels),
     )
+    # Regression: exploring extra graph-cut-aware directions must not
+    # overwrite the diagnostic of the ORIGINAL seeded K-Means baseline.
+    np.testing.assert_array_equal(detail["raw_kmeans_labels"], raw_labels)
+    baseline_rng = np.random.default_rng(
+        np.random.SeedSequence([seed, 11, 2, 0, 0])
+    )
+    _, no_extra = improve_kmeans_direction(
+        vectors, graph, baseline_rng,
+        direction_trials=0, kmeans_iters=100,
+    )
+    assert detail["raw_kmeans_best_cut"] == no_extra["raw_kmeans_best_cut"]
+    np.testing.assert_array_equal(
+        detail["raw_kmeans_labels"], no_extra["raw_kmeans_labels"],
+    )
+    assert detail["cut"] >= no_extra["cut"] - 1e-8
     assert detail["cut"] >= detail["raw_kmeans_best_cut"] - 1e-8
     assert cut_weight(graph_edges, result) == detail["cut"]
     assert detail["direction_candidates"] >= detail["kmeans_iterations"]
