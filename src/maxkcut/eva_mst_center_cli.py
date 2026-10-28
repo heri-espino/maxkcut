@@ -19,7 +19,7 @@ import traceback
 import numpy as np
 
 from .archive import (
-    load_method, new_archive, new_run_id, save_method, update_manifest,
+    _atomic_npz, load_method, new_archive, new_run_id, save_method, update_manifest,
     verify_archive,
 )
 from .eva_cli import _git_push, _write_json
@@ -29,6 +29,7 @@ from .eva_mst_center import (
     diameter_center_edge, labels_cutting_edge,
 )
 from .eva_mst_cli import run_graph as run_longest_mst, _verify_existing
+from .eva_mst_interpret import characterize_best_edge
 from .eva_rounding_cli import _factor_and_case
 from .io import edge_arrays
 from .objective import cut_weight
@@ -85,6 +86,28 @@ def run_central_graph(path, *, source, dest, metrics, rules):
         with np.load(baseline_case["tree_path"], allow_pickle=False) as npz:
             parent = npz["parent"].copy()
             distances = npz["edge_lengths"].copy()
+        # Interpret the highest-score edge against EVERY edge on the same
+        # exact MST; preserve full edge profiles for independent research.
+        interpretation, edge_profiles = characterize_best_edge(
+            parent, distances, edges,
+        )
+        profile_base = f"{path.stem}-{factor_sha[:16]}-mst-{metric}"
+        profile_npz = dest / "edge-profiles" / f"{profile_base}.npz"
+        if profile_npz.is_file():
+            with np.load(profile_npz, allow_pickle=False) as saved_profile:
+                if (set(saved_profile.files) != set(edge_profiles)
+                        or any(not np.array_equal(saved_profile[key], val)
+                               for key, val in edge_profiles.items())):
+                    raise ValueError("Existing MST edge profile does not match factor/tree")
+        else:
+            _atomic_npz(profile_npz, **edge_profiles)
+        _write_json(dest / "edge-profile-reports" / f"{profile_base}.json", {
+            "graph": path.stem, "metric": metric,
+            "graph_sha256": graph_sha, "factor_sha256": factor_sha,
+            "tree_path": baseline_case["tree_path"],
+            "edge_profile_path": str(profile_npz),
+            **interpretation,
+        })
         for rule in rules:
             method = _method(metric, rule)
             case_path = (dest / "center-cases" /
@@ -170,6 +193,9 @@ def run_central_graph(path, *, source, dest, metrics, rules):
                 "removed_edge_parent": int(parent[removed]),
                 "archive_path": str(archive["path"]),
                 "source_eva_dir": str(source),
+                **({"best_edge_interpretation": interpretation,
+                    "edge_profile_path": str(profile_npz)}
+                   if rule == "bestcut" else {}),
             }
             _write_json(case_path, case)
             results.append(case)
@@ -204,6 +230,28 @@ def write_center_summary(dest):
                 "component_size_1": case["component_sizes"][1],
             })
     os.replace(tmp, target)
+    profile_summary = dest / "edge-profile-summary.csv"
+    fields = (
+        "graph", "metric", "best_edge_child", "best_edge_parent",
+        "best_edge_cut_score", "best_edge_length", "best_edge_balance_pairs",
+        "component_imbalance", "best_edge_is_longest",
+        "best_edge_is_most_balanced",
+        "best_edge_is_diameter_center_choice",
+        "best_edge_length_percentile", "best_edge_balance_percentile",
+        "spearman_cut_vs_length", "spearman_cut_vs_balance",
+        "positive_cross_weight", "negative_cross_weight",
+        "existing_cross_edge_count",
+        "mean_signed_weight_per_potential_cross_pair",
+        "graph_sha256", "factor_sha256", "edge_profile_path",
+    )
+    tmp = profile_summary.with_suffix(".csv.tmp")
+    with tmp.open("w", newline="", encoding="utf8") as stream:
+        writer = csv.DictWriter(stream, fieldnames=fields)
+        writer.writeheader()
+        for file in sorted((dest / "edge-profile-reports").glob("G*.json")):
+            row = json.loads(file.read_text(encoding="utf8"))
+            writer.writerow({key: row.get(key) for key in fields})
+    os.replace(tmp, profile_summary)
 
 
 def main():
