@@ -80,3 +80,63 @@ Manual Git persistence, if automatic push is disabled:
     git add .
     git commit -m "experiment006: central MST cuts and comparisons"
     git push
+
+## Interpreting e*: geometry, balance and signed path load
+
+For each metric-specific exact MST T, the code now computes and
+commits all n-1 candidate edge statistics rather than recording only
+the highest-scoring edge:
+
+    C(e) = sum_original_(u,v,w) w * 1[e belongs to unique T path(u,v)]
+    B(e) = s_e * (n-s_e)
+    C(e) = B(e) * mean_cross_pair_weight(e)
+
+Here s_e is the cardinality of a component after removing e, and
+the cross-pair mean treats *absent* original graph edges as zero. Thus:
+
+- **Geometric gap:** the chosen edge's original-ambient metric distance,
+  midrank length percentile (0 = shortest, 1 = longest), and whether
+  e* ties for the longest.
+- **Tree centrality:** s_e, n-s_e, B(e), split-size imbalance, midrank
+  balance percentile, and whether e* ties for the most-balanced edge.
+  For a complete uniform-positive original graph, C(e)=B(e) exactly
+  and an optimal tree-edge cut is necessarily most balanced.
+- **Metric tree center:** whether the best Max-Cut edge is the chosen
+  weighted-diameter midpoint edge (not generally the same as balanced).
+- **Signed edge demand:** the sum of positive and negative original
+  crossing weights, their edge counts, the net cut weight and the
+  average weight per potential separated vertex pair.
+- **Within-tree relationships:** Spearman rank correlations of
+  C(e) with metric length, C(e) with B(e), and metric length with
+  B(e), across all n-1 candidate tree edges. Undefined
+  correlations (constant quantities) are represented as null.
+
+The winning edge maximizes the net signed demand routed over a tree
+edge. It need not be longest, central or balanced; a negative crossing
+weight *reduces* the Max-Cut objective. The length and balance
+percentiles describe it, but do not confer a global Max-Cut guarantee.
+
+Interpretation cautions: (i) e* is selected using C(e), so its score
+percentile is trivially high; do not report that as evidence of a
+discovery. (ii) Candidate tree edges within a graph are not
+independent samples. (iii) A high score-length correlation may follow
+the EVA factor's construction from the same original weighted graph;
+report this as an association, not causal evidence. (iv) Benchmark
+the three distance metrics on each graph separately, then aggregate
+per-graph summaries rather than treating all edges as independent
+graph replicates.
+
+### Saved new outputs
+
+- `edge-profiles/Gxx-<factorhash>-mst-<metric>.npz` preserves **every**
+  MST edge's child, parent, original-ambient length, signed original
+  Max-Cut, subtree size, B(e) and normalized cross-pair mean.
+- `edge-profile-reports/Gxx-<factorhash>-mst-<metric>.json`
+  preserves e* with all length, balance, score and signed-demand
+  interpretability diagnostics and exact factor/graph identity.
+- `edge-profile-summary.csv` has one row per graph and metric,
+  including e* length and balance percentiles and the rank
+  correlations for cross-instance analysis.
+
+The experiment006 CLI generates these files automatically while
+reusing saved exact MSTs. No new EVA optimization or PCA is needed.
