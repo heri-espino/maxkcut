@@ -1,0 +1,125 @@
+{
+  "argv": [
+    "experiment014",
+    "6d3406ef27910ee7819d"
+  ],
+  "created_utc": "2026-10-28T21:54:45.622700+00:00",
+  "git": {
+    "commit": "d7ba9aea8fc7d3e936add87afe1703523b4a79ff",
+    "dirty": false
+  },
+  "graph": "G63",
+  "graph_diagnostics": {
+    "density": 0.0016924458596125978,
+    "negative_edges": 0,
+    "positive_edges": 41459,
+    "sum_of_absolute_edge_weights": 41459.0,
+    "sum_of_edge_weights": 41459.0,
+    "weight_max": 1.0,
+    "weight_min": 1.0,
+    "zero_edges": 0
+  },
+  "graph_sha256": "4b18d3df87d09e128e7cc4a1f175fa9ba2e374567405a231eef6135b1b40c946",
+  "graph_snapshot": "graph.npz",
+  "graph_source": "C:\\Users\\175199\\maxkcut\\data\\G63.txt",
+  "k": 2,
+  "m": 41459,
+  "methods": {
+    "Exp014-NewRawGWKL_EVA": {
+      "best_cut": 26885.0,
+      "best_restart": 9,
+      "encoding": "bits-little",
+      "mean_cut": 26865.466666666667,
+      "median_cut": 26868.0,
+      "partition_file": "Exp014-NewRawGWKL_EVA.npz",
+      "restarts": 30,
+      "sample_std_cut": 10.546231009500367,
+      "worst_cut": 26842.0
+    },
+    "Exp014-NewRawGW_EVA": {
+      "best_cut": 26466.0,
+      "best_restart": 590,
+      "encoding": "bits-little",
+      "mean_cut": 25985.797,
+      "median_cut": 25994.5,
+      "partition_file": "Exp014-NewRawGW_EVA.npz",
+      "restarts": 1000,
+      "sample_std_cut": 203.1162130086788,
+      "worst_cut": 25199.0
+    },
+    "Exp014-OldRawGWKL_EVA": {
+      "best_cut": 26840.0,
+      "best_restart": 17,
+      "encoding": "bits-little",
+      "mean_cut": 26807.666666666668,
+      "median_cut": 26803.5,
+      "partition_file": "Exp014-OldRawGWKL_EVA.npz",
+      "restarts": 30,
+      "sample_std_cut": 16.967175883784087,
+      "worst_cut": 26780.0
+    },
+    "Exp014-OldRawGW_EVA": {
+      "best_cut": 25973.0,
+      "best_restart": 601,
+      "encoding": "bits-little",
+      "mean_cut": 25735.242,
+      "median_cut": 25739.5,
+      "partition_file": "Exp014-OldRawGW_EVA.npz",
+      "restarts": 1000,
+      "sample_std_cut": 74.33359212979633,
+      "worst_cut": 25446.0
+    }
+  },
+  "n": 7000,
+  "platform": {
+    "logical_cpus": 32,
+    "os": "Windows-11-10.0.26100-SP0",
+    "python": "3.12.15"
+  },
+  "results_jsonl": "C:\\Users\\175199\\maxkcut\\results\\gset\\experiment014-gw-expected\\trials\\G63-6d3406ef27910ee7819d.jsonl",
+  "run_id": "20261028T215445Z-1c80d91a81",
+  "schema_version": 1,
+  "settings": {
+    "epsilon": 0.02,
+    "graph_sha256": "4b18d3df87d09e128e7cc4a1f175fa9ba2e374567405a231eef6135b1b40c946",
+    "jitter": 0.0,
+    "kl_passes": 35,
+    "kl_top": 30,
+    "max_sweeps": 60,
+    "num_rounds": 1000,
+    "objective": "exact expected original signed weighted cut",
+    "optimize_seed": 2026,
+    "patience": 12,
+    "raw_rounding": "paired Gaussian GW, no K-means",
+    "rounding_seed": 2026,
+    "source_factor_sha256": "ae14711285d29ab1050a508de108e6e8da9fce5c1debe7f600c6aad28d3efc24",
+    "step": 0.15,
+    "version": "experiment014-expected-gw-v1"
+  },
+  "solver_info": {
+    "best_cut_by_stage": {
+      "NewRawGW": 26466.0,
+      "NewRawGWKL": 26885.0,
+      "OldRawGW": 25973.0,
+      "OldRawGWKL": 26840.0
+    },
+    "no_kmeans": true,
+    "optimized_expected_cut": 25985.143677027598,
+    "optimized_factor_path": "results\\gset\\experiment014-gw-expected\\optimized-factors\\G63-6d3406ef27910ee7819d.npz",
+    "optimized_factor_sha256": "21e76c128d6b61d80354960518111e8e299c08b1622a4430dcc056bb9cc3923e",
+    "original_graph_signed": true,
+    "reoptimized_analytical_expected_cut": true,
+    "source_expected_cut": 25735.98809346998
+  },
+  "status": "complete",
+  "versions": {
+    "clarabel": "0.11.1",
+    "cvxpy": "1.9.3",
+    "maxkcut": "0.1.0",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "scs": "3.3.1",
+    "sdpa-python": "0.2.3",
+    "threadpoolctl": "3.7.0"
+  }
+}
