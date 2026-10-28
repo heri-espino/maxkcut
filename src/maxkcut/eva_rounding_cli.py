@@ -10,6 +10,8 @@ import argparse
 import csv
 import hashlib
 import json
+import os
+import shutil
 import sys
 import time
 from pathlib import Path
@@ -111,8 +113,31 @@ def _factor_and_case(path, source):
     return graph, y, case, graph_sha, sha
 
 
-def _segment_path(dest, graph_name, method, first, stop):
-    return dest / "segments" / graph_name / method / f"r{first:05d}-{stop:05d}.json"
+def _segment_path(dest, graph_name, factor_sha, method, first, stop):
+    label = f"{graph_name}-{factor_sha[:16]}"
+    return dest / "segments" / label / method / f"r{first:05d}-{stop:05d}.json"
+
+
+def _immutable_factor_copy(source, dest, graph_name, factor_sha):
+    """Retain exactly the factor used, even if EVA later continues optimizing."""
+    original = Path(source) / "factors" / f"{graph_name}.npz"
+    target = Path(dest) / "factor-snapshots" / (
+        f"{graph_name}-{factor_sha[:16]}.npz"
+    )
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if target.is_file():
+        if hashlib.sha256(target.read_bytes()).hexdigest() != factor_sha:
+            raise ValueError("Existing immutable factor snapshot hash mismatch")
+        return target
+    temporary = target.with_suffix(".npz.tmp")
+    try:
+        shutil.copyfile(original, temporary)
+        if hashlib.sha256(temporary.read_bytes()).hexdigest() != factor_sha:
+            raise ValueError("Factor changed while copying it for the experiment")
+        os.replace(temporary, target)
+    finally:
+        temporary.unlink(missing_ok=True)
+    return target
 
 
 def _validate_segment(info, graph_sha, factor_sha, seed, flip_sweeps):
@@ -153,7 +178,7 @@ def _all_scores(path, source, dest, graph_sha, factor_sha, seed, flip_sweeps):
             if method in original["methods"]:
                 _, values = load_method(original_archive / f"{method}.npz")
                 counts[method] = {i: float(v) for i, v in enumerate(values)}
-    root = dest / "segments" / path.stem
+    root = dest / "segments" / f"{path.stem}-{factor_sha[:16]}"
     for file in sorted(root.glob("*/r*-*.json")):
         info = json.loads(file.read_text(encoding="utf8"))
         values = _validate_segment(info, graph_sha, factor_sha, seed, flip_sweeps)
@@ -181,9 +206,10 @@ def round_saved_factor(path, *, source, dest, methods, first, restarts,
         raise ValueError("Invalid rounding range, seed or flip limit")
     if len(set(methods)) != len(methods) or any(m not in METHODS for m in methods):
         raise ValueError("Unknown or duplicated rounding method")
+    snapshot = _immutable_factor_copy(source, dest, path.stem, factor_sha)
     stop = first + restarts
     for method in methods:
-        segment = _segment_path(dest, path.stem, method, first, stop)
+        segment = _segment_path(dest, path.stem, factor_sha, method, first, stop)
         if segment.is_file():
             info = json.loads(segment.read_text(encoding="utf8"))
             _validate_segment(info, graph_sha, factor_sha, seed, max_flip_sweeps)
@@ -244,7 +270,7 @@ def round_saved_factor(path, *, source, dest, methods, first, restarts,
             "rounding_seed": seed, "max_flip_sweeps": max_flip_sweeps,
             "start_restart": first, "stop_restart_exclusive": stop,
             "archive_path": str(archive["path"]),
-            "factor_path": str(source / "factors" / f"{path.stem}.npz"),
+            "factor_path": str(snapshot),
             "trial_details": trial_details,
         }
         _write_json(segment, record)
@@ -257,7 +283,7 @@ def round_saved_factor(path, *, source, dest, methods, first, restarts,
     )
     summary = {
         "graph": path.stem, "graph_sha256": graph_sha,
-        "factor_sha256": factor_sha,
+        "factor_sha256": factor_sha, "factor_snapshot_path": str(snapshot),
         "factor_rank": vectors.shape[1], "factor_sweeps": case["factor_sweeps"],
         "rounding_seed": seed, "max_flip_sweeps": max_flip_sweeps,
         "methods": {
@@ -272,7 +298,7 @@ def round_saved_factor(path, *, source, dest, methods, first, restarts,
             for method, samples in combined.items() if samples
         },
     }
-    _write_json(dest / "summaries" / f"{path.stem}.json", summary)
+    _write_json(dest / "summaries" / f"{path.stem}-{factor_sha[:16]}.json", summary)
     return summary
 
 
