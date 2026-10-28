@@ -629,3 +629,26 @@ python -m maxkcut.eva_cutaware_kmeans_cli --graphs G63 --factor-dir results/gset
 All four partitions per identical saved restart are archived and
 verified. The longer 200/1,000-restart protocols are in
 [experiment012 notes](../notes/experiments/experiment012-cut-aware-kmeans-kl.md).
+
+
+## Experiment013 — systematic EVA rounding + KL grid (G63)
+
+Save and push all experiment012 results before changing to branch
+`experiment013-eva-pipeline-grid`. Reuse original EVA factors and
+1000 saved K-MeansNM-Flip restarts; the code does not solve EVA again.
+
+```powershell
+$env:PYTHONPATH = Join-Path (Get-Location).Path "src"
+python -m pytest tests/test_eva_pipeline_grid.py tests/test_eva_cutaware_kmeans.py -q
+python -m maxkcut.eva_pipeline_grid_cli --graphs G63 --top-starts 40 --workers 4 --chunk-size 10 --grid configs/experiment013-grid.json --target 27047
+```
+
+This evaluates 43 meaningful parameter combinations (rounding,
+flips, KL, repeated KL and ILS) on identical saved starts, ranking
+by the original signed Max-Cut score and saving every intermediate
+partition. The leaderboard JSON/CSV is under
+`results/gset/experiment013-eva-grid/leaderboards/`.
+Then promote the best configurations to 200 and all 1000 starts,
+with completed chunks automatically reused. The exact promotion
+commands and reproducibility caveats are in
+[Experiment013 protocol](../notes/experiments/experiment013-eva-pipeline-grid.md).
