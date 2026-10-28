@@ -16,6 +16,7 @@ test = ["pytest>=8"]
 docs = ["sphinx>=8,<10", "furo>=2024.8", "myst-parser>=4", "sphinx-copybutton>=0.5"]
 dev = ["pytest>=8", "sphinx>=8,<10", "furo>=2024.8", "myst-parser>=4", "sphinx-copybutton>=0.5"]
 gpu = ["torch>=2.10"]
+eva-fast = ["numba>=0.67,<0.69"]
 
 [project.scripts]
 maxkcut = "maxkcut.cli:main"
@@ -25,6 +26,7 @@ maxkcut-sdp-compare = "maxkcut.study_cli:main"
 maxkcut-sdp-batch = "maxkcut.sdp_batch_cli:main"
 maxkcut-sdp-publish = "maxkcut.sdp_publish_cli:main"
 maxkcut-eva = "maxkcut.eva_cli:main"
+maxkcut-eva-benchmark = "maxkcut.eva_benchmark_cli:main"
 maxkcut-eva-round = "maxkcut.eva_rounding_cli:main"
 
 [tool.setuptools.packages.find]
