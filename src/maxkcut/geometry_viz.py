@@ -69,9 +69,33 @@ def load_eva_artifacts(name, root=None, source=DEFAULT_EVA):
     graph_path = root / "data" / f"{name}.txt"
     case = json.loads((folder / "cases" / f"{name}.json").read_text(encoding="utf8"))
     graph_sha = hashlib.sha256(graph_path.read_bytes()).hexdigest()
-    if case.get("graph_sha256") != graph_sha or case.get("graph") != name:
-        raise ValueError("Graph input differs from the saved EVA case")
+    if case.get("graph") != name:
+        raise ValueError("Graph identifier differs from the saved EVA case")
     graph = load_graph(graph_path)
+    if case.get("graph_sha256") != graph_sha:
+        # Git may normalize CRLF (Windows) to LF (Linux) at checkout.
+        # Do not assume byte differences are harmless: compare the
+        # canonical weighted graph to the archived original edge snapshot.
+        stored_path = _archive_path(case, root, name, source)
+        manifest = json.loads(
+            (stored_path / "manifest.json").read_text(encoding="utf8")
+        )
+        if (manifest.get("graph_sha256") != case.get("graph_sha256")
+                or manifest.get("status") != "complete"):
+            raise ValueError("Saved graph checksum differs and archive is invalid")
+        with np.load(stored_path / "graph.npz", allow_pickle=False) as original:
+            archived_n = int(original["n"].item())
+            archived_edges = (original["i"], original["j"], original["weights"])
+            canonical_edges = edge_arrays(graph)
+            same = (
+                archived_n == graph.shape[0]
+                and all(np.array_equal(x, y) for x, y in
+                        zip(archived_edges, canonical_edges))
+            )
+        if not same:
+            raise ValueError("Saved graph differs in weighted edges from the current graph")
+        case = dict(case)
+        case["file_sha256_differs_but_weighted_graph_matches"] = True
     factor_path = folder / "factors" / f"{name}.npz"
     vectors, meta = load_eva_factor(factor_path)
     provenance = case.get("provenance", {})
