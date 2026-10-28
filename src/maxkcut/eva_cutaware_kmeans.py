@@ -267,7 +267,7 @@ def improve_kmeans_direction(
     # Perturb BOTH strong near-centroid directions and successful
     # incumbent hyperplanes, not only random Gaussian proposals.
     for trial in range(direction_trials):
-        if best_cut >= target if target is not None else False:
+        if target is not None and best_cut >= target:
             break
         action = trial % 6
         if action in (0, 1, 2, 3):
