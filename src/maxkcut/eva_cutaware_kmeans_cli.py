@@ -161,41 +161,16 @@ def _solve_chunk(job):
         directions_rng = np.random.default_rng(np.random.SeedSequence([
             job["rounding_seed"], job["graph_number"], 2, restart, 0,
         ]))
-        # Independent extension stream: retain identical initial
-        # K-Means center samples but do not perturb original seed
-        # schedules used in experiment008.
-        exploration_rng = np.random.default_rng(np.random.SeedSequence([
-            job["seed"], job["graph_number"], restart, 12012,
-        ]))
+        # Reuse the exact original K-MeansNM initialization and Lloyd
+        # trajectory, then extend its search with signed-cut-aware
+        # threshold optimization and seeded direction perturbations.
         aware_labels, aware_report = improve_kmeans_direction(
             _Y, _GRAPH, directions_rng,
-            direction_trials=0,
+            direction_trials=job["direction_trials"],
             kmeans_iters=job["kmeans_iters"],
             perturb_scales=job["perturb_scales"],
             target=job["target"],
         )
-        # The original code uses its SAME rng for K-Means trajectory.
-        # For extension proposals, use independent reproducible RNG.
-        if job["direction_trials"]:
-            # Seed a second full-direction search from the exact same
-            # rounded K-Means trajectory, then use a seeded random stream
-            # with an offset that keeps its initial trajectory intact.
-            # The main algorithm accepts rng with all the trajectory
-            # already consumed: use a new seed schedule for perturbation
-            # only by recomputing the known K-Means trajectory.
-            fresh_rng = np.random.default_rng(np.random.SeedSequence([
-                job["rounding_seed"], job["graph_number"], 2, restart, 0,
-            ]))
-            # Separate KMeans update is deterministic until direction
-            # perturbation begins; mixing in a random skip would alter
-            # the original K-Means iteration tie/fallback semantics.
-            aware_labels, aware_report = improve_kmeans_direction(
-                _Y, _GRAPH, fresh_rng,
-                direction_trials=job["direction_trials"],
-                kmeans_iters=job["kmeans_iters"],
-                perturb_scales=job["perturb_scales"],
-                target=job["target"],
-            )
 
         # Reproduce experiment010's deterministic KL control schedule.
         control_rng = np.random.default_rng(np.random.SeedSequence([
