@@ -56,12 +56,13 @@ def _select_tree(mst_dir, graph_name, metric, factor_sha_prefix):
 
 
 def _fingerprint(graph_sha, factor_sha, metric, q, seed, restarts,
-                 coarse_sweeps, vertex_sweeps, tree_sha):
+                 coarse_sweeps, vertex_sweeps, tree_sha, q_prefix):
     settings = {
         "graph_sha256": graph_sha,
         "factor_sha256": factor_sha,
         "tree_sha256": tree_sha,
         "metric": metric, "q": q, "seed": seed,
+        "nested_q_prefix": list(q_prefix),
         "restarts": restarts,
         "coarse_sweeps": coarse_sweeps,
         "vertex_sweeps": vertex_sweeps,
@@ -140,6 +141,7 @@ def run_graph(path, *, mst_dir, dest, metrics=METRICS,
             token, settings = _fingerprint(
                 graph_sha, factor_sha, metric, q, seed, coarse_restarts,
                 coarse_sweeps, vertex_sweeps, tree_sha,
+                q_values[:list(q_values).index(q) + 1],
             )
             case_path = dest / "cases" / f"{path.stem}-mst-{metric}-q{q}-{token}.json"
             if case_path.is_file():
