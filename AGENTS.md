@@ -594,3 +594,19 @@ Read instructions → inspect the current branch/files → state the mathematica
 - Synthetic tests: `tests/test_geometry_viz.py`; run Streamlit on
   Windows per `docs/geometry-dashboard.md`. Commit artifacts and
   handoff on this separate branch; no merge without explicit permission.
+
+
+
+## experiment004 — EVA local update inspection and real snapshot convention
+
+- The app's EVA update inspector computes (h_i=W_{i,:}Y),
+  target (y_i^star=-h_i/|h_i|), potential gain
+  ((|h_i|+h_i^	op y_i)/2) **at a frozen final factor**.
+  This is not a new optimizer or a replay of historical EVA states.
+- Optional actual saved trajectory frames: 
+  `results/gset/experiment002-eva/trajectory/Gxx/sweep-XXXXX.npz`
+  arrays `vectors`, `sweep`, `graph_sha256`. Missing frames
+  must be explicitly marked unavailable, never simulated.
+- One-command Windows read-only UI launcher:
+  `powershell -ExecutionPolicy Bypass -File scripts/launch_geometry_dashboard.ps1`.
+  Reuse cached factor/checkpoint and graph archives. 
