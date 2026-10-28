@@ -588,3 +588,24 @@ python -m maxkcut.eva_escape_cli --graphs G63 --source-dir results/gset/experime
 Use `--top-starts 1000` to run the full archive, automatically skipping
 verified already-completed chunks under the same settings.
 See [Experiment010 protocol](notes/experiments/experiment010-kmeans-kl-tabu.md).
+
+
+### Experiment011 — Intensive elite KL search toward G63 27,047
+
+G63's verified feasible 26,682 K-MeansNM-Flip baseline improved to
+**26,886** through experiment010's KL; the new **27,047** target is
+161 above this result, not a certified optimum. Experiment011 starts
+from the independently verified **KL output partitions**, not the
+original EVA vectors. Three independent strategies run concurrently:
+**ILS-KL** (variable Hamming perturbations), **EliteMix-KL**
+(complement-aligned elite recombination), and **Tabu-KL** (adaptive
+Tabu bursts followed by KL). A compiled indexed max-heap reduces
+KL's per-pass selection work from O(n²) scans to O((n+m)log n).
+
+```powershell
+python -m maxkcut.eva_elite_cli --graphs G63 --methods ILS-KL EliteMix-KL --top-elites 24 --replicates 5 --cycles 80 --kl-passes 12 --workers 4 --target 27047 --source-dir results/gset/experiment010-eva-kl-tabu --output-dir results/gset/experiment011-elite-search
+```
+
+No EVA rerun, PCA, MST or new rounding. All per-cycle traces and
+signed-weight verified final partitions are archived with resumable
+per-chunk checkpoints. See [experiment011 notes](notes/experiments/experiment011-kl-elite-search.md).
