@@ -461,9 +461,17 @@ def run_graph(
         "methods": statistics,
         "benchmark": benchmark,
     }
+    # Preserve summaries from the top-200 pilot when later extending to
+    # all 1,000 starts or changing budgets. Completed archives are append-only.
+    summary_signature = hashlib.sha256(json.dumps({
+        "graph": path.stem, "factor": factor_sha,
+        "source_method": source_method, "selected_ids": ids,
+        "methods": list(methods), "settings": report["settings"],
+    }, sort_keys=True).encode("utf8")).hexdigest()[:16]
     _write_json(
         output_dir / "summaries" /
-        f"{path.stem}-{source_method}-{factor_sha[:16]}.json", report,
+        f"{path.stem}-{source_method}-{factor_sha[:16]}-{summary_signature}.json",
+        report,
     )
     print(
         f"{path.stem}: " +
