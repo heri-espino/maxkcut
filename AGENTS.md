@@ -701,3 +701,32 @@ Read instructions → inspect the current branch/files → state the mathematica
   Research notes: notes/experiments/experiment012-cut-aware-kmeans-kl.md.
   Numerical G63 objective target 27,047 is NOT a certificate;
   earlier best verified by user is 26,886 (KL).
+
+
+## Experiment013 — full EVA rounding/refinement grid
+
+- EVA input has already been optimized; DO NOT rerun SDP/EVA, redo MST
+  or truncate the saved original EVA dimensions. Reuse verified
+  experiment003 factors and 1,000 experiment008 bit-packed
+  K-MeansNM-Flip source partitions, checking original weighted graph,
+  graph/factor/source-partition SHA256, and source restart indices.
+- configs/experiment013-grid.json is source of truth for method and
+  hyperparameter families. Expand into unique deterministic
+  fingerprinted pipeline configurations. Compare identical paired
+  restart IDs in every configuration; avoid mixing scores from
+  different budgets, code versions, sources, or random seed schedules.
+- Score original signed weighted Max-Cut at EACH stage, preserving
+  four full binary labels in independently verifiable graph archives:
+  Round, Flip, KL, Final. The Flip/KL/ILS refinements must never
+  worsen their own previous stage, but alternative rounding need not
+  beat an already flip-improved K-MeansNM source cut.
+- Runner: src/maxkcut/eva_pipeline_grid_cli.py, method utilities:
+  eva_pipeline_grid.py. Test signed objectives, seeded historical
+  experiment010 KL reproduction, Windows parallel archive/resume,
+  top-k promotion: tests/test_eva_pipeline_grid.py.
+- Execute 43 configs x top-40 selected starts, promote top 8 to 200,
+  top 3 to all 1,000, with identical chunk size and settings so
+  completed chunks are verified and skipped. Save source code,
+  experiment JSON, trials, archives, summary/leaderboard, and logs
+  in GitHub. Numerical target 27,047 is NOT a certified optimum.
+  See notes/experiments/experiment013-eva-pipeline-grid.md.
