@@ -34,21 +34,61 @@ def _signed_graph():
 
 
 @pytest.mark.parametrize("seed", [1, 2026, 42])
-def test_compiled_matches_numpy_objective_and_factor(seed):
+@pytest.mark.parametrize("tolerance", [1e-3, 1e-5])
+def test_compiled_matches_numpy_objective_and_factor(seed, tolerance):
+    """At meaningful EVA tolerances, the two sequential algorithms agree."""
     graph = _signed_graph()
+    ref_y, ref = solve_eva(
+        graph, seed=seed, rank=4, max_sweeps=40, tolerance=tolerance,
+    )
+    fast_y, fast = solve_eva_numba(
+        graph, seed=seed, rank=4, max_sweeps=40, tolerance=tolerance,
+    )
+    # Different floating point reduction order causes sub-ulp variation.
+    np.testing.assert_allclose(fast_y, ref_y, rtol=1e-9, atol=1e-9)
+    assert fast["sweeps"] == ref["sweeps"]
+    assert fast["converged"] == ref["converged"]
+    assert abs(fast["objective"] - ref["objective"]) < 1e-7
+    assert abs(fast["max_angle"] - ref["max_angle"]) < 1e-7
+    assert abs(fast["objective"] - vector_objective(graph, fast_y)) < 1e-7
+
+
+@pytest.mark.parametrize("seed", [1, 2026, 42])
+def test_compiled_strict_threshold_same_fixed_sweep_trajectory(seed):
+    """For 1e-8 angular thresholds, compare fixed trajectories, not stop count.
+
+    acos(dot) near dot=1 has resolution only around 1.49e-8 rad in
+    double precision; one backend may see cosine==1 while the other
+    sees 0.9999999999999999 and run another sweep. This is a stopping
+    diagnostic issue, not a materially different optimization step.
+    """
+    graph = _signed_graph()
+    # Five sweeps precede convergence for each seed and hence eliminate
+    # the ill-conditioned stop test from the algorithmic parity check.
+    ref_y, ref = solve_eva(
+        graph, seed=seed, rank=4, max_sweeps=5, tolerance=1e-8,
+    )
+    fast_y, fast = solve_eva_numba(
+        graph, seed=seed, rank=4, max_sweeps=5, tolerance=1e-8,
+    )
+    assert ref["sweeps"] == fast["sweeps"] == 5
+    np.testing.assert_allclose(fast_y, ref_y, rtol=1e-12, atol=1e-12)
+    assert abs(fast["objective"] - ref["objective"]) < 1e-9
+    assert abs(fast["objective"] - vector_objective(graph, fast_y)) < 1e-9
+
+    # At the machine-resolution boundary the implementations may stop at
+    # different iterations. Check the final numerical solutions instead.
     ref_y, ref = solve_eva(
         graph, seed=seed, rank=4, max_sweeps=40, tolerance=1e-8,
     )
     fast_y, fast = solve_eva_numba(
         graph, seed=seed, rank=4, max_sweeps=40, tolerance=1e-8,
     )
-    # BLAS vs scalar accumulation can differ by a few floating-point ulps.
-    np.testing.assert_allclose(fast_y, ref_y, rtol=1e-7, atol=1e-7)
-    assert fast["sweeps"] == ref["sweeps"]
-    assert fast["converged"] == ref["converged"]
-    assert abs(fast["objective"] - ref["objective"]) < 1e-6
-    assert abs(fast["max_angle"] - ref["max_angle"]) < 1e-6
-    assert abs(fast["objective"] - vector_objective(graph, fast_y)) < 1e-6
+    np.testing.assert_allclose(fast_y, ref_y, rtol=1e-8, atol=1e-8)
+    assert abs(fast["objective"] - ref["objective"]) < 1e-8
+    assert abs(fast["objective"] - vector_objective(graph, fast_y)) < 1e-8
+    assert np.isfinite(fast["max_angle"])
+    assert np.isfinite(ref["max_angle"])
 
 
 def test_compiled_checkpoint_resume_and_backend_isolation(tmp_path):
