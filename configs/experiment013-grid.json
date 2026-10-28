@@ -1,0 +1,132 @@
+{
+  "version": 1,
+  "description": "G63 original EVA factor: staged Max-Cut grid over rounders, signed flip sweeps, generalized KL passes, KL seed repeats, and iterated KL. Evaluate same archived restart indices for every configuration. No EVA reruns.",
+  "families": [
+    {
+      "name": "SavedKMeansFlip+KL",
+      "rounder": "saved-kmeans-flip",
+      "axes": {
+        "kl_passes": [
+          0,
+          15,
+          30,
+          60
+        ]
+      }
+    },
+    {
+      "name": "SavedKMeansFlip+MultiKL",
+      "rounder": "saved-kmeans-flip",
+      "axes": {
+        "kl_passes": [
+          15,
+          30,
+          60
+        ],
+        "kl_repeats": [
+          3
+        ]
+      }
+    },
+    {
+      "name": "SphericalKMeansNM",
+      "rounder": "kmeansnm",
+      "axes": {
+        "flip_sweeps": [
+          0,
+          20,
+          100
+        ],
+        "kl_passes": [
+          0,
+          15,
+          40
+        ]
+      }
+    },
+    {
+      "name": "OrdinarySphericalKMeans",
+      "rounder": "kmeans2n",
+      "axes": {
+        "flip_sweeps": [
+          0,
+          20
+        ],
+        "kl_passes": [
+          15,
+          40
+        ]
+      }
+    },
+    {
+      "name": "GW",
+      "rounder": "gw",
+      "axes": {
+        "flip_sweeps": [
+          0,
+          20
+        ],
+        "kl_passes": [
+          15,
+          40
+        ]
+      }
+    },
+    {
+      "name": "GWExactThreshold",
+      "rounder": "gw-threshold",
+      "axes": {
+        "flip_sweeps": [
+          0,
+          20
+        ],
+        "kl_passes": [
+          15,
+          40
+        ]
+      }
+    },
+    {
+      "name": "CutAwareKMeansNM",
+      "rounder": "cutaware-kmeans",
+      "axes": {
+        "direction_trials": [
+          0,
+          48,
+          256
+        ],
+        "flip_sweeps": [
+          0,
+          20
+        ],
+        "kl_passes": [
+          15,
+          40
+        ]
+      }
+    },
+    {
+      "name": "SavedKMeansFlip+KL+ILS",
+      "rounder": "saved-kmeans-flip",
+      "base": {
+        "kl_passes": 30
+      },
+      "axes": {
+        "ils_cycles": [
+          20,
+          80
+        ]
+      }
+    },
+    {
+      "name": "CutAwareKMeansNM+KL+ILS",
+      "rounder": "cutaware-kmeans",
+      "base": {
+        "direction_trials": 256,
+        "flip_sweeps": 20,
+        "kl_passes": 40,
+        "ils_cycles": 40
+      }
+    }
+  ]
+}
