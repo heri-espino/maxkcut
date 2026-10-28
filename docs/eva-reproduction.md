@@ -131,15 +131,15 @@ benchmark verification on the user's Windows VM yet.
 
 ## All 71 canonical G-set graphs
 
-To run every canonical \`data/G*.txt\` instance (including G77 and G81),
-use **\`--graphs ALL --max-n 20000\`**, plus per-graph error isolation.
+To run every canonical `data/G*.txt` instance (including G77 and G81),
+use **`--graphs ALL --max-n 20000`**, plus per-graph error isolation.
 This runs the experimental **EVA vector relaxation**, not 71 convex CVXPY/SCS
-SDPs, and does not overwrite \`reports/gset/full-sdp-threads32/\`.
+SDPs, and does not overwrite `reports/gset/full-sdp-threads32/`.
 
 First recover the Python imports if Windows blocked editable reinstall
-because a previous \`maxkcut-sdp-batch.exe\` remained open:
+because a previous `maxkcut-sdp-batch.exe` remained open:
 
-\`\`\`powershell
+```powershell
 cd C:\Users\175199\maxkcut
 conda activate maxkcut
 git fetch origin
@@ -147,18 +147,18 @@ git switch experiment002-eva-factor-reproduction
 git pull --ff-only
 $env:PYTHONPATH = Join-Path (Get-Location).Path "src"
 python -m pytest tests/test_eva.py -q
-\`\`\`
+```
 
 Then run the complete sweep, specifying **both** convex-SDP directories
 in the priority order they should be consulted:
 
-\`\`\`powershell
+```powershell
 python -m maxkcut.eva_cli --graphs ALL --max-n 20000 --max-sweeps 10000 --tolerance 0.001 --restarts 20 --cpu-threads 1 --continue-on-error --convex-dir reports/gset/full-sdp-batch reports/gset/full-sdp-threads32 --output-dir results/gset/experiment002-eva --push --push-branch experiment002-eva-factor-reproduction --push-every 250
-\`\`\`
+```
 
 - Every graph gets a persistent factor checkpoint, up to 60 complete
   bit-packed partitions, diagnostics and provenance, plus a fresh row
-  in \`results/gset/experiment002-eva/summary.csv\`.
+  in `results/gset/experiment002-eva/summary.csv`.
 - The CSV records the EVA continuous objective, rank, iterations,
   best cut by each method, convex solver continuous objective (when
   archive-verified), convex best cuts and EVA–convex differences.
@@ -170,9 +170,9 @@ python -m maxkcut.eva_cli --graphs ALL --max-n 20000 --max-sweeps 10000 --tolera
   a nonnumeric status, **never an invented objective/cut**.
 - A rerun verifies factors, graph/settings and partition archives before
   skipping existing complete cases. Interrupted factors resume from
-  their latest checkpoint; failed cases are recorded in \`errors/Gxx.json\`
-  and the batch continues with \`--continue-on-error\`.
-- \`--push-every 250\` uploads a checkpoint every 250 full sweeps and
+  their latest checkpoint; failed cases are recorded in `errors/Gxx.json`
+  and the batch continues with `--continue-on-error`.
+- `--push-every 250` uploads a checkpoint every 250 full sweeps and
   pushes each completed/failed case to the experiment branch. Git push
   requires working authentication. Closing the VM before the next push
   may still lose recent local sweeps.
@@ -184,12 +184,12 @@ python -m maxkcut.eva_cli --graphs ALL --max-n 20000 --max-sweeps 10000 --tolera
   67-instance G-set variant. Report this scope difference.
 - If a graph is already complete but comparisons were unavailable,
   re-running the same command refreshes comparisons **without solving**.
-- If the target environment cannot install the \`maxkcut-eva\` console
-  script, use \`python -m maxkcut.eva_cli\` as above.
+- If the target environment cannot install the `maxkcut-eva` console
+  script, use `python -m maxkcut.eva_cli` as above.
 
 Quick result inspection:
 
-\`\`\`powershell
+```powershell
 Import-Csv results/gset/experiment002-eva/summary.csv | Group-Object status | Format-Table Name,Count
 Import-Csv results/gset/experiment002-eva/summary.csv | Where-Object {$_.convex_status -eq 'compared'} | Format-Table graph,eva_KMeansNM_best,convex_KMeansNM_best,best_cut_eva_minus_convex -AutoSize
-\`\`\`
+```
