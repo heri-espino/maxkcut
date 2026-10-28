@@ -520,3 +520,9 @@ Each metric is deterministic: there are no meaningful MST restarts.
     python -m maxkcut.eva_mst_cli --graphs G63 --metrics l1 l2 linf --max-n 10000 --source-dir results/gset/experiment003-eva-numba --output-dir results/gset/experiment005-eva-mst
 
 See [experiment005 protocol](notes/experiments/experiment005-eva-mst.md).
+
+
+Full 71-graph mode (saved factors only, no optimizer) searches the
+Numba output first, then the original NumPy output:
+
+    python -m maxkcut.eva_mst_cli --graphs ALL --metrics l1 l2 linf --max-n 20000 --source-dir results/gset/experiment003-eva-numba --fallback-source-dir results/gset/experiment002-eva --output-dir results/gset/experiment005-eva-mst --continue-on-error --push --push-branch experiment005-eva-mst-single-linkage
