@@ -85,3 +85,19 @@ signed-weight saved partition scores.
 
 No numerical G-set result is claimed before the local experiment
 has run and its outputs have been committed to GitHub.
+
+## Entire canonical 71-graph corpus
+
+To cover every graph without rerunning EVA, prefer the completed Numba
+factors where present and fall back to the saved NumPy experiment002
+factor for other graphs. Each case records its actual source directory
+and the precise factor SHA256, so the two source families are not
+silently conflated:
+
+    python -m maxkcut.eva_mst_cli --graphs ALL --max-n 20000 --metrics l1 l2 linf --source-dir results/gset/experiment003-eva-numba --fallback-source-dir results/gset/experiment002-eva --output-dir results/gset/experiment005-eva-mst --continue-on-error --push --push-branch experiment005-eva-mst-single-linkage
+
+Only completed saved factors can be processed. Missing or invalid cases
+are reported explicitly under errors/; a nonzero exit code means some
+of the 71 MST cases failed. Distinct source factors are independently
+identified and never optimized again. This batch is potentially costly
+on G77/G81 (exact complete-graph MST, not kNN approximation).
