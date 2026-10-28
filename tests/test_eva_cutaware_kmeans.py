@@ -48,7 +48,7 @@ def test_exact_threshold_matches_brute_force_for_signed_graph(seed):
     scores.append(0.)
     assert observed == pytest.approx(max(scores), abs=1e-8)
     assert diag["cut"] == observed
-    assert diag["group_sizes"] == list(np.bincount(result, minlength=2)[::-1])
+    assert diag["group_sizes"] == np.bincount(result, minlength=2).tolist()
     # Threshold decisions are monotone by ordering.
     order = np.argsort(projection, kind="stable")
     assert not np.any(np.diff(result[order]) > 0)
