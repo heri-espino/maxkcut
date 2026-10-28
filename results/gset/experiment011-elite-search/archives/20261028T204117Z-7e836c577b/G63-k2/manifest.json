@@ -1,0 +1,152 @@
+{
+  "argv": [
+    "experiment011",
+    "ILS-KL",
+    "data\\G63.txt"
+  ],
+  "created_utc": "2026-10-28T20:41:17.549888+00:00",
+  "git": {
+    "commit": "4e0339a867dd07d5b7c82f04c9505b8797be9979",
+    "dirty": false
+  },
+  "graph": "G63",
+  "graph_diagnostics": {
+    "density": 0.0016924458596125978,
+    "negative_edges": 0,
+    "positive_edges": 41459,
+    "sum_of_absolute_edge_weights": 41459.0,
+    "sum_of_edge_weights": 41459.0,
+    "weight_max": 1.0,
+    "weight_min": 1.0,
+    "zero_edges": 0
+  },
+  "graph_sha256": "4b18d3df87d09e128e7cc4a1f175fa9ba2e374567405a231eef6135b1b40c946",
+  "graph_snapshot": "graph.npz",
+  "graph_source": "C:\\Users\\175199\\maxkcut\\data\\G63.txt",
+  "k": 2,
+  "m": 41459,
+  "methods": {
+    "Elite-ILSKL_EVA": {
+      "best_cut": 26915.0,
+      "best_restart": 2,
+      "encoding": "bits-little",
+      "mean_cut": 26904.5,
+      "median_cut": 26903.0,
+      "partition_file": "Elite-ILSKL_EVA.npz",
+      "restarts": 8,
+      "sample_std_cut": 4.810702354423639,
+      "worst_cut": 26900.0
+    }
+  },
+  "n": 7000,
+  "platform": {
+    "logical_cpus": 32,
+    "os": "Windows-11-10.0.26100-SP0",
+    "python": "3.12.15"
+  },
+  "results_jsonl": "C:\\Users\\175199\\maxkcut\\results\\gset\\experiment011-elite-search\\trials\\G63-ILS-KL-6db8efaa3540ace928e2.jsonl",
+  "run_id": "20261028T204117Z-7e836c577b",
+  "schema_version": 1,
+  "settings": {
+    "algorithm_version": "experiment011-elite-v1",
+    "base_seed": 2026,
+    "budget": {
+      "boundary_fraction": 0.65,
+      "cycles": 80,
+      "kick_sizes": [
+        8,
+        16,
+        32,
+        64,
+        128,
+        256
+      ],
+      "kl_passes": 12,
+      "tabu_stagnation": 3000,
+      "tabu_steps": 10000,
+      "tabu_tenure": 15,
+      "target": 27047.0,
+      "temperature": 12.0
+    },
+    "elite_pool_sha256": "fbc727b32342020a9f0d8885ecc672a7347849b447c3b67b71bc2be8e2a87e30",
+    "episodes": [
+      {
+        "input_cut": 26861.0,
+        "replicate": 4,
+        "source_restart": 469
+      },
+      {
+        "input_cut": 26861.0,
+        "replicate": 0,
+        "source_restart": 525
+      },
+      {
+        "input_cut": 26861.0,
+        "replicate": 1,
+        "source_restart": 525
+      },
+      {
+        "input_cut": 26861.0,
+        "replicate": 2,
+        "source_restart": 525
+      },
+      {
+        "input_cut": 26861.0,
+        "replicate": 3,
+        "source_restart": 525
+      },
+      {
+        "input_cut": 26861.0,
+        "replicate": 4,
+        "source_restart": 525
+      },
+      {
+        "input_cut": 26861.0,
+        "replicate": 0,
+        "source_restart": 576
+      },
+      {
+        "input_cut": 26861.0,
+        "replicate": 1,
+        "source_restart": 576
+      }
+    ],
+    "graph_sha256": "4b18d3df87d09e128e7cc4a1f175fa9ba2e374567405a231eef6135b1b40c946",
+    "method": "ILS-KL",
+    "source_archive_hashes": [
+      "1c5fa6ba574c71bf4cd8f9224a1096a6ab47948a0f5a27736169f2b30da92e16",
+      "57f90f51e21d53b7bfa868696e034fd2ef7856e5bd68326918c6f7d59c15b612",
+      "7ec3823221f66ec1df357f0afa3f71095b7496db90309e5e657027162f7031cc",
+      "8007cc0c4bf09967c91068915101cdd6f27e29f6e8b05d0a884992ea29b7be68",
+      "aed513372809a069df23142e5e0252ab2b28db391b9a5f88b4bca9360a2afe6e",
+      "bc38fdd336f526bcdc5dc3293894f2bb7ed5fba166b88b9deff9fd1f354e498c",
+      "c036d980da19b6b2d1da95c26e2bb66920e64f739d93201b435e4cf8b304fae0",
+      "ee26f691ede09039d3248b04e0ccc428aded948847c53d05fabf6d5a76cd2903",
+      "f114a9a43bfbebe7eb12c5a6a0b545f8fbe20b20199f6304b91ae7e3403b17d6",
+      "ffb9c877d501321d1e0e570f3af8e09ce55d6c7205a23d2b121d58ea058ac3cc"
+    ],
+    "source_factor_sha256": "ae14711285d29ab1050a508de108e6e8da9fce5c1debe7f600c6aad28d3efc24",
+    "source_kl_passes": 30,
+    "source_kl_seed": 2026,
+    "source_method": "K-MeansNM-Flip_EVA"
+  },
+  "solver_info": {
+    "best_after": 26915.0,
+    "best_start": 26861.0,
+    "method": "ILS-KL",
+    "original_graph_only": true,
+    "target": 27047.0,
+    "total_cycles": 640
+  },
+  "status": "complete",
+  "versions": {
+    "clarabel": "0.11.1",
+    "cvxpy": "1.9.3",
+    "maxkcut": "0.1.0",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "scs": "3.3.1",
+    "sdpa-python": "0.2.3",
+    "threadpoolctl": "3.7.0"
+  }
+}
