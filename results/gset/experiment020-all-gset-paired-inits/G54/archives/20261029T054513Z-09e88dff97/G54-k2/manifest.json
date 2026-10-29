@@ -1,0 +1,138 @@
+{
+  "argv": [
+    "experiment019",
+    "initializer=sample-antipodal"
+  ],
+  "created_utc": "2026-10-29T05:45:13.255599+00:00",
+  "git": {
+    "commit": "25a349fac27b01efc7e12a2f1ced57368dbe3ad6",
+    "dirty": false
+  },
+  "graph": "G54",
+  "graph_diagnostics": {
+    "density": 0.011843843843843843,
+    "negative_edges": 0,
+    "positive_edges": 5916,
+    "sum_of_absolute_edge_weights": 5916.0,
+    "sum_of_edge_weights": 5916.0,
+    "weight_max": 1.0,
+    "weight_min": 1.0,
+    "zero_edges": 0
+  },
+  "graph_sha256": "d9a2925fdb1f6ffa84ccc62ed0d3470b3a7ea79c477415b0dbd13f7069c899ff",
+  "graph_snapshot": "graph.npz",
+  "graph_source": "C:\\Users\\175199\\actions-runner\\actions-runner\\_work\\maxkcut\\maxkcut\\data\\G54.txt",
+  "k": 2,
+  "m": 5916,
+  "methods": {
+    "Exp019-Final_EVA": {
+      "best_cut": 3838.0,
+      "best_restart": 2,
+      "encoding": "bits-little",
+      "mean_cut": 3834.6,
+      "median_cut": 3836.0,
+      "partition_file": "Exp019-Final_EVA.npz",
+      "restarts": 5,
+      "sample_std_cut": 3.6469165057620936,
+      "worst_cut": 3829.0
+    },
+    "Exp019-Flip_EVA": {
+      "best_cut": 3806.0,
+      "best_restart": 2,
+      "encoding": "bits-little",
+      "mean_cut": 3796.8,
+      "median_cut": 3794.0,
+      "partition_file": "Exp019-Flip_EVA.npz",
+      "restarts": 5,
+      "sample_std_cut": 5.585696017507576,
+      "worst_cut": 3792.0
+    },
+    "Exp019-KL_EVA": {
+      "best_cut": 3833.0,
+      "best_restart": 2,
+      "encoding": "bits-little",
+      "mean_cut": 3825.2,
+      "median_cut": 3825.0,
+      "partition_file": "Exp019-KL_EVA.npz",
+      "restarts": 5,
+      "sample_std_cut": 6.3796551630946325,
+      "worst_cut": 3818.0
+    },
+    "Exp019-Round_EVA": {
+      "best_cut": 3736.0,
+      "best_restart": 2,
+      "encoding": "bits-little",
+      "mean_cut": 3728.2,
+      "median_cut": 3729.0,
+      "partition_file": "Exp019-Round_EVA.npz",
+      "restarts": 5,
+      "sample_std_cut": 7.661592523751182,
+      "worst_cut": 3716.0
+    }
+  },
+  "n": 1000,
+  "platform": {
+    "logical_cpus": 32,
+    "os": "Windows-11-10.0.26100-SP0",
+    "python": "3.12.15"
+  },
+  "results_jsonl": "C:\\Users\\175199\\actions-runner\\actions-runner\\_work\\maxkcut\\maxkcut\\results\\gset\\experiment020-all-gset-paired-inits\\G54\\trials\\G54-init-full-sample-antipodal-e0ce5da99c8ffb313cad.jsonl",
+  "run_id": "20261029T054513Z-09e88dff97",
+  "schema_version": 1,
+  "settings": {
+    "budget": {
+      "flip_sweeps": 20,
+      "ils_cycles": 80,
+      "ils_kl_passes": 8,
+      "kick_sizes": [
+        8,
+        16,
+        32,
+        64
+      ],
+      "kl_passes": 30,
+      "kmeans_iters": 100,
+      "rounding_seed": 2026,
+      "search_seed": 2026,
+      "target": 27047.0,
+      "temperature": 12.0
+    },
+    "initializer": "sample-antipodal",
+    "original_EVA_factor_sha256": "c8b770018f0fa80ef112886b13388a51bc5ef4d38f47bb0fc99448395d00b535",
+    "original_graph_sha256": "d9a2925fdb1f6ffa84ccc62ed0d3470b3a7ea79c477415b0dbd13f7069c899ff",
+    "restart_ids": [
+      35,
+      36,
+      37,
+      38,
+      39
+    ],
+    "stages": [
+      "Round",
+      "Flip",
+      "KL",
+      "Final"
+    ],
+    "version": "experiment019-kmeans-init-full-pipeline-v1"
+  },
+  "solver_info": {
+    "ils_implementation": "eva_elite_search.optimize_elite",
+    "initializer": "sample-antipodal",
+    "matched_paired_restart_seeds": true,
+    "original_EVA_factor_frozen": true,
+    "original_graph_signed": true,
+    "postprocessing": "positive-gain flips -> generalized KL -> ILS-KL",
+    "rounding": "spherical-2-means"
+  },
+  "status": "complete",
+  "versions": {
+    "clarabel": "0.11.1",
+    "cvxpy": "1.9.3",
+    "maxkcut": null,
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "scs": "3.3.1",
+    "sdpa-python": "0.2.3",
+    "threadpoolctl": "3.7.0"
+  }
+}

@@ -1,0 +1,445 @@
+{
+  "archive_path": "results\\gset\\experiment020-all-gset-paired-inits\\G57\\archives\\20261029T054636Z-8702e8d0ee\\G57-k2",
+  "best_final": 3444.0,
+  "graph": "G57",
+  "id": "96d826d388732d2aa605",
+  "settings": {
+    "budget": {
+      "flip_sweeps": 20,
+      "ils_cycles": 80,
+      "ils_kl_passes": 8,
+      "kick_sizes": [
+        8,
+        16,
+        32,
+        64
+      ],
+      "kl_passes": 30,
+      "kmeans_iters": 100,
+      "rounding_seed": 2026,
+      "search_seed": 2026,
+      "target": 27047.0,
+      "temperature": 12.0
+    },
+    "initializer": "paired",
+    "original_EVA_factor_sha256": "64303924d41222c1f33af81dc12cb011a52ddb2dce3a9f27d41b160ac81e40b8",
+    "original_graph_sha256": "8a518ba6820d863547bfb96c8a4ae571c5c73e6166b7b0d204dac28ebb151749",
+    "restart_ids": [
+      10,
+      11,
+      12,
+      13,
+      14
+    ],
+    "stages": [
+      "Round",
+      "Flip",
+      "KL",
+      "Final"
+    ],
+    "version": "experiment019-kmeans-init-full-pipeline-v1"
+  },
+  "status": "complete",
+  "trials": [
+    {
+      "flip": {
+        "cut_weight": 3270.0,
+        "flips": 42,
+        "initial_cut": 3186.0,
+        "seconds": 0.0,
+        "sweeps": 2,
+        "termination": "local_optimum"
+      },
+      "ils": {
+        "best_events": [
+          {
+            "cycle": 1,
+            "new_best_cut": 3434.0
+          },
+          {
+            "cycle": 2,
+            "new_best_cut": 3438.0
+          },
+          {
+            "cycle": 8,
+            "new_best_cut": 3440.0
+          },
+          {
+            "cycle": 71,
+            "new_best_cut": 3442.0
+          }
+        ],
+        "cut_weight": 3442.0,
+        "cycles_completed": 80,
+        "improvement": 14.0,
+        "initial_cut": 3428.0,
+        "method": "ILS-KL",
+        "seconds": 0.3910000007599592,
+        "termination": "cycle_limit"
+      },
+      "initializer": "paired",
+      "kl": {
+        "cut_weight": 3428.0,
+        "flips_retained": 5765,
+        "improvement": 158.0,
+        "initial_cut": 3270.0,
+        "passes_improved": 7,
+        "seconds": 2.389999999664724,
+        "termination": "no_improving_gain_sequence"
+      },
+      "restart": 10,
+      "rounding": {
+        "best_raw_cut": 3186.0,
+        "distinct_binary_merges_seen": 22,
+        "init": "paired",
+        "initialization_details": {
+          "screened_hard_cuts": 0
+        },
+        "k": 2,
+        "lloyd_iterations": 23,
+        "max_iter": 100,
+        "nontrivial_group_assignments_per_iteration": 1,
+        "seconds": 0.1880000000819564,
+        "tested_group_assignments_per_iteration": 2
+      },
+      "scores": {
+        "Final": 3442.0,
+        "Flip": 3270.0,
+        "KL": 3428.0,
+        "Round": 3186.0
+      },
+      "timing": {
+        "flip_seconds": 0.0,
+        "ils_seconds": 0.3910000007599592,
+        "kl_seconds": 2.8119999999180436,
+        "round_seconds": 0.1880000000819564,
+        "total_seconds": 3.391000000759959
+      }
+    },
+    {
+      "flip": {
+        "cut_weight": 3258.0,
+        "flips": 42,
+        "initial_cut": 3174.0,
+        "seconds": 0.0,
+        "sweeps": 2,
+        "termination": "local_optimum"
+      },
+      "ils": {
+        "best_events": [
+          {
+            "cycle": 1,
+            "new_best_cut": 3416.0
+          },
+          {
+            "cycle": 3,
+            "new_best_cut": 3428.0
+          },
+          {
+            "cycle": 5,
+            "new_best_cut": 3430.0
+          },
+          {
+            "cycle": 11,
+            "new_best_cut": 3432.0
+          },
+          {
+            "cycle": 18,
+            "new_best_cut": 3434.0
+          },
+          {
+            "cycle": 61,
+            "new_best_cut": 3436.0
+          },
+          {
+            "cycle": 62,
+            "new_best_cut": 3438.0
+          }
+        ],
+        "cut_weight": 3438.0,
+        "cycles_completed": 80,
+        "improvement": 24.0,
+        "initial_cut": 3414.0,
+        "method": "ILS-KL",
+        "seconds": 0.45299999974668026,
+        "termination": "cycle_limit"
+      },
+      "initializer": "paired",
+      "kl": {
+        "cut_weight": 3414.0,
+        "flips_retained": 3599,
+        "improvement": 156.0,
+        "initial_cut": 3258.0,
+        "passes_improved": 4,
+        "seconds": 0.015999999828636646,
+        "termination": "no_improving_gain_sequence"
+      },
+      "restart": 11,
+      "rounding": {
+        "best_raw_cut": 3174.0,
+        "distinct_binary_merges_seen": 32,
+        "init": "paired",
+        "initialization_details": {
+          "screened_hard_cuts": 0
+        },
+        "k": 2,
+        "lloyd_iterations": 33,
+        "max_iter": 100,
+        "nontrivial_group_assignments_per_iteration": 1,
+        "seconds": 0.125,
+        "tested_group_assignments_per_iteration": 2
+      },
+      "scores": {
+        "Final": 3438.0,
+        "Flip": 3258.0,
+        "KL": 3414.0,
+        "Round": 3174.0
+      },
+      "timing": {
+        "flip_seconds": 0.0,
+        "ils_seconds": 0.45299999974668026,
+        "kl_seconds": 0.015999999828636646,
+        "round_seconds": 0.125,
+        "total_seconds": 0.6089999992400408
+      }
+    },
+    {
+      "flip": {
+        "cut_weight": 3278.0,
+        "flips": 43,
+        "initial_cut": 3192.0,
+        "seconds": 0.0,
+        "sweeps": 2,
+        "termination": "local_optimum"
+      },
+      "ils": {
+        "best_events": [
+          {
+            "cycle": 3,
+            "new_best_cut": 3416.0
+          },
+          {
+            "cycle": 4,
+            "new_best_cut": 3418.0
+          },
+          {
+            "cycle": 5,
+            "new_best_cut": 3420.0
+          },
+          {
+            "cycle": 44,
+            "new_best_cut": 3422.0
+          }
+        ],
+        "cut_weight": 3422.0,
+        "cycles_completed": 80,
+        "improvement": 8.0,
+        "initial_cut": 3414.0,
+        "method": "ILS-KL",
+        "seconds": 0.42200000025331974,
+        "termination": "cycle_limit"
+      },
+      "initializer": "paired",
+      "kl": {
+        "cut_weight": 3414.0,
+        "flips_retained": 3885,
+        "improvement": 136.0,
+        "initial_cut": 3278.0,
+        "passes_improved": 5,
+        "seconds": 0.014999999664723873,
+        "termination": "no_improving_gain_sequence"
+      },
+      "restart": 12,
+      "rounding": {
+        "best_raw_cut": 3192.0,
+        "distinct_binary_merges_seen": 32,
+        "init": "paired",
+        "initialization_details": {
+          "screened_hard_cuts": 0
+        },
+        "k": 2,
+        "lloyd_iterations": 33,
+        "max_iter": 100,
+        "nontrivial_group_assignments_per_iteration": 1,
+        "seconds": 0.14100000075995922,
+        "tested_group_assignments_per_iteration": 2
+      },
+      "scores": {
+        "Final": 3422.0,
+        "Flip": 3278.0,
+        "KL": 3414.0,
+        "Round": 3192.0
+      },
+      "timing": {
+        "flip_seconds": 0.0,
+        "ils_seconds": 0.42200000025331974,
+        "kl_seconds": 0.014999999664723873,
+        "round_seconds": 0.14100000075995922,
+        "total_seconds": 0.5780000006780028
+      }
+    },
+    {
+      "flip": {
+        "cut_weight": 3274.0,
+        "flips": 41,
+        "initial_cut": 3192.0,
+        "seconds": 0.0,
+        "sweeps": 2,
+        "termination": "local_optimum"
+      },
+      "ils": {
+        "best_events": [
+          {
+            "cycle": 1,
+            "new_best_cut": 3404.0
+          },
+          {
+            "cycle": 2,
+            "new_best_cut": 3406.0
+          },
+          {
+            "cycle": 6,
+            "new_best_cut": 3410.0
+          },
+          {
+            "cycle": 8,
+            "new_best_cut": 3412.0
+          },
+          {
+            "cycle": 22,
+            "new_best_cut": 3414.0
+          },
+          {
+            "cycle": 24,
+            "new_best_cut": 3418.0
+          },
+          {
+            "cycle": 25,
+            "new_best_cut": 3420.0
+          },
+          {
+            "cycle": 29,
+            "new_best_cut": 3422.0
+          },
+          {
+            "cycle": 43,
+            "new_best_cut": 3424.0
+          }
+        ],
+        "cut_weight": 3424.0,
+        "cycles_completed": 80,
+        "improvement": 24.0,
+        "initial_cut": 3400.0,
+        "method": "ILS-KL",
+        "seconds": 0.4380000000819564,
+        "termination": "cycle_limit"
+      },
+      "initializer": "paired",
+      "kl": {
+        "cut_weight": 3400.0,
+        "flips_retained": 3553,
+        "improvement": 126.0,
+        "initial_cut": 3274.0,
+        "passes_improved": 4,
+        "seconds": 0.014999999664723873,
+        "termination": "no_improving_gain_sequence"
+      },
+      "restart": 13,
+      "rounding": {
+        "best_raw_cut": 3192.0,
+        "distinct_binary_merges_seen": 93,
+        "init": "paired",
+        "initialization_details": {
+          "screened_hard_cuts": 0
+        },
+        "k": 2,
+        "lloyd_iterations": 94,
+        "max_iter": 100,
+        "nontrivial_group_assignments_per_iteration": 1,
+        "seconds": 0.5470000002533197,
+        "tested_group_assignments_per_iteration": 2
+      },
+      "scores": {
+        "Final": 3424.0,
+        "Flip": 3274.0,
+        "KL": 3400.0,
+        "Round": 3192.0
+      },
+      "timing": {
+        "flip_seconds": 0.0,
+        "ils_seconds": 0.4380000000819564,
+        "kl_seconds": 0.014999999664723873,
+        "round_seconds": 0.5630000000819564,
+        "total_seconds": 1.0159999998286366
+      }
+    },
+    {
+      "flip": {
+        "cut_weight": 3290.0,
+        "flips": 52,
+        "initial_cut": 3186.0,
+        "seconds": 0.0,
+        "sweeps": 2,
+        "termination": "local_optimum"
+      },
+      "ils": {
+        "best_events": [
+          {
+            "cycle": 7,
+            "new_best_cut": 3442.0
+          },
+          {
+            "cycle": 38,
+            "new_best_cut": 3444.0
+          }
+        ],
+        "cut_weight": 3444.0,
+        "cycles_completed": 80,
+        "improvement": 6.0,
+        "initial_cut": 3438.0,
+        "method": "ILS-KL",
+        "seconds": 0.7029999997466803,
+        "termination": "cycle_limit"
+      },
+      "initializer": "paired",
+      "kl": {
+        "cut_weight": 3438.0,
+        "flips_retained": 5383,
+        "improvement": 148.0,
+        "initial_cut": 3290.0,
+        "passes_improved": 7,
+        "seconds": 0.015999999828636646,
+        "termination": "no_improving_gain_sequence"
+      },
+      "restart": 14,
+      "rounding": {
+        "best_raw_cut": 3186.0,
+        "distinct_binary_merges_seen": 41,
+        "init": "paired",
+        "initialization_details": {
+          "screened_hard_cuts": 0
+        },
+        "k": 2,
+        "lloyd_iterations": 42,
+        "max_iter": 100,
+        "nontrivial_group_assignments_per_iteration": 1,
+        "seconds": 0.23400000017136335,
+        "tested_group_assignments_per_iteration": 2
+      },
+      "scores": {
+        "Final": 3444.0,
+        "Flip": 3290.0,
+        "KL": 3438.0,
+        "Round": 3186.0
+      },
+      "timing": {
+        "flip_seconds": 0.0,
+        "ils_seconds": 0.7029999997466803,
+        "kl_seconds": 0.015999999828636646,
+        "round_seconds": 0.25,
+        "total_seconds": 0.9689999995753169
+      }
+    }
+  ],
+  "trials_path": "results\\gset\\experiment020-all-gset-paired-inits\\G57\\trials\\G57-init-full-paired-96d826d388732d2aa605.jsonl"
+}

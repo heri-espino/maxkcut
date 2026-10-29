@@ -878,3 +878,16 @@ Read instructions → inspect the current branch/files → state the mathematica
 - Files: src/maxkcut/eva_kmeans_init_full_cli.py,
   tests/test_eva_kmeans_init_full.py,
   notes/experiments/experiment019-kmeans-init-full-pipeline.md.
+
+
+## Experiment020 — completed all saved-EVA G-set initialization comparison (2026-10-29)
+
+- Canonical final interpretation and agent handoff: `notes/experiments/experiment020-all-gset-paired-inits.md`. Read alongside Experiment019's note and the source/test files **before** proposing further initialization experiments.
+- GitHub Actions recovery run **40826652014** succeeded. Experiment020 reports **68 completed graph cases, 9 initializers × 50 matched restart IDs, 30,600 exact signed binary cut runs, 0 incomplete eligible factors**; 67 newly computed graph cases plus the already verified G63 Experiment019 reuse. G60/G61/G62 lack completed matching EVA and were excluded, not synthesized.
+- Statistical source of truth: `results/gset/experiment020-all-gset-paired-inits/statistics/{report.json,coverage.csv,all_runs.csv,per_instance_methods.csv,paired_vs_original_kmeansnm.csv}`. Preserve original signed graphs/factor hashes, compressed partitions, seeds and per-stage optimization traces. Do not rerun EVA to reformat results.
+- The nine-method **best-of-nine** score exceeds the paired K-MeansNM **best-of-50** on 55/68 eligible graphs (ties on 13). This is an unequal-budget portfolio comparison, not evidence of individual method superiority.
+- **G63:** best Experiment019/020 result 26,906 (farthest-pair); historical feasible record 26,917; exploratory target 27,047 unverified. **G11** achieved 564 with the independent initializer on the canonical graph; match the original graph identity before calling this the independently proven optimum.
+- On average across graph-specific paired **mean** differences, nearly all alternative initializers are slightly below the original control. `gw-screen16` has +0.119 unnormalized cut units on average but also 16 extra screening cut evaluations per restart; its graph-normalized average effect is approximately -0.0032%. Do not claim robust dominance or a new approximation guarantee.
+- **G63-only historical target defect:** Experiment019's labels 26,917/27,047 were initially copied into other Experiment020 graph-specific `summary.csv` and `leaderboard.json`. The Experiment020 aggregator now performs a **metadata-only repair** on completed non-G63 graphs: it strips misleading gap/reference fields, preserves all actual cuts and partitions, and keeps the legacy `27047` as an explicitly labeled configuration value. This correction must be committed on the experiment branch; it does **not** justify numerical reruns.
+- Windows concurrent atomic publication race was repaired by deferring summaries until after all workers complete. Continue using 32 processes only for **missing** verified graph runs; a completed graph must never be recomputed merely to regenerate statistics.
+- PR #50 remains separate from main until user-authorized merge. Subsequent research requires a new sequential experiment name (**Experiment021**), a prespecified compute-balanced design and reproducible artifact archiving.
