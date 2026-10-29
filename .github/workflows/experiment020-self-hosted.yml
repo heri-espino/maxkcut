@@ -118,6 +118,10 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $root = 'results/gset/experiment020-all-gset-paired-inits'
+          # Experiment020 finalization: the aggregation pass also strips
+          # the G63-only historical target/gap labels from other graphs'
+          # per-graph CSV/JSON. This metadata repair does not touch the
+          # signed cut scores, archived partitions, or cached EVA factors.
           # Refresh coverage from already committed summaries, including
           # G63's 450 verified Experiment019 runs. Only recover incomplete
           # graph outputs; do not recompute 61 finished graphs.
