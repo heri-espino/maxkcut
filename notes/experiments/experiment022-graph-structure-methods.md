@@ -51,6 +51,33 @@ We tested a **nested train/test selection** across the 71 existing graphs: for e
 
 **Conclusion:** the available categorical topology label has a strong descriptive association with best-cut wins, **but the family-specific selection policy did not improve held-out results** relative to a globally trained policy in this simple LOOCV test. The one-family policy also has fewer training graphs and is affected by signed-weight class and graph size. Neither policy should be deployed as an automatic selector based on these data alone.
 
+## Reconstructed structural examples from the original graphs
+
+The following features were computed directly from canonical, one-based `data/G*.txt` edge lists (not a visualization):
+
+| Graph | Labeled family | Vertices | Edges | Mean degree | Degree CV | Exact triangles | Transitivity | Negative edge fraction |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| G1 | random | 800 | 19,176 | 47.940 | 0.1318 | 18,093 | 0.0593 | 0 |
+| G14 | planar benchmark family | 800 | 4,694 | 11.735 | 0.9830 | 5,302 | 0.1535 | 0 |
+| G11 | toroidal | 800 | 1,600 | 4 | 0 | 0 | 0 | 0.4894 |
+| G48 | toroidal | 3,000 | 6,000 | 4 | 0 | 0 | 0 | 0 |
+
+**Planarity label caveat:** G14 is from the benchmark's `planar`/*almost-planar* **generator family**, not a mathematically planar simple graph: `m=4,694 > 3n−6=2,394` for `n=800`. The G-set paper describes these graphs as *almost planar*. Avoid inferring a strict genus/topological embedding from the generator-family name.
+
+## Visual evidence
+
+![Best-cut win rates per graph family](../../results/gset/experiment022-graph-structure-methods/topology_best_cut_heatmap.svg)
+
+![Retrospective held-out policy comparison](../../results/gset/experiment022-graph-structure-methods/topology_policy_loo.svg)
+
+The figures are reproducible from the saved Experiment022 CSV results using:
+
+```powershell
+python scripts/plot_experiment022.py
+```
+
+This requires Matplotlib for plotting only. Graph-family percentages include **all best-cut ties**, so interpret them together with the fractional-win metric and the noninformative G48–G50 graphs.
+
 ## Graph-level explanatory variables to evaluate next
 
 `src/maxkcut/graph_structure_methods.py` reads the canonical original `data/G*.txt` and can save:
@@ -74,7 +101,7 @@ python -m maxkcut.graph_structure_methods --skip-features
 python -m maxkcut.graph_structure_methods
 ```
 
-The first analysis command reproduces family comparisons and LOOCV directly from the previous Experiment021 CSV, without reading all original graph edges; the second adds canonical graph-structure features. Outputs are under `results/gset/experiment022-graph-structure-methods/`. Commit/push the outputs after checking graph integrity; no expensive workflows are necessary. Synthetic tests do not require EVA, GPUs or saved factors.
+The first analysis command reproduces family comparisons and LOOCV directly from the previous Experiment021 CSV, without reading all original graph edges; the second adds canonical graph-structure features. Outputs are under `results/gset/experiment022-graph-structure-methods/`. The four retrospective statistics files and two vector graphics are already committed to this branch. The full 71-graph \`graph_features.csv\` will be generated only when the feature-extraction command is executed in a complete repository checkout; no expensive workflows are necessary. Synthetic tests do not require EVA, GPUs or saved factors.
 
 ## Research limits and next hypotheses
 
