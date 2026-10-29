@@ -850,3 +850,31 @@ Read instructions → inspect the current branch/files → state the mathematica
   tests/test_eva_kmeans_initializers.py.
 - Benchmark 26,917 best KMeansNM-Flip+KL+ILS vs all actual scores;
   target 27,047 unverified.
+
+## Experiment019 — apples-to-apples full KMeansNM initialization pipeline
+
+- Same original full G63 EVA factor, signed original weighted graph,
+  paired restart IDs 0–49 across ALL nine Experiment018 initializers.
+- Full pipeline: KMeansNM k2 spherical Lloyd 100 max, keep best
+  raw hard cut; original 20-sweep positive flip search; indexed
+  generalized KL 30 passes; 80-cycle ILS-KL with 8 inner KL passes,
+  kicks [8,16,32,64], temperature 12.
+- Seeds exactly match experiment013 pipeline for Flip/KL/ILS:
+  [seed,graph,restart,1313], [seed,graph,restart,101],
+  [seed,graph,restart,1401]. KMeansNM raw uses
+  [seed,graph,2,restart,0] (k2 original), others get stream 1
+  per Experiment018, to avoid method-label effects in postprocessing.
+- Keep and verify independently all signed binary Round/Flip/KL/Final
+  partitions in the archive; detailed per-restart ILS trace,
+  immutable source factor SHA, stable hashed configurations,
+  idempotent verified restarts, ledger CSV and ranked JSON.
+- Unit regression compares all four stages bit-for-bit with
+  eva_pipeline_grid.evaluate_pipeline paired original flow.
+- User-reported 26917 was obtained with the full prior pipeline
+  and is the benchmark; target 27047 is NOT a certified optimum.
+- Self-hosted runner workflow experiment019-self-hosted.yml
+  uses Windows Conda maxkcut; if CI fails, inspect logs,
+  fix and rerun rather than telling user to manually repeat.
+- Files: src/maxkcut/eva_kmeans_init_full_cli.py,
+  tests/test_eva_kmeans_init_full.py,
+  notes/experiments/experiment019-kmeans-init-full-pipeline.md.
