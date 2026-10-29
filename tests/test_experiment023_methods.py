@@ -59,3 +59,10 @@ def test_not_run_status_is_never_implicit_success(tmp_path):
     assert s["complete_graph_method_rows"]==0
     assert s["status_counts"]["not_run"]==71*len(e.METHODS)
     assert (tmp_path/"analysis"/"full_coverage.csv").is_file()
+
+
+def test_topology_analysis_reports_incomplete_graphs_without_winners(tmp_path):
+    report=e.summarize_topology(tmp_path,"full")
+    assert report["total_graph_method_cells"]==71*17
+    assert report["graphs_with_complete_budget_eligible_ils_comparison"]==0
+    assert (tmp_path/"analysis"/"full_topology_summary.csv").is_file()
