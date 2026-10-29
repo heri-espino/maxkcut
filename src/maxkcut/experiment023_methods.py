@@ -308,7 +308,8 @@ def run_case(path, method, phase, *, output=ROOT, budget_override=None):
               cumulative_wall_seconds=elapsed_before+time.monotonic()-started,
               note="Not an equal-cost claim: preprocessing and internal proposals differ"))
     elapsed=time.monotonic()-started
-    status="completed_restarts" if completed==cfg["restarts"] else "budget_limited"
+    status=("no_candidate" if completed==0 else
+            "completed_restarts" if completed==cfg["restarts"] else "budget_limited")
     out=dict(status=status,graph=path.stem,method=method,phase=phase,fingerprint=ident,
              graph_sha256=graph_sha,factor_sha256=factor_sha,completed=completed,
              newly_completed=attempted,requested=cfg["restarts"],best=best if completed else None,
@@ -371,7 +372,8 @@ def aggregate(output=ROOT, phase="full"):
             else:rows.append(dict(graph=graph,method=method,status="not_run",completed=None,
                                   best=None,wall_seconds=None,over_budget=None))
     report=dict(phase=phase,graphs=71,methods=len(METHODS),
-                complete_graph_method_rows=sum(x["status"] in ("completed_restarts","budget_limited") for x in rows),
+                complete_graph_method_rows=sum(x["status"] in ("completed_restarts","budget_limited")
+                   and (x["completed"] or 0)>0 and not x["over_budget"] for x in rows),
                 status_counts={s:sum(x["status"]==s for x in rows) for s in sorted({x["status"] for x in rows})},
                 note="No superiority claim without verifying statuses, exact original cut partitions, and equal-budget accounting")
     folder=Path(output)/"analysis"
