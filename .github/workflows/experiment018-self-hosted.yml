@@ -135,7 +135,7 @@ jobs:
 
       - name: Show leaderboard and score summary
         run: |
-          $folder = 'results/gset/experiment017-multigroup-coarsening'
+          $folder = 'results/gset/experiment018-kmeans-initializations'
           Get-Content "$folder/leaderboard.json"
           Import-Csv "$folder/summary.csv" | Sort-Object { [double]$_.post_KL_cut } -Descending | Select-Object -First 10 | Format-Table -AutoSize
 
@@ -145,17 +145,17 @@ jobs:
         with:
           name: experiment018-G63-self-hosted-${{ github.run_id }}
           path: |
-            results/gset/experiment017-multigroup-coarsening/
+            results/gset/experiment018-kmeans-initializations/
           if-no-files-found: warn
           retention-days: 30
 
-      - name: Commit successful pilot results back to experiment017 branch
+      - name: Commit successful pilot results to experiment018 branch
         if: success() && github.ref == 'refs/heads/experiment018-kmeans-initializations'
         run: |
           $ErrorActionPreference = 'Stop'
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- results/gset/experiment017-multigroup-coarsening
+          git add -- results/gset/experiment018-kmeans-initializations
           git diff --cached --quiet
           if ($LASTEXITCODE -eq 0) {
             Write-Host 'All pilot result files are already committed.'
