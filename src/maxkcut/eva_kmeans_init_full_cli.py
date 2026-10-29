@@ -249,13 +249,31 @@ def _run_chunk(job):
                 "case_id":job["id"],**row,
             },sort_keys=True,allow_nan=False)+"\n")
     os.replace(temp,trial_path)
+    # Experiment020 runs on ~68 graphs x 450 restarts. Keep each
+    # complete 80-cycle ILS trace ONCE in the Git-backed JSONL,
+    # while recording compact restart-level diagnostics in cases.
+    # This avoids duplicating gigabytes of trajectory JSON without
+    # sacrificing a single restart, stage score, bit-packed solution,
+    # seed identity or recoverable trajectory.
+    compact_trials=[]
+    for trial in trials:
+        compact=dict(trial)
+        compact["rounding"]={
+            k:v for k,v in trial["rounding"].items()
+            if k!="trace"
+        }
+        compact["ils"]={
+            k:v for k,v in trial["ils"].items()
+            if k!="trace"
+        }
+        compact_trials.append(compact)
     record={
         "status":"complete","graph":Path(job["graph_path"]).stem,
         "id":job["id"],"settings":config,
         "archive_path":str(archive["path"]),
         "trials_path":str(trial_path),
         "best_final":float(max(scores["Final"])),
-        "trials":trials,
+        "trials":compact_trials,
     }
     _write_json(case,record)
     return _verify(record,config),False
