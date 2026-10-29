@@ -115,6 +115,17 @@ Then switch to the experiment016 implementation:
     git fetch origin
     git switch --track origin/experiment016-soft-em-bernoulli
 
+This implementation branch was created BEFORE any later local results
+commits on Experiment015. If your saved Experiment015/Experiment013
+results are not present, incorporate the pushed results commits:
+
+    git merge --no-edit origin/experiment015-direct-hyperplane-cut
+
+If your Experiment013 outputs live only on the Experiment013 results
+branch, merge that results branch as well, resolving any code-only
+conflicts without re-running EVA. Use only files from your original
+completed and SHA-verified graph/factor and results archives.
+
 If already tracked, use:
 
     git switch experiment016-soft-em-bernoulli
