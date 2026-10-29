@@ -382,9 +382,80 @@ def aggregate(output=ROOT, phase="full"):
     return report
 
 
+
+def summarize_topology(output=ROOT, phase="full"):
+    """Strict topology outcome table: no win counts on incomplete graph rows.
+
+    Graphs are the statistical units. Only comparing methods with the
+    same ILS refinement; the Tabu postprocessor is reported separately.
+    Historical Experiment021 is NOT merged into this dataset.
+    """
+    from .graph_structure_methods import labels as graph_labels
+    base=Path(output)/phase
+    records=[]
+    full=[]
+    for graph in GRAPH_IDS:
+        family,weight_class=graph_labels(graph)
+        graph_methods=[]
+        for method in METHODS:
+            f=base/graph/"statuses"/(method+".json")
+            x=json.loads(f.read_text(encoding="utf8")) if f.is_file() else {"status":"not_run"}
+            valid=(x.get("status") in ("completed_restarts","budget_limited")
+                   and x.get("completed",0)>0 and not x.get("over_budget",True)
+                   and x.get("best") is not None)
+            graph_methods.append(dict(graph=graph,family=family,weight_type=weight_class,
+                          method=method,status=x.get("status","not_run"),eligible=bool(valid),
+                          completed=x.get("completed",0),observed_best=x.get("best"),
+                          time_seconds=x.get("cumulative_wall_seconds",x.get("wall_seconds")),
+                          is_tabu=(method=="control-tabu")))
+        candidates=[x for x in graph_methods if not x["is_tabu"]]
+        full_rows=all(x["eligible"] for x in candidates)
+        base_row=next(x for x in candidates if x["method"]=="control-paired")
+        base_score=base_row["observed_best"] if base_row["eligible"] else None
+        win=max(x["observed_best"] for x in candidates) if full_rows else None
+        ties=sum(x["observed_best"]==win for x in candidates) if full_rows else 0
+        for x in graph_methods:
+            x["full_graph_comparison_eligible"]=bool(full_rows)
+            x["shared_win"]=(int(x["observed_best"]==win) if full_rows and not x["is_tabu"] else None)
+            x["fractional_win"]=(1/ties if full_rows and not x["is_tabu"]
+                                  and x["observed_best"]==win else 0. if full_rows and not x["is_tabu"] else None)
+            x["gain_vs_new_control"]=(x["observed_best"]-base_score if x["eligible"]
+                                     and base_score is not None else None)
+            records.append(x)
+        if full_rows:full.append(graph)
+    dest=Path(output)/"analysis"
+    dest.mkdir(parents=True,exist_ok=True)
+    with (dest/f"{phase}_topology_methods.csv").open("w",newline="",encoding="utf8") as file:
+        cols=list(records[0]);writer=csv.DictWriter(file,fieldnames=cols)
+        writer.writeheader();writer.writerows(records)
+    groups=[]
+    for family in ("random","planar","toroidal"):
+        for method in METHODS:
+            x=[r for r in records if r["family"]==family and r["method"]==method]
+            valid=[r for r in x if r["eligible"]]
+            comparable=[r for r in x if r["full_graph_comparison_eligible"] and not r["is_tabu"]]
+            groups.append(dict(family=family,method=method,graphs_total=len(x),
+                               successful_within_budget=len(valid),
+                               complete_comparison_graphs=len(comparable),
+                               shared_wins=sum(r["shared_win"] or 0 for r in comparable),
+                               fractional_wins=sum(r["fractional_win"] or 0 for r in comparable),
+                               mean_gain_vs_control=(sum(r["gain_vs_new_control"] for r in valid)/len(valid)
+                                                     if valid and all(r["gain_vs_new_control"] is not None for r in valid) else None)))
+    with (dest/f"{phase}_topology_summary.csv").open("w",newline="",encoding="utf8") as file:
+        cols=list(groups[0]);writer=csv.DictWriter(file,fieldnames=cols)
+        writer.writeheader();writer.writerows(groups)
+    out=dict(phase=phase,graph_count=len(GRAPH_IDS),total_graph_method_cells=len(records),
+             graphs_with_complete_budget_eligible_ils_comparison=len(full),
+             graph_ids_with_complete_ils_comparison=full,
+             topology_method_summary_file=f"{phase}_topology_summary.csv",
+             caveat="Generator families are not independent; no equal-evaluation-count guarantee; Tabu uses different refiner; require hardware and budget audit")
+    atomic_json(dest/f"{phase}_topology_report.json",out)
+    return out
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action",choices=("single","batch","aggregate","inventory"))
+    parser.add_argument("action",choices=("single","batch","aggregate","inventory","analyze"))
     parser.add_argument("--graph",choices=GRAPH_IDS,default="G11")
     parser.add_argument("--phase",choices=("pilot","full"),default="pilot")
     parser.add_argument("--method",choices=METHODS,default="control-paired")
@@ -400,6 +471,7 @@ def main():
         print(json.dumps({"graph_count":len(rows),"factors":rows},indent=2))
         return
     if args.action=="aggregate":print(json.dumps(aggregate(args.output,args.phase),indent=2));return
+    if args.action=="analyze":print(json.dumps(summarize_topology(args.output,args.phase),indent=2));return
     sec=args.budget_seconds or config(args.phase)["seconds"]
     if args.action=="single":
         result=run_case(Path("data")/(args.graph+".txt"),args.method,args.phase,
