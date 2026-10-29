@@ -694,3 +694,23 @@ Experiment013 G63 output cases/archives to have been preserved.
 Results live under results/gset/experiment016-soft-em-bernoulli
 and each completed chunk is independently verified on restart.
 See [full runbook](../notes/experiments/experiment016-soft-em-bernoulli.md).
+
+## Experiment017: KMeansNM with 4/6/8/10 groups, optimize group combinations
+
+The original completed full-dimensional EVA factor remains immutable.
+Use k/2 antipodal center pairs for k even, then ordinary spherical
+K-Means updates. After EVERY iteration, evaluate EXACTLY the original
+signed weighted Max-Cut for all distinct two-way unions of k groups.
+Compare k=2 original K-MeansNM as a control; apply KL only after
+choosing the strongest unique coarse partitions.
+
+```powershell
+$env:PYTHONPATH = Join-Path (Get-Location).Path "src"
+python -m pytest tests/test_eva_multigroup_kmeans.py -q
+python -m maxkcut.eva_multigroup_kmeans_cli --graphs G63 --ks 2 4 6 8 10 --inits paired --restarts 10 --chunk-size 2 --workers 4 --max-iter 60 --top-merges 3 --kl-passes 30 --target 27047
+```
+
+The complete experimental design, 100-seed paired versus independent
+control run, original-factor provenance, and all group/partition
+archive locations are in
+[Experiment017 notes](../notes/experiments/experiment017-multigroup-kmeans-coarsening.md).
