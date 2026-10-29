@@ -10,6 +10,8 @@ This file is the **canonical instruction set for AI coding agents** working in t
 
 This project is early-stage research infrastructure, **not** a mathematically certified solver. Distinguish source-grounded results, our derivations, conjectures, hypotheses, implementation, and newly reproduced measurements.
 
+**Research presentation:** `presentations/maxkcut_research_journey.marp.md` is a source-grounded 45-slide Marp summary of Experiments001–021; `presentations/build_assets.py` regenerates its SVG diagrams. Verify numbers from Experiment021 CSV/report and preserve source/data caveats when editing. See `presentations/README.md`. The deck is documentation, not a new numerical experiment.
+
 ## Must-read paths
 
 - `docs/index.md`, `docs/architecture.md`, `docs/experiments.md`, `docs/experiment-archives.md`, `docs/gset-reference-values.md`, `docs/research.md`: documentation site, design, experimental protocol, sources.
