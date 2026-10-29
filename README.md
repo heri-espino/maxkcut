@@ -632,3 +632,29 @@ python -m maxkcut.eva_cutaware_kmeans_cli --graphs G63 --top-starts 40 --directi
 The observed prior KL best for G63 is 26,886; **27,047 is an
 experimental target, not a certified optimum**. See
 [Experiment012 protocol](notes/experiments/experiment012-cut-aware-kmeans-kl.md).
+
+
+### Experiment013 — grid search across complete EVA rounding/Max-Cut pipelines
+
+Instead of comparing one K-Means tweak at a time, Experiment013
+systematically evaluates **43 checked-in combinations** of the
+ALREADY solved EVA factor (G63 original R^119) with GW/FJ, antipodal
+and ordinary spherical K-Means, objective-aware exact threshold
+rounding, signed greedy vertex flips, generalized Numba KL with
+independent repeat seeds, and optional iterated KL basin hopping.
+Every configuration runs on identical verified experiment008
+starting restart IDs, archives the **Round / Flip / KL / Final**
+binary partitions, independently rescored original signed graph cuts,
+settings, timing, and SHA256 identity. A parallel Windows-safe
+runner supports a 40-start pilot, automated top-8 promotion to 200
+starts, and top-3 promotion to all 1,000 saved restarts with partial
+chunk resume. The grid is editable in
+[configs/experiment013-grid.json](configs/experiment013-grid.json).
+
+```powershell
+python -m maxkcut.eva_pipeline_grid_cli --graphs G63 --top-starts 40 --workers 4 --chunk-size 10 --target 27047
+```
+
+Observed G63 benchmark remains **26,886** (Experiment010 KL);
+27,047 is a target, not a certificate of optimality. See the
+[full protocol and promotion commands](notes/experiments/experiment013-eva-pipeline-grid.md).
