@@ -58,11 +58,15 @@ For each graph `g` and method `m`, define `d[g,m] = 100*(mean_cut[g,m]-mean_cut[
 
 The committed 4,000-replicate paired bootstrap intervals in `paired_vs_original_kmeansnm.csv` are **within each graph over its 50 restart IDs**. These are not CIs for graph-optimality and cannot substitute for across-graph inference. Treat correlated G-set families and simultaneous method comparisons as additional limitations.
 
-## Important historical-target metadata caveat
+## Historical-target metadata correction (completed 2026-10-29)
 
-The Experiment019 CLI was reused for Experiment020 with **G63-only labels** `historical_best=26917`, `target=27047`, `delta_vs_26917`, and `gap_to_target` in the **per-graph** `leaderboard.json`/`summary.csv` for graphs other than G63. Those numerical **gap fields are invalid as graph-specific comparisons**; ignore them for G1–G59, G64–G67, G70, G72, G77, G81. Use actual `raw_cut`, `flip_cut`, `kl_cut`, `final_cut`, and graphwise comparisons from `statistics/` instead. **Do not imply a score of 26,917 is a historical reference for any graph except G63.**
+Experiment019's historical G63 cut **26,917** and exploratory target **27,047** were mistakenly copied into the per-graph `leaderboard.json` and `summary.csv` for other Experiment020 instances. These are valid **only for G63**, not generic G-set reference values.
 
-The per-instance statistics aggregator does **not** use those G63-only gap fields. The maximum observed final cut across all 68 analyzed instances is 26,906 (G63), below 27,047, so the inappropriate shared target did not prematurely stop an ILS search on the recorded runs. A follow-up *metadata-only repair* should remove G63-only fields from other graphs' leaderboards; no EVA or local search recomputation is warranted.
+**Fixed and verified:** the metadata-only correction in `src/maxkcut/eva_kmeans_init_all_cli.py` strips `historical_best`, `target`, `delta_vs_26917`, and `gap_to_target` from all non-G63 leaderboards, and strips `gap_to_target` from all non-G63 summary CSVs. It preserves every signed raw/flip/KL/final cut, all seeds, case fingerprints, optimization traces, and archived partitions. For provenance, corrected leaderboards retain `legacy_run_target_setting=27047` without interpreting it as a graph-specific comparison.
+
+**Validation:** GitHub Actions [40829109157](https://github.com/heri-espino/maxkcut/actions/runs/40829109157) passed all tests and final aggregation. Commit `e5bbec4e32662606d3dd478057b42abd554f364e` updates 134 graph-specific display artifacts, with `68/68` complete cases, `30,600` statistical rows and zero incomplete cases. Verified G2 now has neither a false historical-best label nor a false gap column; reused G63 retains its legitimate G63-only reference fields.
+
+The full-pipeline source run originally used a common numerical stopping target `27047`. This cannot have prematurely terminated any observed run: the maximum recorded final cut over the 68 analyzed graphs is **26,906**, strictly below 27,047, and final cuts never decrease relative to earlier stages. **No EVA or Flips/KL/ILS rerun was required for the repair.**
 
 ## Interpretation and next research experiment
 
