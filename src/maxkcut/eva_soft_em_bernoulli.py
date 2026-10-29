@@ -284,7 +284,7 @@ def _gibbs_kernel():
             for ptr in range(indptr[i],indptr[i+1]):
                 field+=weights[ptr]*spins[indices[ptr]]
             gain=spins[i]*field
-            q=1./(1.+np.exp(-np.clip(gain/temp,-60.,60.)))
+            q=1./(1.+np.exp(-max(-60.,min(60.,gain/temp))))
             if uniforms[pos]<q:
                 spins[i]=-spins[i]
                 gain_total+=gain
