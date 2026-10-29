@@ -1,0 +1,193 @@
+name: Experiment020 — all completed G-set EVA factors, 32 workers
+
+# Only our dedicated experiment branch; avoid executing external PR code
+# on the university Windows workstation.
+on:
+  push:
+    branches:
+      - experiment020-all-gset-paired-inits
+    paths:
+      - .github/workflows/experiment020-self-hosted.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: experiment020-windows-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  pilot:
+    name: All saved G-set EVA factors × nine methods × 50 restarts — 32 CPUs
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 360
+    defaults:
+      run:
+        shell: powershell
+    env:
+      PYTHONPATH: ${{ github.workspace }}\src
+      PYTHONUTF8: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      NUMBA_NUM_THREADS: '1'
+    steps:
+      - name: Checkout all completed G-set graph and EVA factor archives
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 1
+
+      - name: Select existing maxkcut Conda Python (no admin/install)
+        id: select-python
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $candidates = @(
+            "$env:USERPROFILE\miniconda3\envs\maxkcut\python.exe"
+            "$env:USERPROFILE\miniforge3\envs\maxkcut\python.exe"
+            "$env:USERPROFILE\anaconda3\envs\maxkcut\python.exe"
+            "$env:LOCALAPPDATA\miniconda3\envs\maxkcut\python.exe"
+            "$env:LOCALAPPDATA\Programs\miniconda3\envs\maxkcut\python.exe"
+            "C:\ProgramData\miniconda3\envs\maxkcut\python.exe"
+          )
+          $python = $null
+          foreach ($candidate in $candidates) {
+            if (Test-Path -LiteralPath $candidate) { $python = $candidate; break }
+          }
+          if (-not $python) {
+            $conda = Get-Command conda -ErrorAction SilentlyContinue
+            if ($conda) {
+              $envlist = & conda env list --json | ConvertFrom-Json
+              foreach ($prefix in $envlist.envs) {
+                if ((Split-Path $prefix -Leaf) -eq 'maxkcut') {
+                  $candidate = Join-Path $prefix 'python.exe'
+                  if (Test-Path $candidate) { $python = $candidate; break }
+                }
+              }
+            }
+          }
+          if (-not $python) {
+            $fallback = Get-Command python -ErrorAction SilentlyContinue
+            if ($fallback) { $python = $fallback.Source }
+          }
+          if (-not $python) {
+            throw "Python not found for this runner user. Install the maxkcut Conda env in the runner account or add its Python path to this workflow."
+          }
+          Write-Host "Using Python: $python"
+          & $python -c "import sys,numpy,scipy,numba,pytest; print(sys.executable); print('Numba',numba.__version__)"
+          if ($LASTEXITCODE -ne 0) {
+            throw "The selected Python is missing numpy/scipy/numba/pytest. Activate or locate the existing maxkcut Conda environment."
+          }
+          "MAXKCUT_PYTHON=$python" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          # Calling Conda's python.exe directly on Windows leaves
+          # env/Library/bin out of PATH. BLAS LAPACK and scipy can
+          # then abort with Windows delay-load error 0xc06d007f,
+          # despite 'import numpy' passing. Add the environment's
+          # own DLL and Scripts paths to EVERY subsequent step.
+          $condaPrefix = Split-Path $python -Parent
+          if (Test-Path (Join-Path $condaPrefix 'conda-meta')) {
+            @(
+              (Join-Path $condaPrefix 'Library\\mingw-w64\\bin')
+              (Join-Path $condaPrefix 'Library\\usr\\bin')
+              (Join-Path $condaPrefix 'Library\\bin')
+              (Join-Path $condaPrefix 'Scripts')
+              $condaPrefix
+            ) | ForEach-Object {
+              if (Test-Path -LiteralPath $_) {
+                $_ | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+              }
+            }
+            Write-Host 'Prepared Conda DLL PATH for numerical linear algebra.'
+          }
+
+
+      - name: Verify original saved G-set factors and record inventory
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & $env:MAXKCUT_PYTHON -m maxkcut.eva_kmeans_init_all_cli inventory --output-root results/gset/experiment020-all-gset-paired-inits
+          if ($LASTEXITCODE -ne 0) { throw 'Original EVA source identity verification failed.' }
+
+      - name: Test signed Flips KL ILS and paired statistical aggregation
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & $env:MAXKCUT_PYTHON -m pytest tests/test_eva_kmeans_init_all.py tests/test_eva_kmeans_init_full.py -q
+          if ($LASTEXITCODE -ne 0) { throw 'Experiment020 regression tests failed; full benchmark not started.' }
+
+      - name: Process every completed EVA graph using 32 Windows workers and Git checkpoints
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = 'results/gset/experiment020-all-gset-paired-inits'
+          $list = Get-Content "$root/inventory.json" -Raw | ConvertFrom-Json
+          $ready = @($list.records | Where-Object { $_.status -eq 'ready' })
+          $missing = @($list.records | Where-Object { $_.status -notin @('ready','reused_019') })
+          Write-Host ("New eligible graphs: {0}; reused G63: 1; missing: {1}" -f $ready.Count, $missing.Count)
+          if ($ready.Count -lt 1) { throw 'No completed original EVA factors available.' }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          $failed = [System.Collections.Generic.List[string]]::new()
+          $processed = 0
+          foreach ($entry in $ready) {
+            $processed++
+            $name = [string]$entry.graph
+            $source = [string]$entry.factor_source
+            $destination = "$root/$name"
+            Write-Host "::group::Graph $name ($processed/$($ready.Count)); source=$source; workers=32"
+            & $env:MAXKCUT_PYTHON -m maxkcut.eva_kmeans_init_full_cli --graphs $name --factor-dir $source --output-dir $destination --methods paired independent sample-antipodal sample-pair farthest-pair spherical-pp mean-perturb pca-antipodal gw-screen16 --restarts 50 --chunk-size 5 --workers 32 --kmeans-iters 100 --flip-sweeps 20 --kl-passes 30 --ils-cycles 80 --ils-kl-passes 8 --kick-sizes 8 16 32 64 --temperature 12 --target 27047
+            $exit = $LASTEXITCODE
+            if ($exit -ne 0) {
+              Write-Warning "$name failed with exit code $exit; will continue to other graphs."
+              $failed.Add($name)
+            }
+            & $env:MAXKCUT_PYTHON -m maxkcut.eva_kmeans_init_all_cli aggregate --output-root $root --restarts 50
+            if ($LASTEXITCODE -ne 0) { throw "Statistical aggregation failed after $name." }
+            git add -- $root
+            git diff --cached --quiet
+            if ($LASTEXITCODE -ne 0) {
+              git commit -m "experiment020: save $name 9x50 signed cut runs, trajectories and statistical coverage"
+              if ($LASTEXITCODE -ne 0) { throw "Failed to commit $name" }
+              $pushed = $false
+              foreach ($attempt in 1..3) {
+                git push origin HEAD:experiment020-all-gset-paired-inits
+                if ($LASTEXITCODE -eq 0) { $pushed = $true; break }
+                Write-Warning "Git push retry $attempt/3 for $name."
+              }
+              if (-not $pushed) { throw "Unable to push verified $name results to GitHub" }
+            }
+            Write-Host "::endgroup::"
+          }
+          & $env:MAXKCUT_PYTHON -m maxkcut.eva_kmeans_init_all_cli aggregate --output-root $root --restarts 50 --require-complete
+          $finalExit = $LASTEXITCODE
+          git add -- $root
+          git diff --cached --quiet
+          if ($LASTEXITCODE -ne 0) {
+            git commit -m "experiment020: finalize per-instance paired bootstrap statistics"
+            if ($LASTEXITCODE -ne 0) { throw 'Statistics commit failed' }
+            git push origin HEAD:experiment020-all-gset-paired-inits
+            if ($LASTEXITCODE -ne 0) { throw 'Statistics push failed' }
+          }
+          if ($failed.Count) { throw "Experiment020 graph failures: $($failed -join ', ')" }
+          if ($finalExit -ne 0) { throw 'Available original EVA graph coverage incomplete.' }
+          Write-Host 'All originally completed EVA graphs finished and pushed to GitHub.'
+
+      - name: Display coverage and signed Max-Cut paired statistics
+        if: always()
+        run: |
+          $root = 'results/gset/experiment020-all-gset-paired-inits'
+          $report = "$root/statistics/report.json"
+          if (Test-Path $report) {
+            Get-Content $report
+            Import-Csv "$root/statistics/coverage.csv" | Group-Object status | Select-Object Name,Count | Format-Table
+            Import-Csv "$root/statistics/per_instance_methods.csv" | Select-Object -First 20 | Format-Table -AutoSize
+          }
+
+      - name: Upload cross-graph statistical results and coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: experiment020-all-gset-32workers-${{ github.run_id }}
+          path: |
+            results/gset/experiment020-all-gset-paired-inits/inventory.json
+            results/gset/experiment020-all-gset-paired-inits/statistics/
+          if-no-files-found: warn
+          retention-days: 30
