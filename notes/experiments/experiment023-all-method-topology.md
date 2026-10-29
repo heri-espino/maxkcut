@@ -55,6 +55,7 @@ python -m maxkcut.experiment023_methods inventory
 python -m maxkcut.experiment023_methods batch --graph G11 --phase pilot --budget-seconds 120 --timeout-seconds 270
 python -m maxkcut.experiment023_methods batch --graph G11 --phase full --budget-seconds 240 --timeout-seconds 510
 python -m maxkcut.experiment023_methods aggregate --phase full
+python -m maxkcut.experiment023_methods analyze --phase full
 ```
 
 The matching PowerShell runner harness is `scripts/experiment023-windows.ps1`, which checkpoints and pushes successful graph outputs after a safe rebase on the exact experiment branch. Its push loop refuses a rebase conflict. The original experimental data and code are the source of truth; GitHub Actions job logs and verified output statuses determine whether a graph was finished.
