@@ -107,6 +107,70 @@ python -m maxkcut.graph_structure_methods
 
 The first analysis command reproduces family comparisons and LOOCV directly from the previous Experiment021 CSV, without reading all original graph edges; the second adds canonical graph-structure features. Outputs are under `results/gset/experiment022-graph-structure-methods/`. The four retrospective statistics files and two vector graphics are already committed to this branch. The full 71-graph \`graph_features.csv\` will be generated only when the feature-extraction command is executed in a complete repository checkout; no expensive workflows are necessary. Synthetic tests do not require EVA, GPUs or saved factors.
 
+## Extension: include historical GW, MST, EM, cut-aware and multigroup methods
+
+This section expands the *catalogue of methods*, but **not the statistical sample size for methods that were tested only on G63**. It is an audit of already committed numerically verified summaries, not a new optimization. The exact ingestion logic is in `src/maxkcut/historical_structure_comparison.py`, and the machine-readable tables in `results/gset/experiment022-graph-structure-methods/historical_*.csv`.
+
+### Comparison strata and coverage
+
+| Stratum | Coverage | Methods and experimental protocol | Legitimate interpretation |
+| --- | --- | --- | --- |
+| A — Final full pipeline | **71 graphs** | Original nine Experiment021 initializers; **50** restarts × Round → Flip → generalized KL → ILS | Topological associations among these nine, but GW-screen16 spends 16 extra initial-cut evaluations |
+| B — Initial *raw* rounding | **62 graphs** | EVA GW/FJ, KMeans2N, antipodal KMeansNM, **20** rounding starts per method | Structural associations at the **rounding-only** stage, not comparable with full ILS final cuts |
+| C — Historical specialized algorithms | **G63 only** | MST, soft EM/CEM/Gibbs, cut-aware/threshold rounding, multigroup coarsening, KL/ILS grids, 1000-flip starts | Method/parameter feasibility and historic best cuts **on one planar-family instance**, not extrapolation to random/toroidal graphs |
+| D — Missing consolidated summary | **No verified summary** for 005, 006, 010, 011, 015 at documented paths | Direct single-edge MST, central-edge MST, original KL/Tabu, elite search, direct hyperplane variants | Do not invent scores or infer broad graph coverage; other archives may exist and must be audited separately |
+
+**Coverage is not 71 for the historical raw baselines:** 59 verified Experiment002 graphs G1–G59, 2 verified Experiment003 graphs G77 and G81, plus the G63 raw rounders preserved by Experiment008. The 12 pending Experiment002 slots are not counted. G60/G61/G62 have no archived matching GW raw rounder in this consolidated comparison, even though their EVA factors and nine *other* initializers were completed in Experiment021. Each older raw score is a **best of 20**, not a matched full-pipeline best of 50.
+
+### Raw-rounding winners by original G-set generator family (62 graphs)
+
+| Family | Graphs | Antipodal K-MeansNM best/tie | Independent K-Means2N best/tie | GW/FJ best/tie | Mean relative gain of K-MeansNM vs GW/FJ best-of-20 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Random | 27 | **26** | 1 | 0 | **+2.0321%** |
+| Planar-family | 23 | **23** | 0 | 0 | **+1.7226%** |
+| Toroidal | 12 | **12** | 3 | 2 | **+1.0185%** |
+| **Total** | **62** | **61** | **4** | **2** | — |
+
+These **best-of-20 gains** are the unweighted average of per-graph `(best_KMeansNM−best_GW)/|best_GW|`; they do not establish an algorithmic approximation factor, equal-time superiority, or an effect of topology beyond the benchmark corpus. Ties count for every winning method. Different families have different size/sign distributions.
+
+### G63 historical pilots and algorithms (illustrative, NOT common budgets)
+
+| Archived stage/algorithm | Best recorded original signed G63 cut | What the maximum actually represents |
+| --- | ---: | --- |
+| Experiment008 — GW/FJ, no refinement | 25,965 | Best of 20 hyperplane roundings |
+| Experiment008 — antipodal K-MeansNM, no refinement | 26,055 | Best of 20 spherical 2-means roundings |
+| Experiment008 — K-MeansNM + positive flips | 26,682 | Best of **1,000** starts; not comparable to 20 raw restarts |
+| Experiment009 — exact full-vector MST, multi-edge cuts + vertex flips | 25,761 | Best across 3 embedding distances × 8 cuts of geometric MST edges (`q` values); post-vertex-flip |
+| Experiment012 — cut-aware K-means + KL | 26,877 | Best across 200 source starts; compared with same-experiment ordinary KL control reaching 26,886 |
+| Experiment013 — cut-aware K-means + KL + ILS | 26,909 | Best across configurations; distinct postprocessing and search budgets |
+| **Experiment013 — saved K-MeansNM-Flips + KL + ILS** | **26,917** | Historical best archived feasible cut; selected across a grid |
+| Experiment016 — EM/CEM/Gibbs with **elite** initialization | 26,917 | **Retained a pre-existing 26,917 source**; all 16 elite episodes had **zero strictly positive gain over their own source** |
+| Experiment016 — mean-init EM + KL or EM + CEM + KL | 26,834 | Four episodes per method; KL yields a gain over mean-init source, but not over historical record |
+| Experiment017 — multigroup `k=4` + binary merge + KL | 26,843 | Tiny **two-start** pilot; `k=2` pilot best 26,859 |
+| Experiment018 — altered-initializer `mean-perturb` + KL | 26,867 | Three-start KL-only pilot |
+| Experiment019/021 — farthest-pair + full Round/Flip/KL/ILS | 26,906 | Best from 50 restarts among the nine-method Experiment019 G63 comparison |
+
+**MST provenance:** Experiment009's `q=1` records also preserve the original single-longest-MST-edge pre-refinement cut for each of L1/L2/L∞. The separate Experiment005 and Experiment006 consolidated result files were not located at their documented paths; their unverified scores are not silently reconstructed or treated as cross-graph data. Exact all-pairs MST scales as `O(n²p)` and cannot be assumed cheap on the largest graphs.
+
+**EM provenance and source leakage:** EM elite variants explicitly load archived elite partitions. In all eight EM variant categories (four algorithms × two starts) the source scores are reported separately from EM soft scores and final hard partitions. The `26917` elite tie is **not** a new EM optimum: all elite episodes' `final_cut - source_cut ≤ 0`. Only mean-start methods with KL record gains over their *own* source in the small pilot. These observations cannot justify an EM-vs-MST or EM-vs-K-Means general ranking.
+
+### Reproduce the historic retrospective audit, no optimization required
+
+```powershell
+python -m pytest tests/test_historical_structure_comparison.py -q
+python -m maxkcut.historical_structure_comparison
+```
+
+The script requires the specific archived CSVs from Experiments002, 003, 008, 009, 012, 013, 016, 017, 018, and 019. It fails on missing/duplicated expected raw-rounding graphs and incorrect G63-only inputs. It writes:
+
+- `historical_raw_rounding_by_graph.csv` — 186 graph × raw method records, with graph family, signed class, individual best cuts, and unrefined-stage marker.
+- `historical_raw_rounding_by_family.csv` — nine family × method descriptive summaries.
+- `historical_g63_methods.csv` — 55 explicitly named historic method/protocol variants with `records`, `configurations`, `retained_elite_source`, and method-specific score stages.
+- `historical_method_coverage.csv` — missing and available source summaries (15 experiment IDs), **not** a claim that all archives in all historical branches were exhausted.
+- `historical_report.json` — coverage and source Git blob SHA identities and risk notes; the Python regeneration adds input-file SHA256 provenance.
+
+**Next independent prospective experiment (Experiment023):** evaluate MST / multigroup / EM / direct hyperplane on more graph families using a predeclared **equal computational budget**, shared per-graph EVA factors and signed objectives, and risk-limited staged preflights (especially `O(n²p)` exact MST and potentially expensive EM populations). Save *raw, refined and best-visited cuts separately*, as well as any elite source, number of graph evaluations, wall time, factor hashes, and failed/timeout cases. Only then can a topology-aware choice among **all** algorithms be evaluated honestly.
+
 ## Research limits and next hypotheses
 
 **Hypothesis:** toroidal sparse signed graphs might favor searching several initial hyperplanes because geometry leads to different near-best partitions; this is not established by present evidence. Test it using graph-level normalized outcomes with covariates for `n`, signed fraction, degree variability, exact clustering and cycle rank; use leave-one-generator-family/block-out validation to handle correlation between G-set graph siblings. Count tied cuts fairly, evaluate method costs, and pre-register candidate models/primary endpoints before looking at final scores.
