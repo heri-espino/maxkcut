@@ -72,9 +72,12 @@ def enumerate_group_merges(edges, groups, k, *, top=4):
         masks[:,None]>>np.arange(k-1,dtype=np.uint32)[None,:]
     ) & 1
     separation=(sides[:,u]!=sides[:,v])
-    scores=np.asarray(
-        separation @ signed_pair_weights,
-        dtype=np.float64,
+    # Tiny k-group enumeration requires no BLAS. The explicit
+    # reduction is also robust when a self-hosted Windows runner
+    # launches Conda Python without a fully initialized DLL PATH.
+    scores=np.sum(
+        separation * signed_pair_weights[None,:],
+        axis=1,dtype=np.float64,
     )
     ranking=np.lexsort((masks,-scores))[:min(top,len(masks))]
     result=[]
