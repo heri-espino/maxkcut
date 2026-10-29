@@ -27,6 +27,7 @@ import time
 import numpy as np
 
 from .io import edge_arrays
+from .eva_kmeans_initializers import INIT2, centers_for_k2
 from .objective import cut_weight
 
 
@@ -109,20 +110,25 @@ def optimize_multigroup_kmeans(
     if (y.ndim!=2 or y.shape[0]!=graph.shape[0]
             or y.shape[0]<2 or y.shape[1]<1 or not np.isfinite(y).all()
             or k<2 or k>16 or k>len(y) or max_iter<1
-            or top_merges<1 or init not in ("paired","independent")
+            or top_merges<1 or init not in INIT2
+            or (k>2 and init not in ("paired","independent"))
             or (init=="paired" and k%2)):
         raise ValueError("Invalid multigroup K-Means configuration")
     if np.any(np.abs(np.linalg.norm(y,axis=1)-1)>1e-5):
         raise ValueError("Expected original EVA unit-row factor")
     edges=edge_arrays(graph)
     n,p=y.shape
-    centers=rng.standard_normal((k,p))
-    if init=="paired":
-        # For k=2 consume exactly the original two Gaussian rows
-        # before overwriting the second; reproduce K-MeansNM's RNG.
-        for group in range(0,k,2):
-            centers[group+1]=-centers[group]
-    centers/=np.linalg.norm(centers,axis=1)[:,None]
+    if k==2:
+        centers,init_info=centers_for_k2(
+            y,rng,init=init,edges=edges,
+        )
+    else:
+        centers=rng.standard_normal((k,p))
+        init_info={"screened_hard_cuts":0}
+        if init=="paired":
+            for group in range(0,k,2):
+                centers[group+1]=-centers[group]
+        centers/=np.linalg.norm(centers,axis=1)[:,None]
     previous=None
     trace=[]
     found={}
@@ -180,7 +186,9 @@ def optimize_multigroup_kmeans(
         ):
             raise AssertionError("Saved candidate cut does not match G-set")
     return candidates,{
-        "k":int(k),"init":init,"max_iter":int(max_iter),
+        "k":int(k),"init":init,
+        "initialization_details":init_info,
+        "max_iter":int(max_iter),
         "lloyd_iterations":len(trace),
         "distinct_binary_merges_seen":len(found),
         "best_raw_cut":float(candidates[0]["score"]),
