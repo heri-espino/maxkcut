@@ -536,3 +536,19 @@ add `--graphs ALL --max-n 20000` and use the fallback NumPy factors:
 
 The command produces no new EVA solution, only three exact MST cuts
 per available frozen factor; missing graphs remain recorded as errors.
+
+
+## Experiment006: test different mathematical centers of the EVA MST
+
+Using the `experiment006-eva-mst-central-edge` branch, after an EVA
+run finishes, run:
+
+    $env:PYTHONPATH = Join-Path (Get-Location).Path "src"
+    python -m pytest tests/test_eva_mst_center.py -q
+    python -m maxkcut.eva_mst_center_cli --graphs G63 --metrics l1 l2 linf --rules balanced diameter_center bestcut --max-n 10000 --source-dir results/gset/experiment003-eva-numba --output-dir results/gset/experiment005-eva-mst
+
+All methods operate on the exact same original full-space MST per metric:
+no PCA. The longest-edge method is saved alongside the new balanced,
+diameter-center and original-Max-Cut-best edge criteria. Full-corpus
+instructions and once-at-end push flags are in
+[experiment006 notes](../notes/experiments/experiment006-eva-mst-central-edge.md).

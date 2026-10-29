@@ -1,0 +1,102 @@
+{
+  "argv": [
+    "C:\\Users\\175199\\maxkcut\\src\\maxkcut\\eva_mst_center_cli.py",
+    "--graphs",
+    "G63",
+    "--max-n",
+    "10000",
+    "--metrics",
+    "l1",
+    "l2",
+    "linf",
+    "--rules",
+    "balanced",
+    "diameter_center",
+    "bestcut",
+    "--source-dir",
+    "results/gset/experiment003-eva-numba",
+    "--output-dir",
+    "results/gset/experiment005-eva-mst"
+  ],
+  "created_utc": "2026-10-28T19:17:18.401530+00:00",
+  "git": {
+    "commit": "229b5da0370caefe57238ce1ff1801c3db7fea42",
+    "dirty": false
+  },
+  "graph": "G63",
+  "graph_diagnostics": {
+    "density": 0.0016924458596125978,
+    "negative_edges": 0,
+    "positive_edges": 41459,
+    "sum_of_absolute_edge_weights": 41459.0,
+    "sum_of_edge_weights": 41459.0,
+    "weight_max": 1.0,
+    "weight_min": 1.0,
+    "zero_edges": 0
+  },
+  "graph_sha256": "4b18d3df87d09e128e7cc4a1f175fa9ba2e374567405a231eef6135b1b40c946",
+  "graph_snapshot": "graph.npz",
+  "graph_source": "C:\\Users\\175199\\maxkcut\\data\\G63.txt",
+  "k": 2,
+  "m": 41459,
+  "methods": {
+    "MST-Balanced-Linf_EVA": {
+      "best_cut": 20979.0,
+      "best_restart": 0,
+      "encoding": "bits-little",
+      "mean_cut": 20979.0,
+      "median_cut": 20979.0,
+      "partition_file": "MST-Balanced-Linf_EVA.npz",
+      "restarts": 1,
+      "sample_std_cut": null,
+      "worst_cut": 20979.0
+    }
+  },
+  "n": 7000,
+  "platform": {
+    "logical_cpus": 32,
+    "os": "Windows-11-10.0.26100-SP0",
+    "python": "3.12.15"
+  },
+  "results_jsonl": "C:\\Users\\175199\\maxkcut\\results\\gset\\experiment005-eva-mst\\center-trials\\G63-ae14711285d29ab1-mst-linf-balanced.jsonl",
+  "run_id": "20261028T191718Z-7a6b842b53",
+  "schema_version": 1,
+  "settings": {
+    "algorithm": "one-edge split of an exact original-ambient EVA MST",
+    "exact_deterministic_cuts": 1,
+    "factor_rank": 119,
+    "factor_sha256": "ae14711285d29ab1050a508de108e6e8da9fce5c1debe7f600c6aad28d3efc24",
+    "graph_sha256": "4b18d3df87d09e128e7cc4a1f175fa9ba2e374567405a231eef6135b1b40c946",
+    "method": "MST-Balanced-Linf_EVA",
+    "metric": "linf",
+    "random_restarts": 0,
+    "rule": "balanced",
+    "source_mst_archive": "results\\gset\\experiment005-eva-mst\\archives\\20261028T191716Z-ed74479b5c\\G63-k2",
+    "source_mst_tree": "results\\gset\\experiment005-eva-mst\\trees\\G63-ae14711285d29ab1-mst-linf.npz"
+  },
+  "solver_info": {
+    "center_definition": "maximize the number of vertex pairs split",
+    "component_sizes": [
+      3217,
+      3783
+    ],
+    "edge_betweenness_pairs": 12169911,
+    "imbalance_vertices": 566,
+    "removed_edge_child": 2062,
+    "removed_edge_parent": 664,
+    "selected_subtree_size": 3783,
+    "selection_rule": "balanced",
+    "solver": "no EVA, no SDP; deterministic MST postprocessing"
+  },
+  "status": "complete",
+  "versions": {
+    "clarabel": "0.11.1",
+    "cvxpy": "1.9.3",
+    "maxkcut": "0.1.0",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "scs": "3.3.1",
+    "sdpa-python": "0.2.3",
+    "threadpoolctl": "3.7.0"
+  }
+}
