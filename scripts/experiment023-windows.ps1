@@ -88,7 +88,9 @@ print('Pilot passed:',sys.argv[1],len(rows),'methods')
 } else {
     & $python -m maxkcut.experiment023_methods aggregate --phase full
     if ($LASTEXITCODE -ne 0) { throw 'Final coverage analysis failed' }
-    Publish-Results 'experiment023: report full method-by-graph coverage including incomplete cases'
+    & $python -m maxkcut.experiment023_methods analyze --phase full
+    if ($LASTEXITCODE -ne 0) { throw 'Topology analysis failed' }
+    Publish-Results 'experiment023: report full coverage and topology-stratified method comparison'
     @'
 import json, pathlib, sys
 p=pathlib.Path('results/gset/experiment023-method-topology/analysis/full_coverage.json')
