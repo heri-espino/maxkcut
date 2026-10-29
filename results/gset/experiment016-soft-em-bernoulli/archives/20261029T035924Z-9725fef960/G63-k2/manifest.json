@@ -1,0 +1,151 @@
+{
+  "argv": [
+    "experiment016",
+    "em-kl",
+    "elite"
+  ],
+  "created_utc": "2026-10-29T03:59:24.460285+00:00",
+  "git": {
+    "commit": "3226e61d47481a3f97ce906252f45e4733e8e122",
+    "dirty": false
+  },
+  "graph": "G63",
+  "graph_diagnostics": {
+    "density": 0.0016924458596125978,
+    "negative_edges": 0,
+    "positive_edges": 41459,
+    "sum_of_absolute_edge_weights": 41459.0,
+    "sum_of_edge_weights": 41459.0,
+    "weight_max": 1.0,
+    "weight_min": 1.0,
+    "zero_edges": 0
+  },
+  "graph_sha256": "4b18d3df87d09e128e7cc4a1f175fa9ba2e374567405a231eef6135b1b40c946",
+  "graph_snapshot": "graph.npz",
+  "graph_source": "C:\\Users\\175199\\maxkcut\\data\\G63.txt",
+  "k": 2,
+  "m": 41459,
+  "methods": {
+    "Exp016-Candidate": {
+      "best_cut": 26904.0,
+      "best_restart": 0,
+      "encoding": "bits-little",
+      "mean_cut": 26903.5,
+      "median_cut": 26903.5,
+      "partition_file": "Exp016-Candidate.npz",
+      "restarts": 2,
+      "sample_std_cut": 0.7071067811865476,
+      "worst_cut": 26903.0
+    },
+    "Exp016-EMHard": {
+      "best_cut": 26808.0,
+      "best_restart": 0,
+      "encoding": "bits-little",
+      "mean_cut": 26797.5,
+      "median_cut": 26797.5,
+      "partition_file": "Exp016-EMHard.npz",
+      "restarts": 2,
+      "sample_std_cut": 14.849242404917497,
+      "worst_cut": 26787.0
+    },
+    "Exp016-Final": {
+      "best_cut": 26904.0,
+      "best_restart": 0,
+      "encoding": "bits-little",
+      "mean_cut": 26903.5,
+      "median_cut": 26903.5,
+      "partition_file": "Exp016-Final.npz",
+      "restarts": 2,
+      "sample_std_cut": 0.7071067811865476,
+      "worst_cut": 26903.0
+    },
+    "Exp016-Source": {
+      "best_cut": 26904.0,
+      "best_restart": 0,
+      "encoding": "bits-little",
+      "mean_cut": 26903.5,
+      "median_cut": 26903.5,
+      "partition_file": "Exp016-Source.npz",
+      "restarts": 2,
+      "sample_std_cut": 0.7071067811865476,
+      "worst_cut": 26903.0
+    }
+  },
+  "n": 7000,
+  "platform": {
+    "logical_cpus": 32,
+    "os": "Windows-11-10.0.26100-SP0",
+    "python": "3.12.15"
+  },
+  "results_jsonl": "C:\\Users\\175199\\maxkcut\\results\\gset\\experiment016-soft-em-bernoulli\\trials\\G63-em-elite-em-kl-e70a863f54b00019239a.jsonl",
+  "run_id": "20261029T035924Z-9725fef960",
+  "schema_version": 1,
+  "settings": {
+    "budget": {
+      "anchor_weight": 0.96,
+      "cem_generations": 10,
+      "damping": 0.4,
+      "delta": 0.25,
+      "elite_fraction": 0.15,
+      "em_iters": 8,
+      "em_stages": 4,
+      "em_temp_end": 0.15,
+      "em_temp_start": 5.0,
+      "gibbs_sweeps": 40,
+      "gibbs_temp_end": 0.4,
+      "gibbs_temp_start": 12.0,
+      "injection": 0.035,
+      "kappa": 1.0,
+      "kl_passes": 25,
+      "min_probability": 0.003,
+      "population": 48,
+      "seed": 2026,
+      "target": 27047.0,
+      "update_rate": 0.6
+    },
+    "episodes": [
+      2,
+      3
+    ],
+    "factor_sha256": "ae14711285d29ab1050a508de108e6e8da9fce5c1debe7f600c6aad28d3efc24",
+    "graph_sha256": "4b18d3df87d09e128e7cc4a1f175fa9ba2e374567405a231eef6135b1b40c946",
+    "initialization": "elite",
+    "method": "em-kl",
+    "source_case_sha256": [
+      "bddc3efd4e50aebcbb00f07c37dc41d014d93315be76b47fa2402893b4342e91",
+      "4775dbb941d3867d8c0174c4a8db4175d802f958fb2ab6824dbe8428435b6524"
+    ],
+    "source_elite_hashes": [
+      "ebece2c105b406625bd935318b250edd86c421983b98be60719fd5b94b926f79",
+      "7b05ea2922ce093b89b302f39869797d51de916f15e6ab196c1377e76ff3d1c6"
+    ],
+    "source_elite_restarts": [
+      660,
+      91
+    ],
+    "source_elite_scores": [
+      26904.0,
+      26903.0
+    ],
+    "version": "experiment016-soft-em-bernoulli-v1"
+  },
+  "solver_info": {
+    "EVA_frozen": true,
+    "initialization": "elite",
+    "method": "em-kl",
+    "probabilities_path": "results\\gset\\experiment016-soft-em-bernoulli\\probabilities\\G63-em-elite-em-kl-e70a863f54b00019239a.npz",
+    "probabilities_sha256": "182cc3b7b231f8e4a4a58758d7de716d6cead80f52d918fbef52718939ef0788",
+    "signed_original_graph_cut": true
+  },
+  "status": "complete",
+  "versions": {
+    "clarabel": "0.11.1",
+    "cvxpy": "1.9.3",
+    "maxkcut": "0.1.0",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "scs": "3.3.1",
+    "sdpa-python": "0.2.3",
+    "threadpoolctl": "3.7.0"
+  }
+}
