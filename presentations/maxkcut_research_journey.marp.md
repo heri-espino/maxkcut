@@ -55,6 +55,8 @@ Experiments 001–021 · 29 October 2026
 
 Repository: [heri-espino/maxkcut](https://github.com/heri-espino/maxkcut)
 
+Prepared for Professor **Ángel E. Rodríguez Fernández**
+
 ---
 
 ## Final outcome at a glance
@@ -92,6 +94,8 @@ From a discrete graph partition to a geometric representation.
 
 ## Formal objective: signed Max-Cut
 
+![bg right:41% contain](assets/signed_graph.svg)
+
 For an undirected graph \(G=(V,E,w)\), choose binary labels \(c_i\in\{0,1\}\):
 
 \[
@@ -109,6 +113,8 @@ The clustering objective is **not** the cut objective: it proposes a partition t
 
 ## Classical SDP relaxation (the theoretical reference)
 
+![bg right:41% contain](assets/eva_caveat.svg)
+
 Let \(L=D-W\) and \(X=VV^\top\) be a Gram matrix. For general \(k\ge2\):
 
 \[
@@ -125,6 +131,8 @@ Source: repository `AGENTS.md`, `RESEARCH_HANDOFF.md` and Rodríguez Fernández 
 ---
 
 ## Goemans–Williamson: random hyperplane rounding
+
+![bg right:41% contain](assets/hyperplane.svg)
 
 Draw \(r\sim N(0,I_p)\) and set
 
@@ -145,6 +153,8 @@ Source: Rodríguez-Fernández et al. (2020), Sections 1–3.
 ---
 
 ## How spherical K-means enters Max-Cut rounding
+
+![bg right:41% contain](assets/spherical_centroids.svg)
 
 **Original K-MeansNM** initializes two unit centroids as \(u\) and \(-u\). Its first assignment is the GW hyperplane partition.
 
@@ -203,6 +213,8 @@ Source: `RESEARCH_HANDOFF.md` and the individual experiment notes.
 
 ## Step 1 — Build a verifiable experimental substrate
 
+![bg right:41% contain](assets/research_triangle.svg)
+
 - Keep canonical G-set text graphs, signed weighted edge lists and hashes.
 - Implement numerical scoring separately from factor generation.
 - Compare the small full-convex SDP pathway with scalable EVA approaches.
@@ -216,6 +228,8 @@ Repo: `src/maxkcut/{objective.py,sdp.py,eva.py,archive.py}`; Experiments001–00
 ---
 
 ## Step 2 — Obtain geometry with EVA
+
+![bg right:41% contain](assets/eva_caveat.svg)
 
 EVA optimizes a **rank-restricted vector relaxation** over row-unit embeddings \(Y\in\mathbb R^{n\times p}\), with \(Y_i\) representing vertex \(i\).
 
@@ -236,6 +250,8 @@ Source: Experiment021 note and `.github/workflows/experiment021-complete-gset.ym
 
 ## Step 3 — Test alternatives to naive rounding
 
+![bg right:41% contain](assets/multigroup.svg)
+
 **MST approaches (005–009):** full-dimensional Euclidean / other distances; tree-edge removals, multicomponent contractions, binary regrouping and vertex refinement.
 
 **Reason for moving on:** rigid geometric clusters could miss good signed-graph cuts; G63's one-edge MST result was far below the later K-MeansNM + refinement baseline.
@@ -247,6 +263,8 @@ Source: Experiment005 and Experiment009 notes.
 ---
 
 ## Step 4 — Improve a cut with exact vertex gains
+
+![bg right:41% contain](assets/flip_gain.svg)
 
 Represent side labels by spins \(s_i\in\{-1,+1\}\):
 
@@ -268,6 +286,8 @@ Source: Experiment010 note, `src/maxkcut/` local-search implementation.
 
 ## Step 5 — Escape the one-flip local optimum
 
+![bg right:41% contain](assets/local_search_basins.svg)
+
 **Generalized KL** (not classical balanced pair-swapping):
 
 1. In one pass, repeatedly choose the highest-gain unlocked vertex.
@@ -284,6 +304,8 @@ Source: Experiments010 and 013; see [Experiment019 pipeline](https://github.com/
 ---
 
 ## Step 6 — Select the full refinement pipeline (Experiment013)
+
+![bg right:41% contain](assets/runner.svg)
 
 ```text
 Frozen EVA vector factor
@@ -385,6 +407,8 @@ Source: Experiments019–021.
 
 ## Reproducible RNG design: matched downstream seeds
 
+![bg right:41% contain](assets/seeds.svg)
+
 Graph index \(g\), restart \(r\in\{0,\ldots,49\}\), seed base **2026**:
 
 ```python
@@ -405,6 +429,8 @@ Source: Experiment019 and Experiment021 notes.
 ---
 
 ## Experiment019 — Controlled pilot on G63
+
+![bg right:41% contain](assets/initializers.svg)
 
 - Original G63 graph: **7,000 vertices**; fixed EVA factor with **119 columns**.
 - **9 × 50 = 450** matched, full four-stage searches.
@@ -428,6 +454,8 @@ Windows self-hosted GitHub Actions, resumability and exact coverage checks.
 
 ## Experiment020 — Expand to the 68 graphs with saved factors
 
+![bg right:41% contain](assets/coverage.svg)
+
 **Goal:** reuse already completed EVA embeddings; do not rerun the expensive factor solves.
 
 - **68** eligible graphs with verified factors: **67 new** + reused G63.
@@ -442,6 +470,8 @@ Sources: [Experiment020 report](https://github.com/heri-espino/maxkcut/blob/expe
 ---
 
 ## Why the self-hosted runner mattered
+
+![bg right:41% contain](assets/runner.svg)
 
 ```text
 GitHub Actions dispatch / dedicated research branch
@@ -478,6 +508,8 @@ Source: [Experiment021 note](https://github.com/heri-espino/maxkcut/blob/experim
 ---
 
 ## Final completeness proof is a machine-checked ledger
+
+![bg right:41% contain](assets/coverage.svg)
 
 \[
 \underbrace{68\times9\times50}_{30{,}600\text{ reused}}
@@ -583,6 +615,8 @@ Sources: `RESEARCH_HANDOFF.md`, Experiment019 note, `docs/gset-reference-values.
 
 ## Why 58/71 is not an equal-budget victory
 
+![bg right:41% contain](assets/portfolio_pie.svg)
+
 The best of nine methods beat the best of 50 control restarts on **58 graphs** and tied on **13**.
 
 But it had up to **450 searches per graph**, versus **50** for the original K-MeansNM alone.
@@ -594,6 +628,8 @@ Also, GW screen-16 considers 16 additional initial hyperplanes per restart.
 ---
 
 ## What the statistics do—and do not—show
+
+![bg right:41% contain](assets/seeds.svg)
 
 **Paired comparison** at graph \(g\):
 
@@ -655,6 +691,8 @@ The aggregator raises an error if a factor, graph, method or restart is missing,
 
 ## Experimental limitations
 
+![bg right:41% contain](assets/eva_caveat.svg)
+
 1. EVA is **rank-restricted and nonconvex**; factor convergence is not an SDP certificate.
 2. The study concerns **Max-Cut \(k=2\)**, not a full sweep over \(k>2\).
 3. Raw cut magnitudes differ by graph; report within-graph comparisons.
@@ -666,6 +704,8 @@ The aggregator raises an error if a factor, graph, method or restart is missing,
 ---
 
 ## Experiment022 — The next testable question
+
+![bg right:41% contain](assets/equal_budget.svg)
 
 **Hypothesis:** a *diversified* initializer portfolio can exceed repeated K-MeansNM when total computational costs are fixed.
 
@@ -708,4 +748,4 @@ We now have a verified, reproducible **71-graph / 31,950-search** dataset to tes
 - [Experiment019](https://github.com/heri-espino/maxkcut/blob/experiment021-complete-71-gset/notes/experiments/experiment019-kmeans-init-full-pipeline.md) · [Experiment020](https://github.com/heri-espino/maxkcut/blob/experiment021-complete-71-gset/notes/experiments/experiment020-all-gset-paired-inits.md) · [Experiment021](https://github.com/heri-espino/maxkcut/blob/experiment021-complete-71-gset/notes/experiments/experiment021-complete-71-gset.md)
 - [Machine-readable statistics](https://github.com/heri-espino/maxkcut/blob/experiment021-complete-71-gset/results/gset/experiment021-complete-71-gset/statistics/per_instance_methods.csv)
 
-**Status:** PR #50 and PR #51 were unmerged when this deck was prepared.
+**Research status at preparation:** Experiment021 was complete on 29 October 2026; see the repository's current main branch for PR merge status.
