@@ -2,6 +2,8 @@
 
 This file is the **canonical instruction set for AI coding agents** working in this repository. Read it **before editing any code or documentation**, then read `docs/agent-guide.md`, `docs/architecture.md`, and the source-grounded notes relevant to the task.
 
+**Current project-state index:** [RESEARCH_HANDOFF.md](RESEARCH_HANDOFF.md) summarizes the research chronology, primary sources, archived Experiments001–021 (with gaps explicitly noted), verified 71-graph/31,950-search Experiment021 status, and pointers to reproducible details. Read it to orient yourself; this AGENTS.md remains authoritative for rules.
+
 ## Project identity
 
 **Name:** `maxkcut`. **Purpose:** research and reproducible experiments on Max-Cut and Max-$k$-Cut, using semidefinite programming (SDP), randomized rounding, and clustering-based rounding. Primary motivation: Rodríguez Fernández (2021), Chapters 6–7. Do not conflate chapter 6 **G-set Max-Cut** with chapter 7 **A/B/C/D random-graph Max-$k$-Cut**.
