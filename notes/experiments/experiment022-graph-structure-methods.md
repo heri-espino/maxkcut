@@ -89,7 +89,11 @@ This requires Matplotlib for plotting only. Graph-family percentages include **a
 - exact undirected triangle count and global clustering coefficient (`3 × triangles / wedges`);
 - cyclomatic number `m−n+c` and normalized cycle rank.
 
-These quantities describe the **graph itself**; they do not depend on visualization coordinates or embedder seed. A separate future extension could study unit-vector EVA factor geometry (effective rank, concentration, edge cosine distribution). That extension must preserve original factor SHA and distinguish low-rank nonconvex EVA from full convex SDP solutions.
+These quantities describe the **graph itself**; they do not depend on visualization coordinates or embedder seed.
+
+**A second, distinct geometry is the EVA vector cloud**: each vertex has a unit vector `y_i` in the saved factor `Y∈R^{n×p}`. A 2D PCA/t-SNE/UMAP scatter can create circular-looking patterns that are not actual spatial input coordinates; it must not substitute for intrinsic high-dimensional measurements. Relevant proposed features include anisotropy `||mean_i y_i||`, normalized Gram-spectrum effective rank, edge versus nonedge cosine distributions, spherical cluster separability, and antipodal pairing concentration. These are **not yet measured** for all 71 graphs. Preserve each factor's SHA256 when that extension is implemented.
+
+For sparse toroidal/grid-like graphs, **four-cycles and signed-cycle frustration** may be more diagnostic than triangles alone: e.g. G11 and G48 are triangle-free with constant degree four. Count or sample short even cycles and record the sign product around them in a future prespecified extension. A separate future extension could study unit-vector EVA factor geometry (effective rank, concentration, edge cosine distribution). That extension must preserve original factor SHA and distinguish low-rank nonconvex EVA from full convex SDP solutions.
 
 ### Reproduce without optimization
 
