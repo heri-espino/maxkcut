@@ -1,0 +1,880 @@
+{
+  "archive_path": "results\\gset\\experiment015-direct-rounding\\archives\\20261028T220426Z-c3e910cc0a\\G63-k2",
+  "best_by_stage": {
+    "GWRaw": 25869.0,
+    "GWRawKL": 26775.0,
+    "OptimizedRaw": 26191.0,
+    "OptimizedRawKL": 26837.0
+  },
+  "config": {
+    "method": "es-sga",
+    "optimization_variables": "rounding normal r only; EVA Y frozen",
+    "restart_indices": [
+      9
+    ],
+    "settings": {
+      "edge_batch": 2048,
+      "kl_passes": 25,
+      "kl_repeats": 2,
+      "learning_rate": 0.08,
+      "line_directions": 40,
+      "restart_patience": 80,
+      "rounding_seed": 2026,
+      "search_seed": 2026,
+      "sga_population": 8,
+      "sga_steps": 100,
+      "sigma_end": 0.025,
+      "sigma_start": 0.3,
+      "target": 27047.0,
+      "temperature_end": 0.04,
+      "temperature_start": 0.5
+    },
+    "source_factor_sha256": "ae14711285d29ab1050a508de108e6e8da9fce5c1debe7f600c6aad28d3efc24",
+    "source_graph_sha256": "4b18d3df87d09e128e7cc4a1f175fa9ba2e374567405a231eef6135b1b40c946",
+    "version": "experiment015-direct-rounding-sga-v2"
+  },
+  "directions_path": "results\\gset\\experiment015-direct-rounding\\normals\\G63-es-sga-9f81e0e9829a93b677e0.npz",
+  "directions_sha256": "9dadf33da90c91dc2b047721cde60c07ae2a68d544571d1725aa9bdedb096f23",
+  "graph": "G63",
+  "id": "9f81e0e9829a93b677e0",
+  "method": "es-sga",
+  "status": "complete",
+  "trial_path": "results\\gset\\experiment015-direct-rounding\\trials\\G63-es-sga-9f81e0e9829a93b677e0.jsonl",
+  "trials": [
+    {
+      "after_KL_gain_vs_raw_control": 62.0,
+      "method": "es-sga",
+      "old_KL_runs": [
+        26763.0,
+        26775.0
+      ],
+      "optimized_KL_runs": [
+        26837.0,
+        26829.0
+      ],
+      "raw_gain": 322.0,
+      "restart": 9,
+      "scores": {
+        "GWRaw": 25869.0,
+        "GWRawKL": 26775.0,
+        "OptimizedRaw": 26191.0,
+        "OptimizedRawKL": 26837.0
+      },
+      "search": {
+        "es_sga": {
+          "basin_resets": 0,
+          "gain": 322.0,
+          "improvements": 34,
+          "initial_raw_cut": 25869.0,
+          "optimized_raw_cut": 26191.0,
+          "optimizer": "es-sga",
+          "seconds": 0.3600000003352761,
+          "steps_completed": 100,
+          "termination": "step_limit",
+          "trace": [
+            {
+              "best_cut": 25874.0,
+              "candidate_cut": 25862.0,
+              "estimated_gradient_norm": 1952.7162352005596,
+              "noise": 0.3,
+              "probe_max": 25874.0,
+              "step": 1
+            },
+            {
+              "best_cut": 25881.0,
+              "candidate_cut": 25855.0,
+              "estimated_gradient_norm": 2936.049636128704,
+              "noise": 0.292563696122675,
+              "probe_max": 25881.0,
+              "step": 2
+            },
+            {
+              "best_cut": 25896.0,
+              "candidate_cut": 25871.0,
+              "estimated_gradient_norm": 4719.02314335822,
+              "noise": 0.2853117209632031,
+              "probe_max": 25896.0,
+              "step": 3
+            },
+            {
+              "best_cut": 25901.0,
+              "candidate_cut": 25901.0,
+              "estimated_gradient_norm": 3879.4281280357154,
+              "noise": 0.2782395054403867,
+              "probe_max": 25898.0,
+              "step": 4
+            },
+            {
+              "best_cut": 25929.0,
+              "candidate_cut": 25929.0,
+              "estimated_gradient_norm": 1100.5057441809618,
+              "noise": 0.27134259372994896,
+              "probe_max": 25914.0,
+              "step": 5
+            },
+            {
+              "best_cut": 25937.0,
+              "candidate_cut": 25932.0,
+              "estimated_gradient_norm": 2366.537908864618,
+              "noise": 0.26461664045715755,
+              "probe_max": 25937.0,
+              "step": 6
+            },
+            {
+              "best_cut": 25958.0,
+              "candidate_cut": 25958.0,
+              "estimated_gradient_norm": 3710.721058455891,
+              "noise": 0.25805740795903664,
+              "probe_max": 25945.0,
+              "step": 7
+            },
+            {
+              "best_cut": 25972.0,
+              "candidate_cut": 25972.0,
+              "estimated_gradient_norm": 5178.429880273425,
+              "noise": 0.2516607636144426,
+              "probe_max": 25964.0,
+              "step": 8
+            },
+            {
+              "best_cut": 25972.0,
+              "candidate_cut": 25943.0,
+              "estimated_gradient_norm": 2975.4519921018286,
+              "noise": 0.24542267724032046,
+              "probe_max": 25963.0,
+              "step": 9
+            },
+            {
+              "best_cut": 25980.0,
+              "candidate_cut": 25973.0,
+              "estimated_gradient_norm": 4486.121632181649,
+              "noise": 0.2393392185525016,
+              "probe_max": 25980.0,
+              "step": 10
+            },
+            {
+              "best_cut": 25999.0,
+              "candidate_cut": 25989.0,
+              "estimated_gradient_norm": 4365.3025503690105,
+              "noise": 0.23340655468944194,
+              "probe_max": 25999.0,
+              "step": 11
+            },
+            {
+              "best_cut": 26013.0,
+              "candidate_cut": 26013.0,
+              "estimated_gradient_norm": 3935.7395545614113,
+              "noise": 0.22762094779734143,
+              "probe_max": 26010.0,
+              "step": 12
+            },
+            {
+              "best_cut": 26021.0,
+              "candidate_cut": 26015.0,
+              "estimated_gradient_norm": 2819.7916471859257,
+              "noise": 0.22197875267512224,
+              "probe_max": 26021.0,
+              "step": 13
+            },
+            {
+              "best_cut": 26034.0,
+              "candidate_cut": 26007.0,
+              "estimated_gradient_norm": 2882.833284958993,
+              "noise": 0.21647641447778304,
+              "probe_max": 26034.0,
+              "step": 14
+            },
+            {
+              "best_cut": 26045.0,
+              "candidate_cut": 25991.0,
+              "estimated_gradient_norm": 6463.34038317983,
+              "noise": 0.21111046647668122,
+              "probe_max": 26045.0,
+              "step": 15
+            },
+            {
+              "best_cut": 26045.0,
+              "candidate_cut": 26017.0,
+              "estimated_gradient_norm": 3266.315555868923,
+              "noise": 0.20587752787533312,
+              "probe_max": 26040.0,
+              "step": 16
+            },
+            {
+              "best_cut": 26049.0,
+              "candidate_cut": 26018.0,
+              "estimated_gradient_norm": 4590.401582569723,
+              "noise": 0.2007743016793551,
+              "probe_max": 26049.0,
+              "step": 17
+            },
+            {
+              "best_cut": 26049.0,
+              "candidate_cut": 26035.0,
+              "estimated_gradient_norm": 4243.291221421148,
+              "noise": 0.19579757261920375,
+              "probe_max": 26045.0,
+              "step": 18
+            },
+            {
+              "best_cut": 26059.0,
+              "candidate_cut": 26053.0,
+              "estimated_gradient_norm": 4651.685855677005,
+              "noise": 0.19094420512440707,
+              "probe_max": 26059.0,
+              "step": 19
+            },
+            {
+              "best_cut": 26059.0,
+              "candidate_cut": 26044.0,
+              "estimated_gradient_norm": 4482.597365233413,
+              "noise": 0.18621114134800923,
+              "probe_max": 26057.0,
+              "step": 20
+            },
+            {
+              "best_cut": 26059.0,
+              "candidate_cut": 26051.0,
+              "estimated_gradient_norm": 3931.2602740562425,
+              "noise": 0.18159539923998486,
+              "probe_max": 26058.0,
+              "step": 21
+            },
+            {
+              "best_cut": 26069.0,
+              "candidate_cut": 26069.0,
+              "estimated_gradient_norm": 5093.980472966158,
+              "noise": 0.1770940706684093,
+              "probe_max": 26050.0,
+              "step": 22
+            },
+            {
+              "best_cut": 26069.0,
+              "candidate_cut": 26052.0,
+              "estimated_gradient_norm": 3381.5990951270614,
+              "noise": 0.17270431958720012,
+              "probe_max": 26061.0,
+              "step": 23
+            },
+            {
+              "best_cut": 26091.0,
+              "candidate_cut": 26042.0,
+              "estimated_gradient_norm": 2406.3364160877095,
+              "noise": 0.16842338024927656,
+              "probe_max": 26091.0,
+              "step": 24
+            },
+            {
+              "best_cut": 26091.0,
+              "candidate_cut": 26068.0,
+              "estimated_gradient_norm": 4675.49103092423,
+              "noise": 0.16424855546401032,
+              "probe_max": 26081.0,
+              "step": 25
+            },
+            {
+              "best_cut": 26112.0,
+              "candidate_cut": 26099.0,
+              "estimated_gradient_norm": 4872.362539753384,
+              "noise": 0.16017721489787018,
+              "probe_max": 26112.0,
+              "step": 26
+            },
+            {
+              "best_cut": 26112.0,
+              "candidate_cut": 26082.0,
+              "estimated_gradient_norm": 2751.445799396715,
+              "noise": 0.1562067934171897,
+              "probe_max": 26096.0,
+              "step": 27
+            },
+            {
+              "best_cut": 26112.0,
+              "candidate_cut": 26086.0,
+              "estimated_gradient_norm": 5519.7456746526095,
+              "noise": 0.1523347894720139,
+              "probe_max": 26109.0,
+              "step": 28
+            },
+            {
+              "best_cut": 26125.0,
+              "candidate_cut": 26099.0,
+              "estimated_gradient_norm": 5647.127146462624,
+              "noise": 0.1485587635200065,
+              "probe_max": 26125.0,
+              "step": 29
+            },
+            {
+              "best_cut": 26125.0,
+              "candidate_cut": 26119.0,
+              "estimated_gradient_norm": 4130.335756120696,
+              "noise": 0.14487633648942508,
+              "probe_max": 26114.0,
+              "step": 30
+            },
+            {
+              "best_cut": 26126.0,
+              "candidate_cut": 26126.0,
+              "estimated_gradient_norm": 4363.698580075221,
+              "noise": 0.14128518828019523,
+              "probe_max": 26099.0,
+              "step": 31
+            },
+            {
+              "best_cut": 26126.0,
+              "candidate_cut": 26117.0,
+              "estimated_gradient_norm": 5779.62418361925,
+              "noise": 0.13778305630213988,
+              "probe_max": 26120.0,
+              "step": 32
+            },
+            {
+              "best_cut": 26132.0,
+              "candidate_cut": 26115.0,
+              "estimated_gradient_norm": 4239.367982954965,
+              "noise": 0.13436773404944227,
+              "probe_max": 26132.0,
+              "step": 33
+            },
+            {
+              "best_cut": 26132.0,
+              "candidate_cut": 26102.0,
+              "estimated_gradient_norm": 6943.4594467644165,
+              "noise": 0.13103706971044482,
+              "probe_max": 26117.0,
+              "step": 34
+            },
+            {
+              "best_cut": 26132.0,
+              "candidate_cut": 26098.0,
+              "estimated_gradient_norm": 4854.053777516962,
+              "noise": 0.1277889648119079,
+              "probe_max": 26131.0,
+              "step": 35
+            },
+            {
+              "best_cut": 26132.0,
+              "candidate_cut": 26116.0,
+              "estimated_gradient_norm": 5198.032845209702,
+              "noise": 0.12462137289687411,
+              "probe_max": 26123.0,
+              "step": 36
+            },
+            {
+              "best_cut": 26132.0,
+              "candidate_cut": 26107.0,
+              "estimated_gradient_norm": 7509.577268967528,
+              "noise": 0.1215322982353055,
+              "probe_max": 26127.0,
+              "step": 37
+            },
+            {
+              "best_cut": 26141.0,
+              "candidate_cut": 26114.0,
+              "estimated_gradient_norm": 7321.016718893663,
+              "noise": 0.11851979456668077,
+              "probe_max": 26141.0,
+              "step": 38
+            },
+            {
+              "best_cut": 26141.0,
+              "candidate_cut": 26126.0,
+              "estimated_gradient_norm": 4882.821573075193,
+              "noise": 0.1155819638737609,
+              "probe_max": 26120.0,
+              "step": 39
+            },
+            {
+              "best_cut": 26141.0,
+              "candidate_cut": 26107.0,
+              "estimated_gradient_norm": 4307.691777090332,
+              "noise": 0.11271695518674996,
+              "probe_max": 26119.0,
+              "step": 40
+            },
+            {
+              "best_cut": 26141.0,
+              "candidate_cut": 26103.0,
+              "estimated_gradient_norm": 3424.374881956192,
+              "noise": 0.10992296341709833,
+              "probe_max": 26121.0,
+              "step": 41
+            },
+            {
+              "best_cut": 26141.0,
+              "candidate_cut": 26128.0,
+              "estimated_gradient_norm": 7972.606978145879,
+              "noise": 0.10719822822021292,
+              "probe_max": 26131.0,
+              "step": 42
+            },
+            {
+              "best_cut": 26141.0,
+              "candidate_cut": 26103.0,
+              "estimated_gradient_norm": 4172.853369284752,
+              "noise": 0.10454103288635846,
+              "probe_max": 26118.0,
+              "step": 43
+            },
+            {
+              "best_cut": 26141.0,
+              "candidate_cut": 26120.0,
+              "estimated_gradient_norm": 5487.372033550014,
+              "noise": 0.10194970325905053,
+              "probe_max": 26140.0,
+              "step": 44
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26103.0,
+              "estimated_gradient_norm": 5760.033777001378,
+              "noise": 0.09942260668025918,
+              "probe_max": 26155.0,
+              "step": 45
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26106.0,
+              "estimated_gradient_norm": 8289.383311802416,
+              "noise": 0.09695815096175862,
+              "probe_max": 26141.0,
+              "step": 46
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26101.0,
+              "estimated_gradient_norm": 2525.862280139701,
+              "noise": 0.09455478338197468,
+              "probe_max": 26122.0,
+              "step": 47
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26088.0,
+              "estimated_gradient_norm": 8256.024590216317,
+              "noise": 0.09221098970769802,
+              "probe_max": 26129.0,
+              "step": 48
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26133.0,
+              "estimated_gradient_norm": 5080.158925645967,
+              "noise": 0.08992529324004693,
+              "probe_max": 26129.0,
+              "step": 49
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26102.0,
+              "estimated_gradient_norm": 9309.965067239471,
+              "noise": 0.08769625388407844,
+              "probe_max": 26136.0,
+              "step": 50
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26109.0,
+              "estimated_gradient_norm": 5157.0578008038965,
+              "noise": 0.08552246724146162,
+              "probe_max": 26139.0,
+              "step": 51
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26104.0,
+              "estimated_gradient_norm": 3655.596908590893,
+              "noise": 0.08340256372564137,
+              "probe_max": 26124.0,
+              "step": 52
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26125.0,
+              "estimated_gradient_norm": 6334.592465675731,
+              "noise": 0.08133520769893525,
+              "probe_max": 26127.0,
+              "step": 53
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26124.0,
+              "estimated_gradient_norm": 7695.137866152835,
+              "noise": 0.07931909663101985,
+              "probe_max": 26135.0,
+              "step": 54
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26121.0,
+              "estimated_gradient_norm": 5853.599783331114,
+              "noise": 0.07735296027827598,
+              "probe_max": 26136.0,
+              "step": 55
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26097.0,
+              "estimated_gradient_norm": 7390.512571015645,
+              "noise": 0.07543555988347628,
+              "probe_max": 26135.0,
+              "step": 56
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26082.0,
+              "estimated_gradient_norm": 7455.349323293568,
+              "noise": 0.0735656873953107,
+              "probe_max": 26124.0,
+              "step": 57
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26057.0,
+              "estimated_gradient_norm": 9449.264068601993,
+              "noise": 0.07174216470725794,
+              "probe_max": 26097.0,
+              "step": 58
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26054.0,
+              "estimated_gradient_norm": 6033.067450354258,
+              "noise": 0.06996384291532373,
+              "probe_max": 26084.0,
+              "step": 59
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26030.0,
+              "estimated_gradient_norm": 7546.493334403146,
+              "noise": 0.06822960159417782,
+              "probe_max": 26081.0,
+              "step": 60
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26045.0,
+              "estimated_gradient_norm": 8738.292835300888,
+              "noise": 0.06653834809123406,
+              "probe_max": 26075.0,
+              "step": 61
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26095.0,
+              "estimated_gradient_norm": 13076.285786485074,
+              "noise": 0.0648890168382286,
+              "probe_max": 26093.0,
+              "step": 62
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26123.0,
+              "estimated_gradient_norm": 10845.402861228622,
+              "noise": 0.06328056867986218,
+              "probe_max": 26134.0,
+              "step": 63
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26127.0,
+              "estimated_gradient_norm": 10365.935859315457,
+              "noise": 0.06171199021908423,
+              "probe_max": 26142.0,
+              "step": 64
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26108.0,
+              "estimated_gradient_norm": 6203.677809487384,
+              "noise": 0.060182293178605496,
+              "probe_max": 26142.0,
+              "step": 65
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26062.0,
+              "estimated_gradient_norm": 9767.346738426768,
+              "noise": 0.0586905137782376,
+              "probe_max": 26119.0,
+              "step": 66
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26064.0,
+              "estimated_gradient_norm": 17915.304809435387,
+              "noise": 0.0572357121276666,
+              "probe_max": 26102.0,
+              "step": 67
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26077.0,
+              "estimated_gradient_norm": 11622.455101574842,
+              "noise": 0.05581697163427852,
+              "probe_max": 26094.0,
+              "step": 68
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26092.0,
+              "estimated_gradient_norm": 7429.8479466112985,
+              "noise": 0.05443339842566345,
+              "probe_max": 26093.0,
+              "step": 69
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26078.0,
+              "estimated_gradient_norm": 7581.844702639204,
+              "noise": 0.05308412078643432,
+              "probe_max": 26105.0,
+              "step": 70
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26078.0,
+              "estimated_gradient_norm": 10494.911828722154,
+              "noise": 0.05176828860900584,
+              "probe_max": 26090.0,
+              "step": 71
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26119.0,
+              "estimated_gradient_norm": 19095.634965191188,
+              "noise": 0.05048507285798708,
+              "probe_max": 26113.0,
+              "step": 72
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26134.0,
+              "estimated_gradient_norm": 9815.146528590067,
+              "noise": 0.049233665047850796,
+              "probe_max": 26135.0,
+              "step": 73
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26137.0,
+              "estimated_gradient_norm": 8053.670024935418,
+              "noise": 0.04801327673354997,
+              "probe_max": 26155.0,
+              "step": 74
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26114.0,
+              "estimated_gradient_norm": 10608.193008267413,
+              "noise": 0.04682313901376072,
+              "probe_max": 26148.0,
+              "step": 75
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26108.0,
+              "estimated_gradient_norm": 10283.049068870545,
+              "noise": 0.045662502046438874,
+              "probe_max": 26139.0,
+              "step": 76
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26116.0,
+              "estimated_gradient_norm": 9847.366839254422,
+              "noise": 0.04453063457638457,
+              "probe_max": 26130.0,
+              "step": 77
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26124.0,
+              "estimated_gradient_norm": 9094.123614855482,
+              "noise": 0.04342682347451753,
+              "probe_max": 26135.0,
+              "step": 78
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26135.0,
+              "estimated_gradient_norm": 12238.23941223656,
+              "noise": 0.04235037328857267,
+              "probe_max": 26148.0,
+              "step": 79
+            },
+            {
+              "best_cut": 26155.0,
+              "candidate_cut": 26136.0,
+              "estimated_gradient_norm": 13432.370467009925,
+              "noise": 0.041300605804932757,
+              "probe_max": 26150.0,
+              "step": 80
+            },
+            {
+              "best_cut": 26157.0,
+              "candidate_cut": 26122.0,
+              "estimated_gradient_norm": 11376.686103849855,
+              "noise": 0.04027685962132246,
+              "probe_max": 26157.0,
+              "step": 81
+            },
+            {
+              "best_cut": 26157.0,
+              "candidate_cut": 26134.0,
+              "estimated_gradient_norm": 11105.911761799889,
+              "noise": 0.03927848973009407,
+              "probe_max": 26143.0,
+              "step": 82
+            },
+            {
+              "best_cut": 26157.0,
+              "candidate_cut": 26102.0,
+              "estimated_gradient_norm": 5746.176029783894,
+              "noise": 0.03830486711184285,
+              "probe_max": 26146.0,
+              "step": 83
+            },
+            {
+              "best_cut": 26168.0,
+              "candidate_cut": 26168.0,
+              "estimated_gradient_norm": 14820.13244102349,
+              "noise": 0.037355378339095476,
+              "probe_max": 26148.0,
+              "step": 84
+            },
+            {
+              "best_cut": 26168.0,
+              "candidate_cut": 26135.0,
+              "estimated_gradient_norm": 8764.906867074951,
+              "noise": 0.036429425189822284,
+              "probe_max": 26162.0,
+              "step": 85
+            },
+            {
+              "best_cut": 26168.0,
+              "candidate_cut": 26115.0,
+              "estimated_gradient_norm": 8421.75680488849,
+              "noise": 0.035526424270529634,
+              "probe_max": 26148.0,
+              "step": 86
+            },
+            {
+              "best_cut": 26168.0,
+              "candidate_cut": 26139.0,
+              "estimated_gradient_norm": 13491.347212696657,
+              "noise": 0.03464580664869486,
+              "probe_max": 26144.0,
+              "step": 87
+            },
+            {
+              "best_cut": 26168.0,
+              "candidate_cut": 26151.0,
+              "estimated_gradient_norm": 14089.057138274668,
+              "noise": 0.03378701749431239,
+              "probe_max": 26156.0,
+              "step": 88
+            },
+            {
+              "best_cut": 26171.0,
+              "candidate_cut": 26167.0,
+              "estimated_gradient_norm": 17179.595096138302,
+              "noise": 0.03294951573032506,
+              "probe_max": 26171.0,
+              "step": 89
+            },
+            {
+              "best_cut": 26184.0,
+              "candidate_cut": 26171.0,
+              "estimated_gradient_norm": 13088.939338713548,
+              "noise": 0.0321327736917204,
+              "probe_max": 26184.0,
+              "step": 90
+            },
+            {
+              "best_cut": 26191.0,
+              "candidate_cut": 26174.0,
+              "estimated_gradient_norm": 15205.757609419048,
+              "noise": 0.03133627679307725,
+              "probe_max": 26191.0,
+              "step": 91
+            },
+            {
+              "best_cut": 26191.0,
+              "candidate_cut": 26147.0,
+              "estimated_gradient_norm": 15596.544417450259,
+              "noise": 0.030559523204352953,
+              "probe_max": 26181.0,
+              "step": 92
+            },
+            {
+              "best_cut": 26191.0,
+              "candidate_cut": 26111.0,
+              "estimated_gradient_norm": 14128.284229101051,
+              "noise": 0.029802023534707185,
+              "probe_max": 26168.0,
+              "step": 93
+            },
+            {
+              "best_cut": 26191.0,
+              "candidate_cut": 26063.0,
+              "estimated_gradient_norm": 16056.753480040581,
+              "noise": 0.029063300524162936,
+              "probe_max": 26117.0,
+              "step": 94
+            },
+            {
+              "best_cut": 26191.0,
+              "candidate_cut": 26053.0,
+              "estimated_gradient_norm": 18378.79485279727,
+              "noise": 0.028342888742910632,
+              "probe_max": 26090.0,
+              "step": 95
+            },
+            {
+              "best_cut": 26191.0,
+              "candidate_cut": 26059.0,
+              "estimated_gradient_norm": 11638.260827770662,
+              "noise": 0.027640334298065648,
+              "probe_max": 26084.0,
+              "step": 96
+            },
+            {
+              "best_cut": 26191.0,
+              "candidate_cut": 26079.0,
+              "estimated_gradient_norm": 16699.095389222148,
+              "noise": 0.026955194547694766,
+              "probe_max": 26074.0,
+              "step": 97
+            },
+            {
+              "best_cut": 26191.0,
+              "candidate_cut": 26107.0,
+              "estimated_gradient_norm": 12545.92117688297,
+              "noise": 0.0262870378219312,
+              "probe_max": 26092.0,
+              "step": 98
+            },
+            {
+              "best_cut": 26191.0,
+              "candidate_cut": 26127.0,
+              "estimated_gradient_norm": 13950.717979647408,
+              "noise": 0.025635443151002475,
+              "probe_max": 26122.0,
+              "step": 99
+            },
+            {
+              "best_cut": 26191.0,
+              "candidate_cut": 26123.0,
+              "estimated_gradient_norm": 13405.167660574512,
+              "noise": 0.025,
+              "probe_max": 26130.0,
+              "step": 100
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

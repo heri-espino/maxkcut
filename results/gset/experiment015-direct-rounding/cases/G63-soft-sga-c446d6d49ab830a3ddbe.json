@@ -1,0 +1,2252 @@
+{
+  "archive_path": "results\\gset\\experiment015-direct-rounding\\archives\\20261028T220424Z-865ba58744\\G63-k2",
+  "best_by_stage": {
+    "GWRaw": 25934.0,
+    "GWRawKL": 26822.0,
+    "OptimizedRaw": 26120.0,
+    "OptimizedRawKL": 26861.0
+  },
+  "config": {
+    "method": "soft-sga",
+    "optimization_variables": "rounding normal r only; EVA Y frozen",
+    "restart_indices": [
+      3,
+      4,
+      5
+    ],
+    "settings": {
+      "edge_batch": 2048,
+      "kl_passes": 25,
+      "kl_repeats": 2,
+      "learning_rate": 0.08,
+      "line_directions": 40,
+      "restart_patience": 80,
+      "rounding_seed": 2026,
+      "search_seed": 2026,
+      "sga_population": 8,
+      "sga_steps": 100,
+      "sigma_end": 0.025,
+      "sigma_start": 0.3,
+      "target": 27047.0,
+      "temperature_end": 0.04,
+      "temperature_start": 0.5
+    },
+    "source_factor_sha256": "ae14711285d29ab1050a508de108e6e8da9fce5c1debe7f600c6aad28d3efc24",
+    "source_graph_sha256": "4b18d3df87d09e128e7cc4a1f175fa9ba2e374567405a231eef6135b1b40c946",
+    "version": "experiment015-direct-rounding-sga-v2"
+  },
+  "directions_path": "results\\gset\\experiment015-direct-rounding\\normals\\G63-soft-sga-c446d6d49ab830a3ddbe.npz",
+  "directions_sha256": "370f9ccd15a4010212d3698c7b8c6436b17702d9d8a79f812a5e73c9bb805a6d",
+  "graph": "G63",
+  "id": "c446d6d49ab830a3ddbe",
+  "method": "soft-sga",
+  "status": "complete",
+  "trial_path": "results\\gset\\experiment015-direct-rounding\\trials\\G63-soft-sga-c446d6d49ab830a3ddbe.jsonl",
+  "trials": [
+    {
+      "after_KL_gain_vs_raw_control": 43.0,
+      "method": "soft-sga",
+      "old_KL_runs": [
+        26811.0,
+        26807.0
+      ],
+      "optimized_KL_runs": [
+        26847.0,
+        26854.0
+      ],
+      "raw_gain": 156.0,
+      "restart": 3,
+      "scores": {
+        "GWRaw": 25934.0,
+        "GWRawKL": 26811.0,
+        "OptimizedRaw": 26090.0,
+        "OptimizedRawKL": 26854.0
+      },
+      "search": {
+        "soft_sga": {
+          "basin_resets": 0,
+          "gain": 156.0,
+          "improvements": 13,
+          "initial_raw_cut": 25934.0,
+          "optimized_raw_cut": 26090.0,
+          "optimizer": "soft-sga",
+          "seconds": 0.07799999974668026,
+          "steps_completed": 100,
+          "termination": "step_limit",
+          "trace": [
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25957.0,
+              "estimated_gradient_norm": 368.4205787554177,
+              "step": 1,
+              "temperature": 0.5
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25915.0,
+              "estimated_gradient_norm": 421.7881800496151,
+              "step": 2,
+              "temperature": 0.4874051404801666
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25927.0,
+              "estimated_gradient_norm": 480.1908596548199,
+              "step": 3,
+              "temperature": 0.4751275419329818
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25934.0,
+              "estimated_gradient_norm": 555.0368495412492,
+              "step": 4,
+              "temperature": 0.4631592126436824
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25950.0,
+              "estimated_gradient_norm": 763.6877094902808,
+              "step": 5,
+              "temperature": 0.45149236220655475
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25929.0,
+              "estimated_gradient_norm": 708.3269850140753,
+              "step": 6,
+              "temperature": 0.44011939645401615
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25936.0,
+              "estimated_gradient_norm": 783.7950125064953,
+              "step": 7,
+              "temperature": 0.42903291251343173
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25921.0,
+              "estimated_gradient_norm": 892.942244218771,
+              "step": 8,
+              "temperature": 0.4182256939884484
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25907.0,
+              "estimated_gradient_norm": 1018.3044321778016,
+              "step": 9,
+              "temperature": 0.40769070626170967
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25903.0,
+              "estimated_gradient_norm": 1069.0029087308576,
+              "step": 10,
+              "temperature": 0.39742109191589386
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25921.0,
+              "estimated_gradient_norm": 1105.2718232621846,
+              "step": 11,
+              "temperature": 0.3874101662700949
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25924.0,
+              "estimated_gradient_norm": 1077.8799832603006,
+              "step": 12,
+              "temperature": 0.3776514130286406
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25898.0,
+              "estimated_gradient_norm": 1231.9526836006949,
+              "step": 13,
+              "temperature": 0.36813848003951594
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25909.0,
+              "estimated_gradient_norm": 1384.414749506164,
+              "step": 14,
+              "temperature": 0.3588651751596305
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25904.0,
+              "estimated_gradient_norm": 1310.9392721801737,
+              "step": 15,
+              "temperature": 0.34982546222423855
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25923.0,
+              "estimated_gradient_norm": 1422.0067621978349,
+              "step": 16,
+              "temperature": 0.3410134571178884
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25938.0,
+              "estimated_gradient_norm": 1380.9891099910371,
+              "step": 17,
+              "temperature": 0.33242342394434327
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25943.0,
+              "estimated_gradient_norm": 1551.7955667148174,
+              "step": 18,
+              "temperature": 0.32404977129298124
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25920.0,
+              "estimated_gradient_norm": 1638.0104603508282,
+              "step": 19,
+              "temperature": 0.3158870485992427
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25920.0,
+              "estimated_gradient_norm": 1553.8959191235015,
+              "step": 20,
+              "temperature": 0.3079299425967582
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25886.0,
+              "estimated_gradient_norm": 1800.0182009634195,
+              "step": 21,
+              "temperature": 0.3001732738588451
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25879.0,
+              "estimated_gradient_norm": 1942.3930980095872,
+              "step": 22,
+              "temperature": 0.2926119934271238
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25844.0,
+              "estimated_gradient_norm": 1791.461263742296,
+              "step": 23,
+              "temperature": 0.28524117952505773
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25842.0,
+              "estimated_gradient_norm": 1855.611231516796,
+              "step": 24,
+              "temperature": 0.27805603435427834
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25846.0,
+              "estimated_gradient_norm": 2177.9943252020853,
+              "step": 25,
+              "temperature": 0.2710518809716101
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25886.0,
+              "estimated_gradient_norm": 2003.9447821938252,
+              "step": 26,
+              "temperature": 0.26422416024476203
+            },
+            {
+              "best_cut": 25957.0,
+              "candidate_cut": 25910.0,
+              "estimated_gradient_norm": 2417.7026883559247,
+              "step": 27,
+              "temperature": 0.2575684278847045
+            },
+            {
+              "best_cut": 25960.0,
+              "candidate_cut": 25960.0,
+              "estimated_gradient_norm": 2130.8989949906886,
+              "step": 28,
+              "temperature": 0.2510803515528002
+            },
+            {
+              "best_cut": 25973.0,
+              "candidate_cut": 25973.0,
+              "estimated_gradient_norm": 2091.255547190361,
+              "step": 29,
+              "temperature": 0.24475570804080432
+            },
+            {
+              "best_cut": 25973.0,
+              "candidate_cut": 25953.0,
+              "estimated_gradient_norm": 2206.684524282091,
+              "step": 30,
+              "temperature": 0.23859038052190173
+            },
+            {
+              "best_cut": 25973.0,
+              "candidate_cut": 25953.0,
+              "estimated_gradient_norm": 2261.819025997326,
+              "step": 31,
+              "temperature": 0.23258035587098783
+            },
+            {
+              "best_cut": 25973.0,
+              "candidate_cut": 25923.0,
+              "estimated_gradient_norm": 2569.5354639468437,
+              "step": 32,
+              "temperature": 0.2267217220524519
+            },
+            {
+              "best_cut": 25973.0,
+              "candidate_cut": 25952.0,
+              "estimated_gradient_norm": 2360.994958456188,
+              "step": 33,
+              "temperature": 0.22101066557376117
+            },
+            {
+              "best_cut": 25985.0,
+              "candidate_cut": 25985.0,
+              "estimated_gradient_norm": 2297.7481539983573,
+              "step": 34,
+              "temperature": 0.2154434690031884
+            },
+            {
+              "best_cut": 25991.0,
+              "candidate_cut": 25991.0,
+              "estimated_gradient_norm": 2561.0656438496867,
+              "step": 35,
+              "temperature": 0.21001650855006687
+            },
+            {
+              "best_cut": 25998.0,
+              "candidate_cut": 25998.0,
+              "estimated_gradient_norm": 2693.3180326906036,
+              "step": 36,
+              "temperature": 0.2047262517059989
+            },
+            {
+              "best_cut": 26023.0,
+              "candidate_cut": 26023.0,
+              "estimated_gradient_norm": 2387.459381101373,
+              "step": 37,
+              "temperature": 0.19956925494548067
+            },
+            {
+              "best_cut": 26023.0,
+              "candidate_cut": 26021.0,
+              "estimated_gradient_norm": 2703.884286288118,
+              "step": 38,
+              "temperature": 0.19454216148444836
+            },
+            {
+              "best_cut": 26023.0,
+              "candidate_cut": 25972.0,
+              "estimated_gradient_norm": 2597.233089403869,
+              "step": 39,
+              "temperature": 0.1896416990952856
+            },
+            {
+              "best_cut": 26023.0,
+              "candidate_cut": 25965.0,
+              "estimated_gradient_norm": 2864.7937447562053,
+              "step": 40,
+              "temperature": 0.1848646779768703
+            },
+            {
+              "best_cut": 26023.0,
+              "candidate_cut": 25955.0,
+              "estimated_gradient_norm": 2628.2980797498094,
+              "step": 41,
+              "temperature": 0.18020798867827445
+            },
+            {
+              "best_cut": 26023.0,
+              "candidate_cut": 25996.0,
+              "estimated_gradient_norm": 2908.5435763889786,
+              "step": 42,
+              "temperature": 0.17566860007476526
+            },
+            {
+              "best_cut": 26023.0,
+              "candidate_cut": 25954.0,
+              "estimated_gradient_norm": 2713.528495328046,
+              "step": 43,
+              "temperature": 0.1712435573947903
+            },
+            {
+              "best_cut": 26023.0,
+              "candidate_cut": 25943.0,
+              "estimated_gradient_norm": 2635.933670160654,
+              "step": 44,
+              "temperature": 0.16692998029666248
+            },
+            {
+              "best_cut": 26023.0,
+              "candidate_cut": 25976.0,
+              "estimated_gradient_norm": 2836.8912389243624,
+              "step": 45,
+              "temperature": 0.16272506099369244
+            },
+            {
+              "best_cut": 26023.0,
+              "candidate_cut": 25982.0,
+              "estimated_gradient_norm": 2827.932132687975,
+              "step": 46,
+              "temperature": 0.15862606242654867
+            },
+            {
+              "best_cut": 26023.0,
+              "candidate_cut": 26023.0,
+              "estimated_gradient_norm": 2566.4500281112823,
+              "step": 47,
+              "temperature": 0.15463031648165523
+            },
+            {
+              "best_cut": 26030.0,
+              "candidate_cut": 26030.0,
+              "estimated_gradient_norm": 2523.3253496866428,
+              "step": 48,
+              "temperature": 0.15073522225446756
+            },
+            {
+              "best_cut": 26030.0,
+              "candidate_cut": 26024.0,
+              "estimated_gradient_norm": 2915.5073914678287,
+              "step": 49,
+              "temperature": 0.1469382443564958
+            },
+            {
+              "best_cut": 26030.0,
+              "candidate_cut": 26024.0,
+              "estimated_gradient_norm": 2854.215130322823,
+              "step": 50,
+              "temperature": 0.14323691126497373
+            },
+            {
+              "best_cut": 26039.0,
+              "candidate_cut": 26039.0,
+              "estimated_gradient_norm": 2791.421352809475,
+              "step": 51,
+              "temperature": 0.13962881371409935
+            },
+            {
+              "best_cut": 26048.0,
+              "candidate_cut": 26048.0,
+              "estimated_gradient_norm": 2761.6383732294735,
+              "step": 52,
+              "temperature": 0.13611160312679924
+            },
+            {
+              "best_cut": 26060.0,
+              "candidate_cut": 26060.0,
+              "estimated_gradient_norm": 2652.208734767303,
+              "step": 53,
+              "temperature": 0.1326829900859965
+            },
+            {
+              "best_cut": 26060.0,
+              "candidate_cut": 26052.0,
+              "estimated_gradient_norm": 3108.279463675514,
+              "step": 54,
+              "temperature": 0.12934074284438735
+            },
+            {
+              "best_cut": 26060.0,
+              "candidate_cut": 26020.0,
+              "estimated_gradient_norm": 2663.0527705920003,
+              "step": 55,
+              "temperature": 0.12608268587175545
+            },
+            {
+              "best_cut": 26060.0,
+              "candidate_cut": 25993.0,
+              "estimated_gradient_norm": 2580.138378124653,
+              "step": 56,
+              "temperature": 0.12290669843887932
+            },
+            {
+              "best_cut": 26060.0,
+              "candidate_cut": 26023.0,
+              "estimated_gradient_norm": 2524.961873723219,
+              "step": 57,
+              "temperature": 0.1198107132371109
+            },
+            {
+              "best_cut": 26060.0,
+              "candidate_cut": 26022.0,
+              "estimated_gradient_norm": 2465.4845514659883,
+              "step": 58,
+              "temperature": 0.11679271503272597
+            },
+            {
+              "best_cut": 26060.0,
+              "candidate_cut": 26006.0,
+              "estimated_gradient_norm": 2480.305124649221,
+              "step": 59,
+              "temperature": 0.11385073935517173
+            },
+            {
+              "best_cut": 26060.0,
+              "candidate_cut": 26030.0,
+              "estimated_gradient_norm": 2670.580616015752,
+              "step": 60,
+              "temperature": 0.11098287121835662
+            },
+            {
+              "best_cut": 26060.0,
+              "candidate_cut": 26019.0,
+              "estimated_gradient_norm": 2547.494226252446,
+              "step": 61,
+              "temperature": 0.10818724387415067
+            },
+            {
+              "best_cut": 26087.0,
+              "candidate_cut": 26087.0,
+              "estimated_gradient_norm": 2724.79027836471,
+              "step": 62,
+              "temperature": 0.10546203759728491
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26090.0,
+              "estimated_gradient_norm": 2703.441112595153,
+              "step": 63,
+              "temperature": 0.1028054785008585
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26037.0,
+              "estimated_gradient_norm": 2576.4575353959244,
+              "step": 64,
+              "temperature": 0.10021583738168337
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26044.0,
+              "estimated_gradient_norm": 2680.979015824123,
+              "step": 65,
+              "temperature": 0.0976914285947138
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26011.0,
+              "estimated_gradient_norm": 2358.426135896845,
+              "step": 66,
+              "temperature": 0.0952306089558293
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26045.0,
+              "estimated_gradient_norm": 2019.5035421551513,
+              "step": 67,
+              "temperature": 0.09283177667225559
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26022.0,
+              "estimated_gradient_norm": 2557.94548804499,
+              "step": 68,
+              "temperature": 0.09049337029992835
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26012.0,
+              "estimated_gradient_norm": 2277.8809368557845,
+              "step": 69,
+              "temperature": 0.08821386772712063
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26022.0,
+              "estimated_gradient_norm": 2727.426472490365,
+              "step": 70,
+              "temperature": 0.08599178518367212
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26005.0,
+              "estimated_gradient_norm": 2331.7686102113457,
+              "step": 71,
+              "temperature": 0.08382567627517604
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26021.0,
+              "estimated_gradient_norm": 2052.480540601379,
+              "step": 72,
+              "temperature": 0.08171413104149429
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26011.0,
+              "estimated_gradient_norm": 2083.7337311763667,
+              "step": 73,
+              "temperature": 0.07965577503898852
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 25997.0,
+              "estimated_gradient_norm": 2242.297262391119,
+              "step": 74,
+              "temperature": 0.07764926844586949
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26025.0,
+              "estimated_gradient_norm": 2145.5855609904625,
+              "step": 75,
+              "temperature": 0.07569330519008236
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26016.0,
+              "estimated_gradient_norm": 2658.058219093223,
+              "step": 76,
+              "temperature": 0.07378661209916043
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26027.0,
+              "estimated_gradient_norm": 2285.4451408300247,
+              "step": 77,
+              "temperature": 0.0719279480714937
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26048.0,
+              "estimated_gradient_norm": 2687.360782797839,
+              "step": 78,
+              "temperature": 0.07011610326847302
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26072.0,
+              "estimated_gradient_norm": 2023.4150874707193,
+              "step": 79,
+              "temperature": 0.06834989832698392
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26033.0,
+              "estimated_gradient_norm": 2127.465181137572,
+              "step": 80,
+              "temperature": 0.06662818359173739
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26056.0,
+              "estimated_gradient_norm": 2452.1787950779185,
+              "step": 81,
+              "temperature": 0.0649498383669382
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26058.0,
+              "estimated_gradient_norm": 2204.2415992758706,
+              "step": 82,
+              "temperature": 0.06331377018680323
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26044.0,
+              "estimated_gradient_norm": 2935.9412083117686,
+              "step": 83,
+              "temperature": 0.06171891410445563
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26064.0,
+              "estimated_gradient_norm": 2495.492854822131,
+              "step": 84,
+              "temperature": 0.06016423199873107
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26033.0,
+              "estimated_gradient_norm": 2683.6588233003945,
+              "step": 85,
+              "temperature": 0.058648711898445685
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26032.0,
+              "estimated_gradient_norm": 2391.1811255987227,
+              "step": 86,
+              "temperature": 0.05717136732368548
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26045.0,
+              "estimated_gradient_norm": 2194.3229356759925,
+              "step": 87,
+              "temperature": 0.05573123664368824
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26032.0,
+              "estimated_gradient_norm": 2916.6605980418376,
+              "step": 88,
+              "temperature": 0.05432738245090055
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26040.0,
+              "estimated_gradient_norm": 2830.5690771477434,
+              "step": 89,
+              "temperature": 0.05295889095080185
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26050.0,
+              "estimated_gradient_norm": 2048.6705530176514,
+              "step": 90,
+              "temperature": 0.051624871367098785
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26057.0,
+              "estimated_gradient_norm": 2524.1009417009604,
+              "step": 91,
+              "temperature": 0.05032445536190263
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26039.0,
+              "estimated_gradient_norm": 2155.4228364624,
+              "step": 92,
+              "temperature": 0.04905679647051203
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 26011.0,
+              "estimated_gradient_norm": 2296.779482249688,
+              "step": 93,
+              "temperature": 0.04782106955043372
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 25999.0,
+              "estimated_gradient_norm": 2660.1524762830672,
+              "step": 94,
+              "temperature": 0.04661647024428192
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 25997.0,
+              "estimated_gradient_norm": 2043.6749875055852,
+              "step": 95,
+              "temperature": 0.04544221445620747
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 25968.0,
+              "estimated_gradient_norm": 3446.909545822784,
+              "step": 96,
+              "temperature": 0.04429753784151532
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 25981.0,
+              "estimated_gradient_norm": 2489.594696026513,
+              "step": 97,
+              "temperature": 0.04318169530913853
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 25983.0,
+              "estimated_gradient_norm": 2423.0609262572348,
+              "step": 98,
+              "temperature": 0.04209396053664484
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 25953.0,
+              "estimated_gradient_norm": 2913.0362015491082,
+              "step": 99,
+              "temperature": 0.041033625497459925
+            },
+            {
+              "best_cut": 26090.0,
+              "candidate_cut": 25970.0,
+              "estimated_gradient_norm": 2839.0607606917183,
+              "step": 100,
+              "temperature": 0.04
+            }
+          ]
+        }
+      }
+    },
+    {
+      "after_KL_gain_vs_raw_control": 45.0,
+      "method": "soft-sga",
+      "old_KL_runs": [
+        26808.0,
+        26816.0
+      ],
+      "optimized_KL_runs": [
+        26859.0,
+        26861.0
+      ],
+      "raw_gain": 303.0,
+      "restart": 4,
+      "scores": {
+        "GWRaw": 25817.0,
+        "GWRawKL": 26816.0,
+        "OptimizedRaw": 26120.0,
+        "OptimizedRawKL": 26861.0
+      },
+      "search": {
+        "soft_sga": {
+          "basin_resets": 0,
+          "gain": 303.0,
+          "improvements": 16,
+          "initial_raw_cut": 25817.0,
+          "optimized_raw_cut": 26120.0,
+          "optimizer": "soft-sga",
+          "seconds": 0.07799999974668026,
+          "steps_completed": 100,
+          "termination": "step_limit",
+          "trace": [
+            {
+              "best_cut": 25817.0,
+              "candidate_cut": 25808.0,
+              "estimated_gradient_norm": 359.9413734709289,
+              "step": 1,
+              "temperature": 0.5
+            },
+            {
+              "best_cut": 25817.0,
+              "candidate_cut": 25795.0,
+              "estimated_gradient_norm": 429.83400175673466,
+              "step": 2,
+              "temperature": 0.4874051404801666
+            },
+            {
+              "best_cut": 25817.0,
+              "candidate_cut": 25790.0,
+              "estimated_gradient_norm": 467.35482764501756,
+              "step": 3,
+              "temperature": 0.4751275419329818
+            },
+            {
+              "best_cut": 25830.0,
+              "candidate_cut": 25830.0,
+              "estimated_gradient_norm": 580.0395455491625,
+              "step": 4,
+              "temperature": 0.4631592126436824
+            },
+            {
+              "best_cut": 25883.0,
+              "candidate_cut": 25883.0,
+              "estimated_gradient_norm": 766.7508420402884,
+              "step": 5,
+              "temperature": 0.45149236220655475
+            },
+            {
+              "best_cut": 25905.0,
+              "candidate_cut": 25905.0,
+              "estimated_gradient_norm": 760.7902126427609,
+              "step": 6,
+              "temperature": 0.44011939645401615
+            },
+            {
+              "best_cut": 25905.0,
+              "candidate_cut": 25900.0,
+              "estimated_gradient_norm": 798.9210714400265,
+              "step": 7,
+              "temperature": 0.42903291251343173
+            },
+            {
+              "best_cut": 25905.0,
+              "candidate_cut": 25897.0,
+              "estimated_gradient_norm": 998.2306367870732,
+              "step": 8,
+              "temperature": 0.4182256939884484
+            },
+            {
+              "best_cut": 25905.0,
+              "candidate_cut": 25901.0,
+              "estimated_gradient_norm": 1027.5979970311012,
+              "step": 9,
+              "temperature": 0.40769070626170967
+            },
+            {
+              "best_cut": 25912.0,
+              "candidate_cut": 25912.0,
+              "estimated_gradient_norm": 988.3487511233429,
+              "step": 10,
+              "temperature": 0.39742109191589386
+            },
+            {
+              "best_cut": 25912.0,
+              "candidate_cut": 25896.0,
+              "estimated_gradient_norm": 1177.7522264108777,
+              "step": 11,
+              "temperature": 0.3874101662700949
+            },
+            {
+              "best_cut": 25912.0,
+              "candidate_cut": 25897.0,
+              "estimated_gradient_norm": 1201.7400706913318,
+              "step": 12,
+              "temperature": 0.3776514130286406
+            },
+            {
+              "best_cut": 25912.0,
+              "candidate_cut": 25896.0,
+              "estimated_gradient_norm": 1428.7707110207277,
+              "step": 13,
+              "temperature": 0.36813848003951594
+            },
+            {
+              "best_cut": 25912.0,
+              "candidate_cut": 25875.0,
+              "estimated_gradient_norm": 1391.6861947672264,
+              "step": 14,
+              "temperature": 0.3588651751596305
+            },
+            {
+              "best_cut": 25912.0,
+              "candidate_cut": 25885.0,
+              "estimated_gradient_norm": 1358.0710182895073,
+              "step": 15,
+              "temperature": 0.34982546222423855
+            },
+            {
+              "best_cut": 25912.0,
+              "candidate_cut": 25883.0,
+              "estimated_gradient_norm": 1444.7738091859364,
+              "step": 16,
+              "temperature": 0.3410134571178884
+            },
+            {
+              "best_cut": 25912.0,
+              "candidate_cut": 25863.0,
+              "estimated_gradient_norm": 1561.3095402558502,
+              "step": 17,
+              "temperature": 0.33242342394434327
+            },
+            {
+              "best_cut": 25912.0,
+              "candidate_cut": 25874.0,
+              "estimated_gradient_norm": 1648.4896767815098,
+              "step": 18,
+              "temperature": 0.32404977129298124
+            },
+            {
+              "best_cut": 25912.0,
+              "candidate_cut": 25888.0,
+              "estimated_gradient_norm": 1732.0015808203696,
+              "step": 19,
+              "temperature": 0.3158870485992427
+            },
+            {
+              "best_cut": 25912.0,
+              "candidate_cut": 25894.0,
+              "estimated_gradient_norm": 1956.597481838133,
+              "step": 20,
+              "temperature": 0.3079299425967582
+            },
+            {
+              "best_cut": 25929.0,
+              "candidate_cut": 25929.0,
+              "estimated_gradient_norm": 1798.2455239290846,
+              "step": 21,
+              "temperature": 0.3001732738588451
+            },
+            {
+              "best_cut": 25929.0,
+              "candidate_cut": 25919.0,
+              "estimated_gradient_norm": 1856.9253853754692,
+              "step": 22,
+              "temperature": 0.2926119934271238
+            },
+            {
+              "best_cut": 25929.0,
+              "candidate_cut": 25898.0,
+              "estimated_gradient_norm": 1954.92213898523,
+              "step": 23,
+              "temperature": 0.28524117952505773
+            },
+            {
+              "best_cut": 25929.0,
+              "candidate_cut": 25895.0,
+              "estimated_gradient_norm": 2023.5794965165703,
+              "step": 24,
+              "temperature": 0.27805603435427834
+            },
+            {
+              "best_cut": 25929.0,
+              "candidate_cut": 25900.0,
+              "estimated_gradient_norm": 2016.3898848953731,
+              "step": 25,
+              "temperature": 0.2710518809716101
+            },
+            {
+              "best_cut": 25929.0,
+              "candidate_cut": 25891.0,
+              "estimated_gradient_norm": 2257.175909281746,
+              "step": 26,
+              "temperature": 0.26422416024476203
+            },
+            {
+              "best_cut": 25942.0,
+              "candidate_cut": 25942.0,
+              "estimated_gradient_norm": 2183.248409461344,
+              "step": 27,
+              "temperature": 0.2575684278847045
+            },
+            {
+              "best_cut": 25949.0,
+              "candidate_cut": 25949.0,
+              "estimated_gradient_norm": 2348.8410427296776,
+              "step": 28,
+              "temperature": 0.2510803515528002
+            },
+            {
+              "best_cut": 25949.0,
+              "candidate_cut": 25935.0,
+              "estimated_gradient_norm": 2364.1573025283164,
+              "step": 29,
+              "temperature": 0.24475570804080432
+            },
+            {
+              "best_cut": 25949.0,
+              "candidate_cut": 25940.0,
+              "estimated_gradient_norm": 2456.506127956479,
+              "step": 30,
+              "temperature": 0.23859038052190173
+            },
+            {
+              "best_cut": 25969.0,
+              "candidate_cut": 25969.0,
+              "estimated_gradient_norm": 2501.0447314617604,
+              "step": 31,
+              "temperature": 0.23258035587098783
+            },
+            {
+              "best_cut": 25969.0,
+              "candidate_cut": 25958.0,
+              "estimated_gradient_norm": 2457.2538543682335,
+              "step": 32,
+              "temperature": 0.2267217220524519
+            },
+            {
+              "best_cut": 25976.0,
+              "candidate_cut": 25976.0,
+              "estimated_gradient_norm": 2249.907486812461,
+              "step": 33,
+              "temperature": 0.22101066557376117
+            },
+            {
+              "best_cut": 25976.0,
+              "candidate_cut": 25976.0,
+              "estimated_gradient_norm": 2187.5527915176913,
+              "step": 34,
+              "temperature": 0.2154434690031884
+            },
+            {
+              "best_cut": 25976.0,
+              "candidate_cut": 25968.0,
+              "estimated_gradient_norm": 2288.9183745859677,
+              "step": 35,
+              "temperature": 0.21001650855006687
+            },
+            {
+              "best_cut": 26021.0,
+              "candidate_cut": 26021.0,
+              "estimated_gradient_norm": 2601.9668220526396,
+              "step": 36,
+              "temperature": 0.2047262517059989
+            },
+            {
+              "best_cut": 26044.0,
+              "candidate_cut": 26044.0,
+              "estimated_gradient_norm": 2412.165805507364,
+              "step": 37,
+              "temperature": 0.19956925494548067
+            },
+            {
+              "best_cut": 26054.0,
+              "candidate_cut": 26054.0,
+              "estimated_gradient_norm": 2654.9576069567224,
+              "step": 38,
+              "temperature": 0.19454216148444836
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26064.0,
+              "estimated_gradient_norm": 2688.4519993127838,
+              "step": 39,
+              "temperature": 0.1896416990952856
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26055.0,
+              "estimated_gradient_norm": 2692.5191112311686,
+              "step": 40,
+              "temperature": 0.1848646779768703
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26031.0,
+              "estimated_gradient_norm": 2642.2341923639974,
+              "step": 41,
+              "temperature": 0.18020798867827445
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26022.0,
+              "estimated_gradient_norm": 2676.807229465026,
+              "step": 42,
+              "temperature": 0.17566860007476526
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26008.0,
+              "estimated_gradient_norm": 2481.6040572657457,
+              "step": 43,
+              "temperature": 0.1712435573947903
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26019.0,
+              "estimated_gradient_norm": 2878.353590678469,
+              "step": 44,
+              "temperature": 0.16692998029666248
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26017.0,
+              "estimated_gradient_norm": 2460.323376536131,
+              "step": 45,
+              "temperature": 0.16272506099369244
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26038.0,
+              "estimated_gradient_norm": 2745.8753061029274,
+              "step": 46,
+              "temperature": 0.15862606242654867
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 25998.0,
+              "estimated_gradient_norm": 2864.967091245048,
+              "step": 47,
+              "temperature": 0.15463031648165523
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 25995.0,
+              "estimated_gradient_norm": 2614.0263517948783,
+              "step": 48,
+              "temperature": 0.15073522225446756
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 25974.0,
+              "estimated_gradient_norm": 2692.421366718357,
+              "step": 49,
+              "temperature": 0.1469382443564958
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26014.0,
+              "estimated_gradient_norm": 2447.923671449453,
+              "step": 50,
+              "temperature": 0.14323691126497373
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26001.0,
+              "estimated_gradient_norm": 2581.9724232209837,
+              "step": 51,
+              "temperature": 0.13962881371409935
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26015.0,
+              "estimated_gradient_norm": 2832.054088248192,
+              "step": 52,
+              "temperature": 0.13611160312679924
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26024.0,
+              "estimated_gradient_norm": 2647.8925485762156,
+              "step": 53,
+              "temperature": 0.1326829900859965
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26039.0,
+              "estimated_gradient_norm": 2577.8372556209283,
+              "step": 54,
+              "temperature": 0.12934074284438735
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26009.0,
+              "estimated_gradient_norm": 2519.514469577029,
+              "step": 55,
+              "temperature": 0.12608268587175545
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 25985.0,
+              "estimated_gradient_norm": 2817.278464500324,
+              "step": 56,
+              "temperature": 0.12290669843887932
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 25971.0,
+              "estimated_gradient_norm": 2386.675346480609,
+              "step": 57,
+              "temperature": 0.1198107132371109
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 25957.0,
+              "estimated_gradient_norm": 2331.6649254143135,
+              "step": 58,
+              "temperature": 0.11679271503272597
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 25958.0,
+              "estimated_gradient_norm": 2871.0485345573047,
+              "step": 59,
+              "temperature": 0.11385073935517173
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 25980.0,
+              "estimated_gradient_norm": 2307.8237458014673,
+              "step": 60,
+              "temperature": 0.11098287121835662
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 25950.0,
+              "estimated_gradient_norm": 2527.1683854165094,
+              "step": 61,
+              "temperature": 0.10818724387415067
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 25953.0,
+              "estimated_gradient_norm": 3027.3537856256203,
+              "step": 62,
+              "temperature": 0.10546203759728491
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 25984.0,
+              "estimated_gradient_norm": 2937.9834484617854,
+              "step": 63,
+              "temperature": 0.1028054785008585
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26024.0,
+              "estimated_gradient_norm": 2506.672517465514,
+              "step": 64,
+              "temperature": 0.10021583738168337
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26011.0,
+              "estimated_gradient_norm": 2472.186415487631,
+              "step": 65,
+              "temperature": 0.0976914285947138
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 25997.0,
+              "estimated_gradient_norm": 2499.7430675068135,
+              "step": 66,
+              "temperature": 0.0952306089558293
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 25980.0,
+              "estimated_gradient_norm": 2374.069671763662,
+              "step": 67,
+              "temperature": 0.09283177667225559
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 25975.0,
+              "estimated_gradient_norm": 2943.65856835587,
+              "step": 68,
+              "temperature": 0.09049337029992835
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26015.0,
+              "estimated_gradient_norm": 2546.456798092789,
+              "step": 69,
+              "temperature": 0.08821386772712063
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26007.0,
+              "estimated_gradient_norm": 2180.783422747216,
+              "step": 70,
+              "temperature": 0.08599178518367212
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26019.0,
+              "estimated_gradient_norm": 2691.785935670011,
+              "step": 71,
+              "temperature": 0.08382567627517604
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 25989.0,
+              "estimated_gradient_norm": 2204.842130070555,
+              "step": 72,
+              "temperature": 0.08171413104149429
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 25974.0,
+              "estimated_gradient_norm": 2120.1410665112444,
+              "step": 73,
+              "temperature": 0.07965577503898852
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26018.0,
+              "estimated_gradient_norm": 2343.75686791598,
+              "step": 74,
+              "temperature": 0.07764926844586949
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26039.0,
+              "estimated_gradient_norm": 2407.6850572512976,
+              "step": 75,
+              "temperature": 0.07569330519008236
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26011.0,
+              "estimated_gradient_norm": 2526.2851204281715,
+              "step": 76,
+              "temperature": 0.07378661209916043
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26043.0,
+              "estimated_gradient_norm": 2324.5159913873977,
+              "step": 77,
+              "temperature": 0.0719279480714937
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26026.0,
+              "estimated_gradient_norm": 2339.925363894064,
+              "step": 78,
+              "temperature": 0.07011610326847302
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26008.0,
+              "estimated_gradient_norm": 2441.4186575905787,
+              "step": 79,
+              "temperature": 0.06834989832698392
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26002.0,
+              "estimated_gradient_norm": 2432.491382553903,
+              "step": 80,
+              "temperature": 0.06662818359173739
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26010.0,
+              "estimated_gradient_norm": 2094.8714758002725,
+              "step": 81,
+              "temperature": 0.0649498383669382
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26020.0,
+              "estimated_gradient_norm": 2669.6395048614545,
+              "step": 82,
+              "temperature": 0.06331377018680323
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26037.0,
+              "estimated_gradient_norm": 2363.566286390075,
+              "step": 83,
+              "temperature": 0.06171891410445563
+            },
+            {
+              "best_cut": 26064.0,
+              "candidate_cut": 26056.0,
+              "estimated_gradient_norm": 2532.2269642606643,
+              "step": 84,
+              "temperature": 0.06016423199873107
+            },
+            {
+              "best_cut": 26068.0,
+              "candidate_cut": 26068.0,
+              "estimated_gradient_norm": 2824.792969812396,
+              "step": 85,
+              "temperature": 0.058648711898445685
+            },
+            {
+              "best_cut": 26078.0,
+              "candidate_cut": 26078.0,
+              "estimated_gradient_norm": 2887.7717394093784,
+              "step": 86,
+              "temperature": 0.05717136732368548
+            },
+            {
+              "best_cut": 26078.0,
+              "candidate_cut": 26070.0,
+              "estimated_gradient_norm": 2368.940548956222,
+              "step": 87,
+              "temperature": 0.05573123664368824
+            },
+            {
+              "best_cut": 26120.0,
+              "candidate_cut": 26120.0,
+              "estimated_gradient_norm": 2614.1435540444522,
+              "step": 88,
+              "temperature": 0.05432738245090055
+            },
+            {
+              "best_cut": 26120.0,
+              "candidate_cut": 26089.0,
+              "estimated_gradient_norm": 2599.9529802800594,
+              "step": 89,
+              "temperature": 0.05295889095080185
+            },
+            {
+              "best_cut": 26120.0,
+              "candidate_cut": 26085.0,
+              "estimated_gradient_norm": 2094.947009054558,
+              "step": 90,
+              "temperature": 0.051624871367098785
+            },
+            {
+              "best_cut": 26120.0,
+              "candidate_cut": 26090.0,
+              "estimated_gradient_norm": 2829.789893641134,
+              "step": 91,
+              "temperature": 0.05032445536190263
+            },
+            {
+              "best_cut": 26120.0,
+              "candidate_cut": 26095.0,
+              "estimated_gradient_norm": 2500.6176886178737,
+              "step": 92,
+              "temperature": 0.04905679647051203
+            },
+            {
+              "best_cut": 26120.0,
+              "candidate_cut": 26101.0,
+              "estimated_gradient_norm": 2230.2988129559485,
+              "step": 93,
+              "temperature": 0.04782106955043372
+            },
+            {
+              "best_cut": 26120.0,
+              "candidate_cut": 26072.0,
+              "estimated_gradient_norm": 2674.2628847159867,
+              "step": 94,
+              "temperature": 0.04661647024428192
+            },
+            {
+              "best_cut": 26120.0,
+              "candidate_cut": 26068.0,
+              "estimated_gradient_norm": 2645.65940667973,
+              "step": 95,
+              "temperature": 0.04544221445620747
+            },
+            {
+              "best_cut": 26120.0,
+              "candidate_cut": 26098.0,
+              "estimated_gradient_norm": 2705.692148230316,
+              "step": 96,
+              "temperature": 0.04429753784151532
+            },
+            {
+              "best_cut": 26120.0,
+              "candidate_cut": 26100.0,
+              "estimated_gradient_norm": 2698.1774142109302,
+              "step": 97,
+              "temperature": 0.04318169530913853
+            },
+            {
+              "best_cut": 26120.0,
+              "candidate_cut": 26087.0,
+              "estimated_gradient_norm": 2073.91819875587,
+              "step": 98,
+              "temperature": 0.04209396053664484
+            },
+            {
+              "best_cut": 26120.0,
+              "candidate_cut": 26091.0,
+              "estimated_gradient_norm": 2799.3177821435124,
+              "step": 99,
+              "temperature": 0.041033625497459925
+            },
+            {
+              "best_cut": 26120.0,
+              "candidate_cut": 26087.0,
+              "estimated_gradient_norm": 2667.431215463669,
+              "step": 100,
+              "temperature": 0.04
+            }
+          ]
+        }
+      }
+    },
+    {
+      "after_KL_gain_vs_raw_control": 21.0,
+      "method": "soft-sga",
+      "old_KL_runs": [
+        26816.0,
+        26822.0
+      ],
+      "optimized_KL_runs": [
+        26842.0,
+        26843.0
+      ],
+      "raw_gain": 161.0,
+      "restart": 5,
+      "scores": {
+        "GWRaw": 25931.0,
+        "GWRawKL": 26822.0,
+        "OptimizedRaw": 26092.0,
+        "OptimizedRawKL": 26843.0
+      },
+      "search": {
+        "soft_sga": {
+          "basin_resets": 0,
+          "gain": 161.0,
+          "improvements": 13,
+          "initial_raw_cut": 25931.0,
+          "optimized_raw_cut": 26092.0,
+          "optimizer": "soft-sga",
+          "seconds": 0.07799999974668026,
+          "steps_completed": 100,
+          "termination": "step_limit",
+          "trace": [
+            {
+              "best_cut": 25934.0,
+              "candidate_cut": 25934.0,
+              "estimated_gradient_norm": 307.28400419267433,
+              "step": 1,
+              "temperature": 0.5
+            },
+            {
+              "best_cut": 25934.0,
+              "candidate_cut": 25907.0,
+              "estimated_gradient_norm": 377.51644279119176,
+              "step": 2,
+              "temperature": 0.4874051404801666
+            },
+            {
+              "best_cut": 25934.0,
+              "candidate_cut": 25851.0,
+              "estimated_gradient_norm": 465.72583512873337,
+              "step": 3,
+              "temperature": 0.4751275419329818
+            },
+            {
+              "best_cut": 25934.0,
+              "candidate_cut": 25845.0,
+              "estimated_gradient_norm": 524.8140835598261,
+              "step": 4,
+              "temperature": 0.4631592126436824
+            },
+            {
+              "best_cut": 25934.0,
+              "candidate_cut": 25844.0,
+              "estimated_gradient_norm": 604.7895647087291,
+              "step": 5,
+              "temperature": 0.45149236220655475
+            },
+            {
+              "best_cut": 25934.0,
+              "candidate_cut": 25852.0,
+              "estimated_gradient_norm": 702.5149911675317,
+              "step": 6,
+              "temperature": 0.44011939645401615
+            },
+            {
+              "best_cut": 25934.0,
+              "candidate_cut": 25845.0,
+              "estimated_gradient_norm": 745.0789236259734,
+              "step": 7,
+              "temperature": 0.42903291251343173
+            },
+            {
+              "best_cut": 25934.0,
+              "candidate_cut": 25842.0,
+              "estimated_gradient_norm": 911.3270276698213,
+              "step": 8,
+              "temperature": 0.4182256939884484
+            },
+            {
+              "best_cut": 25934.0,
+              "candidate_cut": 25844.0,
+              "estimated_gradient_norm": 935.6314319286421,
+              "step": 9,
+              "temperature": 0.40769070626170967
+            },
+            {
+              "best_cut": 25934.0,
+              "candidate_cut": 25831.0,
+              "estimated_gradient_norm": 1058.078979123497,
+              "step": 10,
+              "temperature": 0.39742109191589386
+            },
+            {
+              "best_cut": 25934.0,
+              "candidate_cut": 25851.0,
+              "estimated_gradient_norm": 956.611916754357,
+              "step": 11,
+              "temperature": 0.3874101662700949
+            },
+            {
+              "best_cut": 25934.0,
+              "candidate_cut": 25849.0,
+              "estimated_gradient_norm": 1238.2972788933487,
+              "step": 12,
+              "temperature": 0.3776514130286406
+            },
+            {
+              "best_cut": 25934.0,
+              "candidate_cut": 25867.0,
+              "estimated_gradient_norm": 1200.055872757612,
+              "step": 13,
+              "temperature": 0.36813848003951594
+            },
+            {
+              "best_cut": 25934.0,
+              "candidate_cut": 25890.0,
+              "estimated_gradient_norm": 1299.8990153644938,
+              "step": 14,
+              "temperature": 0.3588651751596305
+            },
+            {
+              "best_cut": 25934.0,
+              "candidate_cut": 25898.0,
+              "estimated_gradient_norm": 1370.186985364999,
+              "step": 15,
+              "temperature": 0.34982546222423855
+            },
+            {
+              "best_cut": 25934.0,
+              "candidate_cut": 25886.0,
+              "estimated_gradient_norm": 1326.3912593288521,
+              "step": 16,
+              "temperature": 0.3410134571178884
+            },
+            {
+              "best_cut": 25934.0,
+              "candidate_cut": 25909.0,
+              "estimated_gradient_norm": 1365.3171596834236,
+              "step": 17,
+              "temperature": 0.33242342394434327
+            },
+            {
+              "best_cut": 25939.0,
+              "candidate_cut": 25939.0,
+              "estimated_gradient_norm": 1583.8329855434056,
+              "step": 18,
+              "temperature": 0.32404977129298124
+            },
+            {
+              "best_cut": 25939.0,
+              "candidate_cut": 25914.0,
+              "estimated_gradient_norm": 1686.0453619014688,
+              "step": 19,
+              "temperature": 0.3158870485992427
+            },
+            {
+              "best_cut": 25939.0,
+              "candidate_cut": 25929.0,
+              "estimated_gradient_norm": 1620.4482695992658,
+              "step": 20,
+              "temperature": 0.3079299425967582
+            },
+            {
+              "best_cut": 25942.0,
+              "candidate_cut": 25942.0,
+              "estimated_gradient_norm": 1701.2561094753069,
+              "step": 21,
+              "temperature": 0.3001732738588451
+            },
+            {
+              "best_cut": 25969.0,
+              "candidate_cut": 25969.0,
+              "estimated_gradient_norm": 1808.7137223048885,
+              "step": 22,
+              "temperature": 0.2926119934271238
+            },
+            {
+              "best_cut": 25969.0,
+              "candidate_cut": 25962.0,
+              "estimated_gradient_norm": 1785.597910850231,
+              "step": 23,
+              "temperature": 0.28524117952505773
+            },
+            {
+              "best_cut": 25970.0,
+              "candidate_cut": 25970.0,
+              "estimated_gradient_norm": 1955.2514503824993,
+              "step": 24,
+              "temperature": 0.27805603435427834
+            },
+            {
+              "best_cut": 25970.0,
+              "candidate_cut": 25945.0,
+              "estimated_gradient_norm": 2000.9782571573273,
+              "step": 25,
+              "temperature": 0.2710518809716101
+            },
+            {
+              "best_cut": 25970.0,
+              "candidate_cut": 25933.0,
+              "estimated_gradient_norm": 2041.4593084291193,
+              "step": 26,
+              "temperature": 0.26422416024476203
+            },
+            {
+              "best_cut": 25970.0,
+              "candidate_cut": 25907.0,
+              "estimated_gradient_norm": 2162.3105925292266,
+              "step": 27,
+              "temperature": 0.2575684278847045
+            },
+            {
+              "best_cut": 25970.0,
+              "candidate_cut": 25933.0,
+              "estimated_gradient_norm": 2210.6018712179884,
+              "step": 28,
+              "temperature": 0.2510803515528002
+            },
+            {
+              "best_cut": 25970.0,
+              "candidate_cut": 25967.0,
+              "estimated_gradient_norm": 2146.5641590492432,
+              "step": 29,
+              "temperature": 0.24475570804080432
+            },
+            {
+              "best_cut": 25970.0,
+              "candidate_cut": 25955.0,
+              "estimated_gradient_norm": 1960.6850630951787,
+              "step": 30,
+              "temperature": 0.23859038052190173
+            },
+            {
+              "best_cut": 25970.0,
+              "candidate_cut": 25941.0,
+              "estimated_gradient_norm": 2261.6591590292514,
+              "step": 31,
+              "temperature": 0.23258035587098783
+            },
+            {
+              "best_cut": 25983.0,
+              "candidate_cut": 25983.0,
+              "estimated_gradient_norm": 2238.1013189085347,
+              "step": 32,
+              "temperature": 0.2267217220524519
+            },
+            {
+              "best_cut": 25983.0,
+              "candidate_cut": 25962.0,
+              "estimated_gradient_norm": 2294.7130994217496,
+              "step": 33,
+              "temperature": 0.22101066557376117
+            },
+            {
+              "best_cut": 26000.0,
+              "candidate_cut": 26000.0,
+              "estimated_gradient_norm": 2495.005069009663,
+              "step": 34,
+              "temperature": 0.2154434690031884
+            },
+            {
+              "best_cut": 26015.0,
+              "candidate_cut": 26015.0,
+              "estimated_gradient_norm": 2478.861142432863,
+              "step": 35,
+              "temperature": 0.21001650855006687
+            },
+            {
+              "best_cut": 26015.0,
+              "candidate_cut": 25981.0,
+              "estimated_gradient_norm": 2782.8637380248692,
+              "step": 36,
+              "temperature": 0.2047262517059989
+            },
+            {
+              "best_cut": 26015.0,
+              "candidate_cut": 25981.0,
+              "estimated_gradient_norm": 2634.9816731034816,
+              "step": 37,
+              "temperature": 0.19956925494548067
+            },
+            {
+              "best_cut": 26015.0,
+              "candidate_cut": 25946.0,
+              "estimated_gradient_norm": 2486.592133313321,
+              "step": 38,
+              "temperature": 0.19454216148444836
+            },
+            {
+              "best_cut": 26015.0,
+              "candidate_cut": 25933.0,
+              "estimated_gradient_norm": 2762.852214154198,
+              "step": 39,
+              "temperature": 0.1896416990952856
+            },
+            {
+              "best_cut": 26015.0,
+              "candidate_cut": 25952.0,
+              "estimated_gradient_norm": 2925.578992277543,
+              "step": 40,
+              "temperature": 0.1848646779768703
+            },
+            {
+              "best_cut": 26015.0,
+              "candidate_cut": 25932.0,
+              "estimated_gradient_norm": 2548.4220634981666,
+              "step": 41,
+              "temperature": 0.18020798867827445
+            },
+            {
+              "best_cut": 26015.0,
+              "candidate_cut": 25928.0,
+              "estimated_gradient_norm": 2559.6642277102465,
+              "step": 42,
+              "temperature": 0.17566860007476526
+            },
+            {
+              "best_cut": 26015.0,
+              "candidate_cut": 25983.0,
+              "estimated_gradient_norm": 2783.215000568569,
+              "step": 43,
+              "temperature": 0.1712435573947903
+            },
+            {
+              "best_cut": 26015.0,
+              "candidate_cut": 25951.0,
+              "estimated_gradient_norm": 2939.317556125709,
+              "step": 44,
+              "temperature": 0.16692998029666248
+            },
+            {
+              "best_cut": 26015.0,
+              "candidate_cut": 25915.0,
+              "estimated_gradient_norm": 2827.188705252164,
+              "step": 45,
+              "temperature": 0.16272506099369244
+            },
+            {
+              "best_cut": 26015.0,
+              "candidate_cut": 25949.0,
+              "estimated_gradient_norm": 2630.511832851734,
+              "step": 46,
+              "temperature": 0.15862606242654867
+            },
+            {
+              "best_cut": 26015.0,
+              "candidate_cut": 25982.0,
+              "estimated_gradient_norm": 2761.026949510221,
+              "step": 47,
+              "temperature": 0.15463031648165523
+            },
+            {
+              "best_cut": 26015.0,
+              "candidate_cut": 26001.0,
+              "estimated_gradient_norm": 2493.6114623242365,
+              "step": 48,
+              "temperature": 0.15073522225446756
+            },
+            {
+              "best_cut": 26015.0,
+              "candidate_cut": 26001.0,
+              "estimated_gradient_norm": 2566.3826896615888,
+              "step": 49,
+              "temperature": 0.1469382443564958
+            },
+            {
+              "best_cut": 26015.0,
+              "candidate_cut": 26009.0,
+              "estimated_gradient_norm": 2565.888553537741,
+              "step": 50,
+              "temperature": 0.14323691126497373
+            },
+            {
+              "best_cut": 26028.0,
+              "candidate_cut": 26028.0,
+              "estimated_gradient_norm": 2583.71416735128,
+              "step": 51,
+              "temperature": 0.13962881371409935
+            },
+            {
+              "best_cut": 26044.0,
+              "candidate_cut": 26044.0,
+              "estimated_gradient_norm": 2902.1405522131963,
+              "step": 52,
+              "temperature": 0.13611160312679924
+            },
+            {
+              "best_cut": 26062.0,
+              "candidate_cut": 26062.0,
+              "estimated_gradient_norm": 2722.072262037937,
+              "step": 53,
+              "temperature": 0.1326829900859965
+            },
+            {
+              "best_cut": 26091.0,
+              "candidate_cut": 26091.0,
+              "estimated_gradient_norm": 2747.8292977100173,
+              "step": 54,
+              "temperature": 0.12934074284438735
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26092.0,
+              "estimated_gradient_norm": 2621.097065517264,
+              "step": 55,
+              "temperature": 0.12608268587175545
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26046.0,
+              "estimated_gradient_norm": 2846.166511009947,
+              "step": 56,
+              "temperature": 0.12290669843887932
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26016.0,
+              "estimated_gradient_norm": 2759.3257652084494,
+              "step": 57,
+              "temperature": 0.1198107132371109
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26016.0,
+              "estimated_gradient_norm": 2468.291508536925,
+              "step": 58,
+              "temperature": 0.11679271503272597
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 25996.0,
+              "estimated_gradient_norm": 2584.0551147065853,
+              "step": 59,
+              "temperature": 0.11385073935517173
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26023.0,
+              "estimated_gradient_norm": 2697.391981632425,
+              "step": 60,
+              "temperature": 0.11098287121835662
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26027.0,
+              "estimated_gradient_norm": 2649.446626794312,
+              "step": 61,
+              "temperature": 0.10818724387415067
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26035.0,
+              "estimated_gradient_norm": 2561.688035365842,
+              "step": 62,
+              "temperature": 0.10546203759728491
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26013.0,
+              "estimated_gradient_norm": 2314.1475121813182,
+              "step": 63,
+              "temperature": 0.1028054785008585
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26002.0,
+              "estimated_gradient_norm": 2544.1045576774573,
+              "step": 64,
+              "temperature": 0.10021583738168337
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26000.0,
+              "estimated_gradient_norm": 2567.5838948466676,
+              "step": 65,
+              "temperature": 0.0976914285947138
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26002.0,
+              "estimated_gradient_norm": 2800.1309106104486,
+              "step": 66,
+              "temperature": 0.0952306089558293
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 25999.0,
+              "estimated_gradient_norm": 2381.21144473077,
+              "step": 67,
+              "temperature": 0.09283177667225559
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 25990.0,
+              "estimated_gradient_norm": 2318.901317165958,
+              "step": 68,
+              "temperature": 0.09049337029992835
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 25991.0,
+              "estimated_gradient_norm": 2287.579258070871,
+              "step": 69,
+              "temperature": 0.08821386772712063
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 25983.0,
+              "estimated_gradient_norm": 2239.8588896388374,
+              "step": 70,
+              "temperature": 0.08599178518367212
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26006.0,
+              "estimated_gradient_norm": 2083.6394244672656,
+              "step": 71,
+              "temperature": 0.08382567627517604
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26001.0,
+              "estimated_gradient_norm": 2039.3744595719934,
+              "step": 72,
+              "temperature": 0.08171413104149429
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26037.0,
+              "estimated_gradient_norm": 2830.032820621766,
+              "step": 73,
+              "temperature": 0.07965577503898852
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26038.0,
+              "estimated_gradient_norm": 2403.3680634726265,
+              "step": 74,
+              "temperature": 0.07764926844586949
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26030.0,
+              "estimated_gradient_norm": 2718.3375037977066,
+              "step": 75,
+              "temperature": 0.07569330519008236
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26050.0,
+              "estimated_gradient_norm": 2654.2495516742792,
+              "step": 76,
+              "temperature": 0.07378661209916043
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26022.0,
+              "estimated_gradient_norm": 2112.0333714061776,
+              "step": 77,
+              "temperature": 0.0719279480714937
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26023.0,
+              "estimated_gradient_norm": 2279.079074466334,
+              "step": 78,
+              "temperature": 0.07011610326847302
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26005.0,
+              "estimated_gradient_norm": 1729.5926103726426,
+              "step": 79,
+              "temperature": 0.06834989832698392
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26001.0,
+              "estimated_gradient_norm": 2406.856462194802,
+              "step": 80,
+              "temperature": 0.06662818359173739
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 25984.0,
+              "estimated_gradient_norm": 2552.206242213872,
+              "step": 81,
+              "temperature": 0.0649498383669382
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 25990.0,
+              "estimated_gradient_norm": 1824.5893715921507,
+              "step": 82,
+              "temperature": 0.06331377018680323
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26006.0,
+              "estimated_gradient_norm": 2275.595032660725,
+              "step": 83,
+              "temperature": 0.06171891410445563
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 25994.0,
+              "estimated_gradient_norm": 2046.6431857579294,
+              "step": 84,
+              "temperature": 0.06016423199873107
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 25980.0,
+              "estimated_gradient_norm": 2384.4038222326144,
+              "step": 85,
+              "temperature": 0.058648711898445685
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26002.0,
+              "estimated_gradient_norm": 2526.4727408543986,
+              "step": 86,
+              "temperature": 0.05717136732368548
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26011.0,
+              "estimated_gradient_norm": 2977.127127794753,
+              "step": 87,
+              "temperature": 0.05573123664368824
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26019.0,
+              "estimated_gradient_norm": 2882.744061176677,
+              "step": 88,
+              "temperature": 0.05432738245090055
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26058.0,
+              "estimated_gradient_norm": 2725.892872840465,
+              "step": 89,
+              "temperature": 0.05295889095080185
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26043.0,
+              "estimated_gradient_norm": 2475.287968757219,
+              "step": 90,
+              "temperature": 0.051624871367098785
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26020.0,
+              "estimated_gradient_norm": 2749.931252669662,
+              "step": 91,
+              "temperature": 0.05032445536190263
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 26009.0,
+              "estimated_gradient_norm": 2945.829530751429,
+              "step": 92,
+              "temperature": 0.04905679647051203
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 25961.0,
+              "estimated_gradient_norm": 2326.8606899654615,
+              "step": 93,
+              "temperature": 0.04782106955043372
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 25981.0,
+              "estimated_gradient_norm": 3063.5954058242537,
+              "step": 94,
+              "temperature": 0.04661647024428192
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 25991.0,
+              "estimated_gradient_norm": 2499.3130931863875,
+              "step": 95,
+              "temperature": 0.04544221445620747
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 25986.0,
+              "estimated_gradient_norm": 1939.663219556584,
+              "step": 96,
+              "temperature": 0.04429753784151532
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 25967.0,
+              "estimated_gradient_norm": 2661.114057891992,
+              "step": 97,
+              "temperature": 0.04318169530913853
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 25989.0,
+              "estimated_gradient_norm": 2850.540199797862,
+              "step": 98,
+              "temperature": 0.04209396053664484
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 25970.0,
+              "estimated_gradient_norm": 2555.6025625374505,
+              "step": 99,
+              "temperature": 0.041033625497459925
+            },
+            {
+              "best_cut": 26092.0,
+              "candidate_cut": 25977.0,
+              "estimated_gradient_norm": 2270.187064084576,
+              "step": 100,
+              "temperature": 0.04
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

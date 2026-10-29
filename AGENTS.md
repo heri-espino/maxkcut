@@ -730,3 +730,34 @@ Read instructions → inspect the current branch/files → state the mathematica
   experiment JSON, trials, archives, summary/leaderboard, and logs
   in GitHub. Numerical target 27,047 is NOT a certified optimum.
   See notes/experiments/experiment013-eva-pipeline-grid.md.
+
+## Experiment015 — directly optimize rounding vector r, not EVA matrix Y
+
+- Keep original signed weighted G-set graph AND original full-dimensional
+  EVA factor Y exactly frozen. User asked to optimize the ROUNDING
+  decision r, rejecting another optimization of Y or K-means.
+  G63 best user-observed feasible cut 26,917, target 27,047, gap 130.
+- Exact method: on a great semicircle r(theta)=cos(theta)r+sin(theta)v,
+  sort the sign-change angles for Y rows and maintain signed
+  original-graph edge gains, processing tied crossings together.
+  Each sweep is exact on its ONE arc but not globally on the sphere.
+- ES-SGA: antithetic Gaussian-smoothed HARD Max-Cut estimator,
+  E[(C(r+h eps)-C(r-h eps))*eps]/(2h), project stochastic gradient,
+  Adam step, unit normal. It optimizes F_h=E[C(r+h eps)] and retains
+  best REALIZED actual signed cut from probes and iterates.
+- Soft-SGA: separate signed-edge minibatch logistic surrogate
+  E[cut] = sum w_ij(p_i+p_j-2p_i*p_j). Its gradient is NOT the
+  gradient of ordinary GW, but minibatch SGD is unbiased for this
+  stated DIFFERENT Bernoulli surrogate. Again retain best HARD cut.
+- Hybrid methods apply exact sweeps AFTER stochastic search; always
+  compare same original FJ_EVA hyperplane seed and paired old/new KL
+  repetitions, original graph cut and archive verification.
+- Save all source/optimized 119-dim r vectors, complete real
+  binary raw and KL partitions, traces, settings and original factor
+  SHA256, tests, docs and results to GitHub (repo-first).
+  No new EVA solve, SDP, PCA, MST or K-means.
+  Relevant code: src/maxkcut/eva_direct_rounding.py,
+  src/maxkcut/eva_rounding_sga.py,
+  src/maxkcut/eva_direct_rounding_cli.py;
+  tests/test_eva_direct_rounding.py and
+  notes/experiments/experiment015-direct-hyperplane-cut.md.
