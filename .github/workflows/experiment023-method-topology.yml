@@ -1,0 +1,69 @@
+name: "Experiment023 - all missing method families by G-set topology"
+
+# Only this branch-specific workflow-file insertion launches the long sweep;
+# subsequent checkpoint commits cannot trigger duplicate full jobs.
+on:
+  push:
+    branches: [experiment023-all-method-topology]
+    paths: [.github/workflows/experiment023-method-topology.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: experiment023-complete-topology
+  cancel-in-progress: false
+
+jobs:
+  pilot:
+    if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment023-all-method-topology'
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 180
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Test implementations, validate all 71 source factors, and run pilot families
+        run: powershell -ExecutionPolicy Bypass -File .\scripts\experiment023-windows.ps1 -Phase pilot
+
+  full:
+    needs: pilot
+    if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment023-all-method-topology'
+    strategy:
+      fail-fast: false
+      max-parallel: 1  # One registered self-hosted Windows runner; checkpoint graph-by-graph
+      matrix:
+        graph: [G1, G2, G3, G4, G5, G6, G7, G8, G9, G10, G11, G12, G13, G14, G15, G16, G17, G18, G19, G20, G21, G22, G23, G24, G25, G26, G27, G28, G29, G30, G31, G32, G33, G34, G35, G36, G37, G38, G39, G40, G41, G42, G43, G44, G45, G46, G47, G48, G49, G50, G51, G52, G53, G54, G55, G56, G57, G58, G59, G60, G61, G62, G63, G64, G65, G66, G67, G70, G72, G77, G81]
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 360
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Full benchmark with hard timeouts and graph-specific checkpoints
+        run: powershell -ExecutionPolicy Bypass -File .\scripts\experiment023-windows.ps1 -Phase full -Graph ${{ matrix.graph }}
+
+  coverage:
+    needs: full
+    if: always() && github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment023-all-method-topology'
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment023-all-method-topology
+          fetch-depth: 0
+      - name: Publish authoritative final coverage, fail if any graph/method missing
+        run: powershell -ExecutionPolicy Bypass -File .\scripts\experiment023-windows.ps1 -Phase aggregate
