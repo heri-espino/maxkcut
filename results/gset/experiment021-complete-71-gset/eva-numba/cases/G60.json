@@ -1,0 +1,89 @@
+{
+  "archive_path": "results\\gset\\experiment021-complete-71-gset\\eva-numba\\archives\\20261029T064703Z-9f312edc49\\G60-k2",
+  "comparison_to_full_sdp": {
+    "status": "not_requested"
+  },
+  "edges": 17148,
+  "factor_elapsed_seconds": 1.7970000002533197,
+  "factor_max_angle": 0.0009960387058408418,
+  "factor_path": "results\\gset\\experiment021-complete-71-gset\\eva-numba\\factors\\G60.npz",
+  "factor_rank": 119,
+  "factor_sweeps": 239,
+  "graph": "G60",
+  "graph_sha256": "b6480c1716ecca3bb9dac8e444746d6bf0914e9faed2d4e63cececa2af68a5c4",
+  "methods": {
+    "FJ_EVA": {
+      "best": 13596.0,
+      "mean": 13539.05,
+      "median": 13538.5,
+      "restarts": 20,
+      "std": 30.846777533650517
+    },
+    "K-Means2N_EVA": {
+      "best": 13662.0,
+      "mean": 13628.6,
+      "median": 13637.0,
+      "restarts": 20,
+      "std": 22.67017516706175
+    },
+    "K-MeansNM_EVA": {
+      "best": 13665.0,
+      "mean": 13653.2,
+      "median": 13657.0,
+      "restarts": 20,
+      "std": 11.25119876654086
+    }
+  },
+  "objective_vector_relaxation": 15222.163493594762,
+  "provenance": {
+    "backend": "EVA sequential compiled Numba float64 (nonconvex vector relaxation)",
+    "code_source": "https://github.com/b3r8/EVA/blob/main/EVA.m",
+    "command": [
+      "C:\\Users\\175199\\actions-runner\\actions-runner\\_work\\maxkcut\\maxkcut\\src\\maxkcut\\eva_cli.py",
+      "--graphs",
+      "G60",
+      "--backend",
+      "numba",
+      "--max-n",
+      "20000",
+      "--max-sweeps",
+      "10000",
+      "--tolerance",
+      "0.001",
+      "--checkpoint-every",
+      "25",
+      "--seed",
+      "2026",
+      "--rounding-seed",
+      "2026",
+      "--restarts",
+      "20",
+      "--cpu-threads",
+      "1",
+      "--output-dir",
+      "results/gset/experiment021-complete-71-gset/eva-numba",
+      "--push",
+      "--push-branch",
+      "experiment021-complete-71-gset",
+      "--push-every",
+      "250"
+    ],
+    "cpu_threads_requested": 1,
+    "input_file": "data\\G60.txt",
+    "input_sha256": "b6480c1716ecca3bb9dac8e444746d6bf0914e9faed2d4e63cececa2af68a5c4",
+    "machine": "Windows-11-10.0.26100-SP0",
+    "max_sweeps": 10000,
+    "numpy": "2.5.4",
+    "optimizer_backend": "numba",
+    "paper_doi": "10.1016/j.rico.2026.100759",
+    "python": "3.12.15 | packaged by conda-forge | (main, Oct 13 2026, 16:44:09) [MSC v.1944 64 bit (AMD64)]",
+    "rank": 119,
+    "restarts": 20,
+    "rounding_seed": 2026,
+    "scipy": "1.18.1",
+    "seed": 2026,
+    "tolerance": 0.001
+  },
+  "status": "converged",
+  "vertices": 7000
+}
