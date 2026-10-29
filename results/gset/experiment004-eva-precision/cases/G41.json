@@ -1,0 +1,79 @@
+{
+  "archive_path": "results\\gset\\experiment004-eva-precision\\archives\\20261028T150336Z-0f1572ece8\\G41-k2",
+  "comparison_to_full_sdp": {
+    "status": "not_requested"
+  },
+  "edges": 11785,
+  "factor_elapsed_seconds": 2.75,
+  "factor_max_angle": 9.994892083248318e-07,
+  "factor_path": "results\\gset\\experiment004-eva-precision\\factors\\G41.npz",
+  "factor_rank": 64,
+  "factor_sweeps": 1809,
+  "graph": "G41",
+  "graph_sha256": "4560125254bee547843d5b78fa5a940c17e10f59e9c4ac93fc28cc0b772734ac",
+  "methods": {
+    "FJ_EVA": {
+      "best": 2118.0,
+      "mean": 2049.1,
+      "median": 2055.0,
+      "restarts": 20,
+      "std": 35.76516976642293
+    },
+    "K-Means2N_EVA": {
+      "best": 2135.0,
+      "mean": 2124.6,
+      "median": 2123.0,
+      "restarts": 20,
+      "std": 4.683678266625832
+    },
+    "K-MeansNM_EVA": {
+      "best": 2169.0,
+      "mean": 2140.85,
+      "median": 2141.0,
+      "restarts": 20,
+      "std": 14.525023779308373
+    }
+  },
+  "objective_vector_relaxation": 2865.218436569866,
+  "provenance": {
+    "backend": "EVA sequential compiled Numba float64 (nonconvex vector relaxation)",
+    "code_source": "https://github.com/b3r8/EVA/blob/main/EVA.m",
+    "command": [
+      "C:\\Users\\175199\\maxkcut\\src\\maxkcut\\eva_cli.py",
+      "--graphs",
+      "ALL",
+      "--backend",
+      "numba",
+      "--max-n",
+      "20000",
+      "--tolerance",
+      "0.000001",
+      "--max-sweeps",
+      "100000",
+      "--restarts",
+      "20",
+      "--cpu-threads",
+      "1",
+      "--continue-on-error",
+      "--output-dir",
+      "results/gset/experiment004-eva-precision"
+    ],
+    "cpu_threads_requested": 1,
+    "input_file": "data\\G41.txt",
+    "input_sha256": "4560125254bee547843d5b78fa5a940c17e10f59e9c4ac93fc28cc0b772734ac",
+    "machine": "Windows-11-10.0.26100-SP0",
+    "max_sweeps": 100000,
+    "numpy": "2.5.4",
+    "optimizer_backend": "numba",
+    "paper_doi": "10.1016/j.rico.2026.100759",
+    "python": "3.12.15 | packaged by conda-forge | (main, Oct 13 2026, 16:44:09) [MSC v.1944 64 bit (AMD64)]",
+    "rank": 64,
+    "restarts": 20,
+    "rounding_seed": 2026,
+    "scipy": "1.18.1",
+    "seed": 2026,
+    "tolerance": 1e-06
+  },
+  "status": "converged",
+  "vertices": 2000
+}

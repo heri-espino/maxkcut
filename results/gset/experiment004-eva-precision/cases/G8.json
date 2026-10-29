@@ -1,0 +1,84 @@
+{
+  "archive_path": "results\\gset\\experiment004-eva-precision\\archives\\20261028T144845Z-1b6fd05192\\G8-k2",
+  "comparison_to_full_sdp": {
+    "status": "not_requested"
+  },
+  "edges": 19176,
+  "factor_elapsed_seconds": 0.7189999995753169,
+  "factor_max_angle": 9.973764735866907e-07,
+  "factor_path": "results\\gset\\experiment004-eva-precision\\factors\\G8.npz",
+  "factor_rank": 41,
+  "factor_sweeps": 876,
+  "graph": "G8",
+  "graph_sha256": "0f00ac56a22e3c7fc5719a4595581c19ba36213eace06d183a81ad9adc24d063",
+  "methods": {
+    "FJ_EVA": {
+      "best": 1791.0,
+      "mean": 1695.35,
+      "median": 1694.0,
+      "restarts": 20,
+      "std": 46.982947634445544
+    },
+    "K-Means2N_EVA": {
+      "best": 1808.0,
+      "mean": 1768.55,
+      "median": 1778.0,
+      "restarts": 20,
+      "std": 23.556147929217076
+    },
+    "K-MeansNM_EVA": {
+      "best": 1812.0,
+      "mean": 1789.4,
+      "median": 1791.0,
+      "restarts": 20,
+      "std": 11.909306400767779
+    }
+  },
+  "objective_vector_relaxation": 2506.9335868610588,
+  "provenance": {
+    "backend": "EVA sequential compiled Numba float64 (nonconvex vector relaxation)",
+    "code_source": "https://github.com/b3r8/EVA/blob/main/EVA.m",
+    "command": [
+      "C:\\Users\\175199\\maxkcut\\src\\maxkcut\\eva_cli.py",
+      "--graphs",
+      "ALL",
+      "--backend",
+      "numba",
+      "--max-n",
+      "20000",
+      "--tolerance",
+      "0.000001",
+      "--max-sweeps",
+      "100000",
+      "--restarts",
+      "20",
+      "--cpu-threads",
+      "1",
+      "--continue-on-error",
+      "--output-dir",
+      "results/gset/experiment004-eva-precision",
+      "--push",
+      "--push-branch",
+      "perf/eva-numba-sequential-20261028",
+      "--push-every",
+      "1000"
+    ],
+    "cpu_threads_requested": 1,
+    "input_file": "data\\G8.txt",
+    "input_sha256": "0f00ac56a22e3c7fc5719a4595581c19ba36213eace06d183a81ad9adc24d063",
+    "machine": "Windows-11-10.0.26100-SP0",
+    "max_sweeps": 100000,
+    "numpy": "2.5.4",
+    "optimizer_backend": "numba",
+    "paper_doi": "10.1016/j.rico.2026.100759",
+    "python": "3.12.15 | packaged by conda-forge | (main, Oct 13 2026, 16:44:09) [MSC v.1944 64 bit (AMD64)]",
+    "rank": 41,
+    "restarts": 20,
+    "rounding_seed": 2026,
+    "scipy": "1.18.1",
+    "seed": 2026,
+    "tolerance": 1e-06
+  },
+  "status": "converged",
+  "vertices": 800
+}
