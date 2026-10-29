@@ -794,3 +794,37 @@ Read instructions → inspect the current branch/files → state the mathematica
 - Best observed G63 26,917; goal 27,047 (130 difference), not
   a certified upper bound. Only independent original-graph hard
   cut improvements count, not expected soft cut scores.
+
+## Experiment017 — 4/6/8/10 spherical KMeansNM groups then exact 2-cut merge
+
+- User hypothesis: two-antipodal-center K-MeansNM converges too
+  early; allow k=4,6,8,10 initial antipodal PAIRS, then
+  standard independent spherical Lloyd center updates. Add
+  independent random centers as an optional control.
+- Freeze the exact completed 7000x119 EVA G63 factor and original
+  signed weighted G-set graph; no EVA/SDP/PCA rerun.
+- Group-to-binary conversion is a real optimization problem:
+  aggregate ORIGINAL signed edges into W_ab, evaluate ALL
+  2^(k-1) bit masks with group 0 fixed to side 0, retain top
+  distinct original graph binary cuts over EVERY Lloyd iteration.
+  k=10 has 511 nontrivial group merges; don't report k-way
+  cut (not relevant for the binary G63 objective).
+- Refine each retained coarse partition independently using
+  generalized indexed-heap KL. Best refined source may not
+  be highest raw cut; preserve separately Raw, BeforeKL,
+  AfterKL, CandidatesRaw, CandidatesKL actual binary graphs.
+- Preserve ALL winning/top-group k-way assignments and integer
+  merge masks, exact SHA source factor snapshot, graph checksum,
+  signed original-edge cut scores, random seed/restart,
+  trajectories, compressed partition archives, resume cache and
+  JSON/CSV ranked summary. Commit/push all results into Git.
+- k2 paired with top_merges=1 and matching RNG/max_iter
+  reproduces original K-MeansNM binary labels; regression test
+  must confirm exact labels/iteration count on toy graphs.
+- Code: src/maxkcut/eva_multigroup_kmeans.py,
+  src/maxkcut/eva_multigroup_kmeans_cli.py,
+  tests/test_eva_multigroup_kmeans.py and
+  notes/experiments/experiment017-multigroup-kmeans-coarsening.md.
+- User-reported best 26,917; target 27,047 (130 points,
+  not a certified optimum). Do not claim a new numerical G63
+  best before independently verified real Windows run.
