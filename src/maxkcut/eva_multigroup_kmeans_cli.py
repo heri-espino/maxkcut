@@ -38,6 +38,7 @@ from .archive import (
 from .eva_cli import _write_json, _git_push
 from .eva_rounding_cli import _factor_and_case, _immutable_factor_copy
 from .eva_multigroup_kmeans import optimize_multigroup_kmeans
+from .eva_kmeans_initializers import INIT2
 from .eva_elite_search import optimize_kl_fast
 from .io import edge_arrays
 from .objective import cut_weight
@@ -46,7 +47,7 @@ from .sweep import discover_graphs
 
 STAGES=("Raw","BeforeKL","AfterKL")
 EXTRA_STAGES=("CandidatesRaw","CandidatesKL")
-INIT_MODES=("paired","independent")
+INIT_MODES=INIT2
 _G=None
 _Y=None
 _EDGES=None
@@ -419,7 +420,10 @@ def run_graph(
             or not inits or len(set(inits))!=len(inits)
             or any(mode not in INIT_MODES for mode in inits)
             or any(k<2 or k>16 or
-                   ("paired" in inits and k%2) for k in ks)
+                   ("paired" in inits and k%2) or
+                   (k>2 and any(m not in ("paired","independent")
+                                for m in inits))
+                   for k in ks)
             or restarts<1 or start_restart<0 or chunk_size<1
             or workers<1 or max_iter<1 or top_merges<1
             or kl_passes<1 or rounding_seed<0 or kl_seed<0

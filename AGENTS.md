@@ -828,3 +828,25 @@ Read instructions → inspect the current branch/files → state the mathematica
 - User-reported best 26,917; target 27,047 (130 points,
   not a certified optimum). Do not claim a new numerical G63
   best before independently verified real Windows run.
+
+## Experiment018 — alternative KMeansNM initializations
+
+- Keep the original G63 EVA factor and original signed graph frozen.
+- Existing antipodal k2 Gaussian initialization MUST reproduce old
+  KMeansNM exactly with paired SeedSequence.
+- Compare random independent, sample-antipodal, sample-pair,
+  farthest-pair, spherical kmeans++, mean-perturb, leading
+  PCA-antipodal (+ random jitter), gw-screen16 on same restarts,
+  fixed Lloyd budgets, identical generalized KL passes.
+- Declare extra cost of gw-screen16: 16 signed cut evaluations
+  BEFORE Lloyd. PCA needs an eigendecomposition.
+- Reuse independently verified parallel group-coarsening archiver
+  at k=2, retaining all original-signed-graph cut partitions and
+  per-iteration trajectories, immutable EVA source fingerprint.
+- GitHub Actions on Windows self-hosted runner PCAG103A-13,
+  workflow .github/workflows/experiment018-self-hosted.yml.
+- Docs: notes/experiments/experiment018-kmeans-initializations.md,
+  code: eva_kmeans_initializers.py, eva_kmeans_init_cli.py,
+  tests/test_eva_kmeans_initializers.py.
+- Benchmark 26,917 best KMeansNM-Flip+KL+ILS vs all actual scores;
+  target 27,047 unverified.
