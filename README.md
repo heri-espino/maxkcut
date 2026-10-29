@@ -7,6 +7,18 @@ The project is motivated by Ángel Eduardo Rodríguez Fernández's 2021 disserta
 **AI/research handoff:** Start with [RESEARCH_HANDOFF.md](RESEARCH_HANDOFF.md) for a concise chronology through the verified 71-graph Experiment021 dataset, numerical conclusions, open questions, and links to detailed archives. Follow [AGENTS.md](AGENTS.md) for binding implementation and reproducibility rules.
 
 
+## Experiment022 historical-method extension: GW, MST, EM, KL/ILS
+
+The [historical-method audit](notes/experiments/experiment022-graph-structure-methods.md#extension-include-historical-gw-mst-em-cut-aware-and-multigroup-methods) broadens the structural study beyond nine centroid initializers **without claiming 71-graph results for algorithms run only on G63**.
+
+- On **62** saved graph cases, compare **20-start raw** EVA GW/FJ, K-Means2N and antipodal K-MeansNM; antipodal K-MeansNM reaches/ties the best of three on **61/62** graphs. This result describes rounding **before** Flip/KL/ILS.
+- On **G63 only**, audit saved MST/coarsening, soft EM/CEM/Gibbs, multigroup k-means, cut-aware K-means, and full KL/ILS pipelines. Existing G63 best **26,917** came from Experiment013; elite EM retains the same cut but never improves the input in the archived pilot.
+- No comparable all-graph EM/MST data are available in the audited summaries. All historical source coverage, per-method stages, pilots and missing summaries are recorded explicitly.
+
+[Archived historical CSV tables, figures and report](results/gset/experiment022-graph-structure-methods/) · [Reproducible generator](src/maxkcut/historical_structure_comparison.py) · [Figure script](scripts/plot_experiment022_historical.py).
+
+To reproduce **without numerical optimization**: `python -m pytest tests/test_historical_structure_comparison.py -q`, then `python -m maxkcut.historical_structure_comparison` and `python scripts/plot_experiment022_historical.py`.
+
 ## Experiment022 — Which initializer works for which graph structure?
 
 A **retrospective 71-graph analysis** stratifies the existing 31,950 Experiment021 results by the published G-set generator families: 30 random, 24 planar-family and 17 toroidal graphs. Best-of-50 winners differ by topology: sample-antipodal wins/ties on 10/30 random; GW screen-16 on 8/24 planar-family and 11/17 toroidal. However **three toroidal graphs tie across all nine methods**, GW screen-16 has 16 extra evaluations, and a leave-one-graph-out family-specific selector did **not** beat a global selector.
