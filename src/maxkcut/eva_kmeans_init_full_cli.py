@@ -493,15 +493,19 @@ def run_graph(
                     f"{job['settings']['initializer']}: {exc}",
                     flush=True,
                 )
-            _summary(dest,graph_path.stem,target)
-    if errors:
-        raise RuntimeError(
-            f"{len(errors)} Experiment019 chunks failed: "
-            f"see {dest/'errors'}"
-        )
+    # Windows parallel workers publish their atomic case JSON files
+    # concurrently. Do NOT scan cases/ in the as_completed() loop:
+    # a concurrent os.replace can temporarily deny opening a case file
+    # (WinError 13). All futures are now joined before any summary
+    # reads, so the entire graph ledger reflects a stable set of cases.
     summary,leaderboard,rank=_summary(
         dest,graph_path.stem,target,
     )
+    if errors:
+        raise RuntimeError(
+            f"{len(errors)} Experiment019 chunks failed: "
+            f"see {dest/'errors'}; completed case archives are preserved"
+        )
     print(
         f"{graph_path.stem} Experiment019 COMPLETE: "
         f"best={best:g}, historical=26917, "
