@@ -610,3 +610,22 @@ Then run the large-budget 240-episode, 19,200-cycle ILS/elite
 recombination study using the documented command in
 [experiment011 protocol](../notes/experiments/experiment011-kl-elite-search.md).
 Outputs are append-only and saved under experiment011-elite-search.
+
+
+## Experiment012 — optimize K-MeansNM rounding before KL
+
+**Save/push** the experiment008 input partitions and experiment010 KL
+results before switching to `experiment012-cut-aware-kmeans-kl`.
+The code consumes the SAME saved EVA factors and 1,000 roundings,
+optimizes hyperplane directions/thresholds on the original weighted
+Max-Cut, then applies generalized KL. No EVA, MST, PCA or SDP work.
+
+```powershell
+$env:PYTHONPATH = Join-Path (Get-Location).Path "src"
+python -m pytest tests/test_eva_cutaware_kmeans.py -q
+python -m maxkcut.eva_cutaware_kmeans_cli --graphs G63 --factor-dir results/gset/experiment003-eva-numba --rounding-dir results/gset/experiment008-eva-rounding-flips --output-dir results/gset/experiment012-cut-aware-kmeans-kl --top-starts 40 --chunk-size 10 --workers 4 --kmeans-iters 100 --direction-trials 48 --kl-passes 30 --target 27047
+```
+
+All four partitions per identical saved restart are archived and
+verified. The longer 200/1,000-restart protocols are in
+[experiment012 notes](../notes/experiments/experiment012-cut-aware-kmeans-kl.md).
