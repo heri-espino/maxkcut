@@ -1,0 +1,161 @@
+name: "Experiment021 - complete all 71 G-set cases"
+
+# Explicitly requested completion of G60/G61/G62. This one-time
+# branch-scoped push trigger matches the earlier experiment020 execution
+# pattern; result commits never retrigger the job. Recovery is manual.
+on:
+  push:
+    branches:
+      - experiment021-complete-71-gset
+    paths:
+      - .github/workflows/experiment021-complete-gset.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: experiment021-full-gset-windows
+  cancel-in-progress: false
+
+jobs:
+  complete:
+    if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment021-complete-71-gset'
+    name: Recover G60/G61/G62 factors and finish 71 x 9 x 50
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 360
+    defaults:
+      run:
+        shell: powershell
+    env:
+      PYTHONPATH: ${{ github.workspace }}\\src
+      PYTHONUTF8: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      NUMBA_NUM_THREADS: '1'
+    steps:
+      - name: Checkout existing Experiment020 + Experiment021 files
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+
+      - name: Select existing Conda Python and restore DLL search path
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $candidates = @(
+            "$env:USERPROFILE\\miniconda3\\envs\\maxkcut\\python.exe",
+            "$env:USERPROFILE\\miniforge3\\envs\\maxkcut\\python.exe",
+            "$env:USERPROFILE\\anaconda3\\envs\\maxkcut\\python.exe",
+            "$env:LOCALAPPDATA\\miniconda3\\envs\\maxkcut\\python.exe",
+            "$env:LOCALAPPDATA\\Programs\\miniconda3\\envs\\maxkcut\\python.exe",
+            "C:\\ProgramData\\miniconda3\\envs\\maxkcut\\python.exe"
+          )
+          $python = $null
+          foreach ($candidate in $candidates) {
+            if (Test-Path -LiteralPath $candidate) { $python = $candidate; break }
+          }
+          if (-not $python) {
+            $conda = Get-Command conda -ErrorAction SilentlyContinue
+            if ($conda) {
+              $envlist = & conda env list --json | ConvertFrom-Json
+              foreach ($prefix in $envlist.envs) {
+                if ((Split-Path $prefix -Leaf) -eq 'maxkcut') {
+                  $candidate = Join-Path $prefix 'python.exe'
+                  if (Test-Path $candidate) { $python = $candidate; break }
+                }
+              }
+            }
+          }
+          if (-not $python) { throw 'No usable maxkcut Conda Python found.' }
+          & $python -c "import numpy,scipy,numba,pytest; print('Numba',numba.__version__)"
+          if ($LASTEXITCODE -ne 0) { throw 'Missing Python dependencies.' }
+          "MAXKCUT_PYTHON=$python" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          $prefix = Split-Path $python -Parent
+          if (Test-Path (Join-Path $prefix 'conda-meta')) {
+            @(
+              (Join-Path $prefix 'Library\\mingw-w64\\bin'),
+              (Join-Path $prefix 'Library\\usr\\bin'),
+              (Join-Path $prefix 'Library\\bin'),
+              (Join-Path $prefix 'Scripts'),
+              $prefix
+            ) | ForEach-Object {
+              if (Test-Path -LiteralPath $_) {
+                $_ | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+              }
+            }
+          }
+
+      - name: Verify legacy results, new invariants and tests
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & $env:MAXKCUT_PYTHON -m pytest tests/test_eva_full_gset_completion.py tests/test_eva_kmeans_init_all.py tests/test_eva_kmeans_init_full.py -q
+          if ($LASTEXITCODE -ne 0) { throw 'Experiment021 tests failed; no EVA recomputation attempted.' }
+          & $env:MAXKCUT_PYTHON -m maxkcut.eva_full_gset_completion_cli inventory
+          if ($LASTEXITCODE -ne 0) { throw 'Existing 68-graph factor/score identity verification failed.' }
+
+      - name: Generate only three missing Numba EVA factors, checkpoint and push
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          $factorRoot = 'results/gset/experiment021-complete-71-gset/eva-numba'
+          foreach ($graph in @('G60','G61','G62')) {
+            Write-Host "::group::EVA $graph (only missing source factors)"
+            & $env:MAXKCUT_PYTHON -m maxkcut.eva_cli --graphs $graph --backend numba --max-n 20000 --max-sweeps 10000 --tolerance 0.001 --checkpoint-every 25 --seed 2026 --rounding-seed 2026 --restarts 20 --cpu-threads 1 --output-dir $factorRoot --push --push-branch experiment021-complete-71-gset --push-every 250
+            if ($LASTEXITCODE -ne 0) { throw "Numba EVA failed for $graph; verified checkpoints are preserved." }
+            Write-Host "::endgroup::"
+          }
+          & $env:MAXKCUT_PYTHON -m maxkcut.eva_full_gset_completion_cli inventory
+          if ($LASTEXITCODE -ne 0) { throw 'Factor identity verification failed after generating new factors.' }
+          $inv = Get-Content 'results/gset/experiment021-complete-71-gset/inventory.json' -Raw | ConvertFrom-Json
+          if ($inv.unavailable_count -ne 0 -or ($inv.verified_ready + $inv.reused_verified_candidate) -ne 71) {
+            throw "Source factors incomplete: $($inv.unavailable_count) unavailable."
+          }
+
+      - name: Run 450 matched searches for each of G60, G61, G62 (32 workers)
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = 'results/gset/experiment021-complete-71-gset'
+          $factors = "$root/eva-numba"
+          foreach ($graph in @('G60','G61','G62')) {
+            Write-Host "::group::$graph - 9 initializers x 50 matched restarts"
+            & $env:MAXKCUT_PYTHON -m maxkcut.eva_kmeans_init_full_cli --graphs $graph --factor-dir $factors --output-dir "$root/$graph" --methods paired independent sample-antipodal sample-pair farthest-pair spherical-pp mean-perturb pca-antipodal gw-screen16 --restarts 50 --chunk-size 5 --workers 32 --kmeans-iters 100 --flip-sweeps 20 --kl-passes 30 --ils-cycles 80 --ils-kl-passes 8 --kick-sizes 8 16 32 64 --temperature 12 --target 27047
+            if ($LASTEXITCODE -ne 0) { throw "Missing graph $graph failed; resumable chunks retained." }
+            git add -- "$root/$graph"
+            git diff --cached --quiet
+            if ($LASTEXITCODE -ne 0) {
+              git commit -m "experiment021: preserve $graph 450 searches, partitions and traces"
+              if ($LASTEXITCODE -ne 0) { throw "Could not commit $graph outputs." }
+              git push origin HEAD:experiment021-complete-71-gset
+              if ($LASTEXITCODE -ne 0) { throw "Could not push $graph results." }
+            }
+            Write-Host "::endgroup::"
+          }
+
+      - name: Consolidate and strictly verify all 31,950 saved runs
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = 'results/gset/experiment021-complete-71-gset'
+          & $env:MAXKCUT_PYTHON -m maxkcut.eva_full_gset_completion_cli aggregate
+          if ($LASTEXITCODE -ne 0) { throw 'Strict 71/71 or 31950-run verification failed.' }
+          git add -- $root
+          git diff --cached --quiet
+          if ($LASTEXITCODE -ne 0) {
+            git commit -m 'experiment021: complete 71-graph, 31950-run statistical comparison'
+            if ($LASTEXITCODE -ne 0) { throw 'Could not commit consolidated results.' }
+            git push origin HEAD:experiment021-complete-71-gset
+            if ($LASTEXITCODE -ne 0) { throw 'Could not push consolidated results.' }
+          }
+
+      - name: Upload final statistical coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: experiment021-gset-71-${{ github.run_id }}
+          path: |
+            results/gset/experiment021-complete-71-gset/inventory.json
+            results/gset/experiment021-complete-71-gset/statistics/
+          if-no-files-found: warn
+          retention-days: 30

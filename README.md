@@ -4,6 +4,26 @@ Python research library for **Max-Cut** and **Max-$k$-Cut** using semidefinite r
 
 The project is motivated by Ángel Eduardo Rodríguez Fernández's 2021 dissertation (Chapters 6–7). It is experimental research software: **solver success does not imply an exact optimum or a new approximation guarantee**.
 
+**AI/research handoff:** Start with [RESEARCH_HANDOFF.md](RESEARCH_HANDOFF.md) for a concise chronology through the verified 71-graph Experiment021 dataset, numerical conclusions, open questions, and links to detailed archives. Follow [AGENTS.md](AGENTS.md) for binding implementation and reproducibility rules.
+
+
+## Experiment021 — Complete 71-instance G-set (verified October 29, 2026)
+
+**All 71 canonical G-set instances are now covered:** 31,950 individually archived and seeded searches (nine K-MeansNM initializations × 50 matched restarts × 71 graphs). The [successful self-hosted Windows run #40831249367](https://github.com/heri-espino/maxkcut/actions/runs/40831249367) used the original Experiment019/020 30,600 searches and added **only G60, G61, G62** (1,350 searches) after new hash-verified Numba EVA factors converged. The final coverage report has **zero missing factors and zero incomplete instances**.
+
+The best new full-pipeline signed cuts were G60 **14,124**, G61 **5,721**, G62 **4,816**. Best-of-nine exceeds the original paired K-MeansNM best-of-50 on **58 of 71** graphs, but this portfolio comparison has **unequal compute budgets** and is not an approximation guarantee.
+
+- [Full methodology, sources, statistical findings and next steps](notes/experiments/experiment021-complete-71-gset.md)
+- [Consolidated 71-graph statistical outputs](results/gset/experiment021-complete-71-gset/statistics/)
+- [Completion workflow](.github/workflows/experiment021-complete-gset.yml)
+
+To verify all 31,950 recorded searches without rerunning optimization:
+
+```powershell
+python -m maxkcut.eva_full_gset_completion_cli aggregate
+```
+
+
 ## G77 (14,000 vertices): safe full convex GPU SDP preflight
 
 G77 is the second-largest checked-in G-set graph by vertex count
