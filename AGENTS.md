@@ -631,3 +631,28 @@ Read instructions → inspect the current branch/files → state the mathematica
   G63 K-MeansNM-Flip best feasible score 26,682, not a certified optimum.
 - See notes/experiments/experiment009-mst-multiedge.md for the manual
   Windows PowerShell reproduction protocol and comparison caveats.
+
+
+## Experiment010: KL-style and Tabu optimization of saved K-MeansNM-Flip cuts
+
+- Source only the independently verified bit-packed experiment008
+  partition archives (same selected K-MeansNM-Flip starts for BOTH
+  methods); verify source graph SHA256/factor SHA256, partition SHA256,
+  original cut weights and uniqueness of restart indices. Never rerun
+  EVA or MST or generate a new rounding sample for this experiment.
+- `src/maxkcut/eva_escape.py` includes signed sparse Numba KL-style
+  positive-prefix gain sequences and best-so-far aspiration Tabu. The
+  KL variant is **not** classical balanced pair-swap KL. Both allow
+  temporary worsening moves but return cuts whose original-graph
+  weighted value is >= the exact archived source start. A heuristic
+  improvement is not a certified Max-Cut optimum.
+- `src/maxkcut/eva_escape_cli.py` runs the two algorithms concurrently
+  in independent Windows-safe processes using deterministic per-restart
+  seeds. Save all per-trial inputs, before/after scores, diagnostics,
+  binary partitions and source hashes in independently verified,
+  resumable per-chunk archives. Ensure source branch results have been
+  committed/pushed before switching to implementation branch.
+- Record paired score improvements, best/median/mean/std, runtime and
+  fixed search budgets. Clearly distinguish the observed G63 target
+  **26,682** from a proven optimum and avoid generalizing from one
+  benchmark. See notes/experiments/experiment010-kmeans-kl-tabu.md.

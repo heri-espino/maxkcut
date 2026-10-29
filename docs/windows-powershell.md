@@ -571,3 +571,24 @@ saved under experiment005 and can be verified. All candidate component
 partitions and the final locally optimized partition are independently
 archived, with metadata in `summary.csv`. See
 [experiment009 research notes](../notes/experiments/experiment009-mst-multiedge.md).
+
+
+## Experiment010 — parallel KL and Tabu search on the same K-Means solutions
+
+After saving/pushing the completed experiment008 rounding archives and
+switching to `experiment010-kmeans-kl-tabu`, execute:
+
+```powershell
+$env:PYTHONPATH = Join-Path (Get-Location).Path "src"
+python -m pytest tests/test_eva_escape.py -q
+python -m maxkcut.eva_escape_cli --graphs G63 --source-dir results/gset/experiment008-eva-rounding-flips --output-dir results/gset/experiment010-eva-kl-tabu --methods KL Tabu --top-starts 200 --chunk-size 20 --workers 2 --kl-passes 30 --tabu-steps 40000 --tabu-tenure 25 --tabu-stagnation 8000 --benchmark 26682
+```
+
+The two methods are paired on identical independently checked G63
+`K-MeansNM-Flip_EVA` partitions, running in separate processes. Each
+result chunk is individually archived and verified; the full run can
+be resumed without repeating saved work. Increase to `--top-starts
+1000` after the pilot to include ALL original 1,000 partitions.
+If the source segments are not present on this branch, merge their
+committed Git branch before running; do not rerun EVA.
+See [experiment010 notes](../notes/experiments/experiment010-kmeans-kl-tabu.md).
