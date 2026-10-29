@@ -771,3 +771,27 @@ python -m maxkcut.eva_kmeans_init_cli --graphs G63 --restarts 3 --chunk-size 1 -
 ```
 
 [Experiment018 protocol](notes/experiments/experiment018-kmeans-initializations.md).
+
+### Experiment019 — nine KMeansNM initializers, full matched Flips+KL+ILS
+
+The nine original Experiment018 two-spherical-centroid initialization
+methods are now compared on **50 matched G63 restarts** with the
+SAME original 7000x119 fixed EVA factor and original signed graph.
+
+Each completes **100 Lloyd iterations max → 20 positive-gain flip
+sweeps → 30 generalized KL passes → 80 cycles ILS-KL (8 inner
+passes)**, using the exact same postprocessing RNG seed schedule
+as the original Experiment013 26,917 record. Saved best original
+graph binary cuts are re-verified after each stage, archived
+with complete trajectories and resumable fingerprints, and
+ranked by best/mean/median cut and CPU time.
+
+Windows runner `PCAG103A-13`:
+`.github/workflows/experiment019-self-hosted.yml`.
+
+```powershell
+python -m pytest tests/test_eva_kmeans_init_full.py -q
+python -m maxkcut.eva_kmeans_init_full_cli --graphs G63 --restarts 50 --chunk-size 5 --workers 4 --kmeans-iters 100 --flip-sweeps 20 --kl-passes 30 --ils-cycles 80 --ils-kl-passes 8 --kick-sizes 8 16 32 64 --temperature 12 --target 27047
+```
+
+[Full Experiment019 protocol](notes/experiments/experiment019-kmeans-init-full-pipeline.md).
