@@ -31,6 +31,10 @@ Experiment numbers not individually listed above are **not assumed to have been 
 - **G11** reached cut **564** on the canonical weighted instance; see [reference-value distinctions](docs/gset-reference-values.md). **G63** still has historical best feasible cut **26,917**; Experiment019/020 best **26,906**. Do not apply G63's `27047` target to any other graph.
 - **No new approximation guarantee or all-graph certified optimum** is claimed. Graphs are the units for cross-instance inference; never treat 31,950 correlated restarts as independent graphs or pool raw cut magnitudes across heterogeneous instances.
 
+## Research presentation (29 October 2026)
+
+The [45-slide Marp research presentation](presentations/maxkcut_research_journey.marp.md) narrates the theory, actual experiment chronology through Experiment021, fixed Round→Flip→KL→ILS method, self-hosted Windows runner, complete 71-graph evidence, best-cut and paired-mean rankings, statistical cautions and proposed Experiment022. Its [README](presentations/README.md), three SVG graphics and `presentations/build_assets.py` are committed as editable reproducible source. It does not initiate new EVA or rounding jobs.
+
 ## Where to look / how to continue
 
 - **Results of record:** `results/gset/experiment019-kmeans-init-full-pipeline/` (G63); `results/gset/experiment020-all-gset-paired-inits/` (67 other graphs); `results/gset/experiment021-complete-71-gset/` (G60–G62 + consolidated 71-graph statistics). Start at [final report](results/gset/experiment021-complete-71-gset/statistics/report.json), then `coverage.csv`, `all_runs.csv`, `per_instance_methods.csv`, `paired_vs_original_kmeansnm.csv` and graph-specific archives. Original factor/graph hashes, scores at Round/Flip/KL/Final, bit-packed partitions, RNG seeds and traces are preserved.
