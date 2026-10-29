@@ -1,7 +1,7 @@
 ---
 marp: true
 theme: default
-size: 16:9
+size: "16:9"
 paginate: true
 footer: 'maxkcut · Experiments 001–021 · 29 October 2026'
 style: |
