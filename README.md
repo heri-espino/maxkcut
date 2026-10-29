@@ -748,3 +748,26 @@ SHA-fingerprinted, resumable archives. The current user-observed
 G63 best remains **26,917**, target **27,047** (not a
 global-optimality certificate). See
 [Experiment017 notes](notes/experiments/experiment017-multigroup-kmeans-coarsening.md).
+
+### Experiment018 — test nine K-MeansNM centroid initializations
+
+Building on Experiment017, keep the ORIGINAL G63 EVA matrix fixed
+and compare nine two-center spherical K-Means initializations:
+original Gaussian antipodal, independent Gaussian, sampled EVA
+antipodal, two sampled EVA rows, farthest cosine pair, spherical
+k-means++, mean-sphere tangent perturbation, principal-component
+antipodal with noise, and best-of-16 Gaussian hyperplane screening
+on the ORIGINAL signed Max-Cut graph.
+
+All receive the same seeded restart count, Lloyd iterations and
+generalized KL passes; the 16-screen method explicitly uses more
+initial cut evaluations. Compare raw hard cuts, KL cuts and actual
+wall-clock budgets. The runner reuses the original completed EVA
+factor and archives independently verified binary partitions.
+
+```powershell
+python -m pytest tests/test_eva_kmeans_initializers.py tests/test_eva_multigroup_kmeans.py -q
+python -m maxkcut.eva_kmeans_init_cli --graphs G63 --restarts 3 --chunk-size 1 --workers 3 --max-iter 60 --top-merges 2 --kl-passes 25
+```
+
+[Experiment018 protocol](notes/experiments/experiment018-kmeans-initializations.md).
