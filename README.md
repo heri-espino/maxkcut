@@ -4,6 +4,8 @@ Python research library for **Max-Cut** and **Max-$k$-Cut** using semidefinite r
 
 The project is motivated by Ángel Eduardo Rodríguez Fernández's 2021 dissertation (Chapters 6–7). It is experimental research software: **solver success does not imply an exact optimum or a new approximation guarantee**.
 
+**AI/research handoff:** Start with [RESEARCH_HANDOFF.md](RESEARCH_HANDOFF.md) for a concise chronology through the verified 71-graph Experiment021 dataset, numerical conclusions, open questions, and links to detailed archives. Follow [AGENTS.md](AGENTS.md) for binding implementation and reproducibility rules.
+
 
 ## Experiment021 — Complete 71-instance G-set (verified October 29, 2026)
 
