@@ -32,7 +32,7 @@ from .eva_cli import _git_push, _write_json
 from .eva_elite_search import optimize_kl_fast
 from .eva_rounding_cli import _factor_and_case, _immutable_factor_copy
 from .eva_soft_em_bernoulli import soft_em, cem, gibbs_anneal
-from .io import edge_arrays
+from .io import edge_arrays, load_graph
 from .objective import cut_weight
 from .sweep import discover_graphs
 
@@ -73,6 +73,7 @@ def load_elites(path, factor_sha, directory, *, limit=8):
             "or supply --elite-dir with committed Experiment013 outputs."
         )
     graph_sha=_file_sha256(path)
+    source_edges=edge_arrays(load_graph(path))
     candidates=[]
     for case_path in sorted((source/"cases").glob(f"{path.stem}-grid-*.json")):
         rec=json.loads(case_path.read_text(encoding="utf8"))
@@ -114,8 +115,7 @@ def load_elites(path, factor_sha, directory, *, limit=8):
             verified_archives[archive_path]=(labels,scores)
         labels,scores=verified_archives[archive_path]
         row=np.asarray(labels[index],dtype=np.int8)
-        score=float(cut_weight(edge_arrays(_GRAPH) if _GRAPH is not None
-                                else edge_arrays(__load_graph(path)),row))
+        score=float(cut_weight(source_edges,row))
         if not (np.isclose(score,scores[index],rtol=0,atol=1e-8)
                 and np.isclose(score,-negscore,rtol=0,atol=1e-8)):
             raise ValueError("Original graph elite cut score mismatch")
@@ -142,11 +142,6 @@ def load_elites(path, factor_sha, directory, *, limit=8):
     return elites
 
 
-def __load_graph(path):
-    from .io import load_graph
-    return load_graph(path)
-
-
 def _config(method,mode,episodes,*,graph_sha,factor_sha,budget):
     payload={
         "version":"experiment016-soft-em-bernoulli-v1",
@@ -158,6 +153,12 @@ def _config(method,mode,episodes,*,graph_sha,factor_sha,budget):
         ],
         "source_elite_scores":[
             ep.get("score") for ep in episodes
+        ],
+        "source_elite_restarts":[
+            ep.get("restart") for ep in episodes
+        ],
+        "source_case_sha256":[
+            ep.get("source_case_sha256") for ep in episodes
         ],
         "episodes":[int(ep["episode"]) for ep in episodes],
         "budget":budget,
@@ -338,8 +339,8 @@ def _solve(job):
     probability_path=Path(job["probability_path"])
     _atomic_npz(
         probability_path,
-        em_probabilities=np.column_stack(em_probs).astype(np.float32),
-        search_probabilities=np.column_stack(search_probs).astype(np.float32),
+        em_probabilities=np.column_stack(em_probs).astype(np.float64),
+        search_probabilities=np.column_stack(search_probs).astype(np.float64),
         episode_ids=np.array(config["episodes"],dtype=np.int32),
     )
     probability_sha=_file_sha256(probability_path)
@@ -445,9 +446,18 @@ def run_graph(
             or len(set(initializations))!=len(initializations)
             or episodes<1 or chunk_size<1 or workers<1 or seed<0
             or not np.isfinite(target)
-            or min(kappa,delta,em_temp_start,em_temp_end,
+            or min(delta,em_temp_start,em_temp_end,
                    damping,elite_fraction,update_rate,min_probability,
-                   gibbs_temp_start,gibbs_temp_end)>0 is False
+                   gibbs_temp_start,gibbs_temp_end)<=0
+            or kappa<0 or damping>1 or elite_fraction>1
+            or update_rate>1 or not 0<min_probability<.5
+            or not 0<=anchor_weight<=1 or not 0<=injection<.5
+            or not all(np.isfinite(v) for v in (
+                kappa,delta,em_temp_start,em_temp_end,damping,
+                elite_fraction,update_rate,min_probability,
+                anchor_weight,injection,gibbs_temp_start,
+                gibbs_temp_end,
+            ))
             or em_stages<1 or em_iters<1 or cem_generations<1
             or population<2 or gibbs_sweeps<1 or kl_passes<1):
         raise ValueError("Invalid Experiment016 methods or budgets")
