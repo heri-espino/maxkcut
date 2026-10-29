@@ -80,6 +80,26 @@ jobs:
             throw "The selected Python is missing numpy/scipy/numba/pytest. Activate or locate the existing maxkcut Conda environment."
           }
           "MAXKCUT_PYTHON=$python" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          # Calling Conda's python.exe directly on Windows leaves
+          # env/Library/bin out of PATH. BLAS LAPACK and scipy can
+          # then abort with Windows delay-load error 0xc06d007f,
+          # despite 'import numpy' passing. Add the environment's
+          # own DLL and Scripts paths to EVERY subsequent step.
+          $condaPrefix = Split-Path $python -Parent
+          if (Test-Path (Join-Path $condaPrefix 'conda-meta')) {
+            @(
+              (Join-Path $condaPrefix 'Library\\mingw-w64\\bin')
+              (Join-Path $condaPrefix 'Library\\usr\\bin')
+              (Join-Path $condaPrefix 'Library\\bin')
+              (Join-Path $condaPrefix 'Scripts')
+              $condaPrefix
+            ) | ForEach-Object {
+              if (Test-Path -LiteralPath $_) {
+                $_ | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+              }
+            }
+            Write-Host 'Prepared Conda DLL PATH for numerical linear algebra.'
+          }
 
       - name: Check original G63 factor, case and graph are present
         run: |
