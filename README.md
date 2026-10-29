@@ -718,3 +718,33 @@ complete traces, original EVA checksum and archive verifications are
 retained in Git-backed resumable results. Best prior user-reported G63
 cut is 26,917; target 27,047 is not certified optimal.
 See [experiment016 protocol](notes/experiments/experiment016-soft-em-bernoulli.md).
+
+### Experiment017: cluster EVA into 4/6/8/10 groups, then EXACTLY merge to 2
+
+The original EVA factor is frozen. Generalize K-MeansNM's antipodal
+k=2 spherical centers to k/2 opposing center pairs (k even), and
+perform ordinary independent-center Lloyd updates. After every
+clustering iteration, contract the original signed G-set graph
+into the current k spherical groups, then exactly rank ALL
+2^(k-1) distinct two-way group assignments (including the
+trivial cut) by original weighted Max-Cut.
+
+At k=10 this checks 511 nontrivial group mergers per iteration,
+without enumerating 2^7000 vertex cuts. The best top-N unique
+coarse partitions over all iterations are each refined with the
+existing compiled KL implementation. Compare **k=2,4,6,8,10**
+under the SAME original Gaussian initialization seed convention.
+k=2 with paired centers and top_merges=1 reproduces original
+K-MeansNM binary rounding exactly before optional KL.
+
+```powershell
+python -m pytest tests/test_eva_multigroup_kmeans.py -q
+python -m maxkcut.eva_multigroup_kmeans_cli --graphs G63 --ks 2 4 6 8 10 --inits paired --restarts 10 --chunk-size 2 --workers 4 --max-iter 60 --top-merges 3 --kl-passes 30 --target 27047
+```
+
+Every k-way grouping, binary merge mask, top candidate and
+refined 2-way signed cut is saved in independently verified,
+SHA-fingerprinted, resumable archives. The current user-observed
+G63 best remains **26,917**, target **27,047** (not a
+global-optimality certificate). See
+[Experiment017 notes](notes/experiments/experiment017-multigroup-kmeans-coarsening.md).
