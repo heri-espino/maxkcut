@@ -1,0 +1,120 @@
+{
+  "archive_path": "results\\gset\\experiment002-eva\\archives\\20261028T112556Z-c15262b150\\G53-k2",
+  "comparison_to_full_sdp": {
+    "caution": "Different continuous factors; not an isolated rounding comparison",
+    "convex_objective_primal_uncertified": 4005.198854349697,
+    "convex_solver_seconds_original": 26.25,
+    "convex_solver_status": "optimal",
+    "convex_source": "reports\\gset\\full-sdp-batch",
+    "graph_sha256": "6b6ad676c69aa090a65088b40d9034875201b54a72c74a9a8fdeba225ba400f5",
+    "methods": {
+      "FJ": {
+        "best_difference_eva_minus_convex": 6.0,
+        "convex_best": 3693.0,
+        "convex_mean": 3671.0,
+        "convex_trials": 20,
+        "eva_best": 3699.0,
+        "eva_mean": 3676.3,
+        "eva_trials": 20
+      },
+      "K-Means2N": {
+        "best_difference_eva_minus_convex": 18.0,
+        "convex_best": 3701.0,
+        "convex_mean": 3692.6,
+        "convex_trials": 20,
+        "eva_best": 3719.0,
+        "eva_mean": 3713.35,
+        "eva_trials": 20
+      },
+      "K-MeansNM": {
+        "best_difference_eva_minus_convex": 10.0,
+        "convex_best": 3742.0,
+        "convex_mean": 3712.7,
+        "convex_trials": 20,
+        "eva_best": 3752.0,
+        "eva_mean": 3729.95,
+        "eva_trials": 20
+      }
+    },
+    "selection_policy": "first complete and archive-verified matching folder",
+    "status": "compared"
+  },
+  "edges": 5914,
+  "factor_elapsed_seconds": 1.625,
+  "factor_max_angle": 0.0009984417836311269,
+  "factor_path": "results\\gset\\experiment002-eva\\factors\\G53.npz",
+  "factor_rank": 45,
+  "factor_sweeps": 182,
+  "graph": "G53",
+  "graph_sha256": "6b6ad676c69aa090a65088b40d9034875201b54a72c74a9a8fdeba225ba400f5",
+  "methods": {
+    "FJ_EVA": {
+      "best": 3699.0,
+      "mean": 3676.3,
+      "median": 3680.0,
+      "restarts": 20,
+      "std": 17.903542724982202
+    },
+    "K-Means2N_EVA": {
+      "best": 3719.0,
+      "mean": 3713.35,
+      "median": 3716.0,
+      "restarts": 20,
+      "std": 7.12501154200358
+    },
+    "K-MeansNM_EVA": {
+      "best": 3752.0,
+      "mean": 3729.95,
+      "median": 3729.0,
+      "restarts": 20,
+      "std": 10.364285843830803
+    }
+  },
+  "objective_vector_relaxation": 4009.7045844917257,
+  "provenance": {
+    "backend": "EVA sequential NumPy float64 (nonconvex vector relaxation)",
+    "code_source": "https://github.com/b3r8/EVA/blob/main/EVA.m",
+    "command": [
+      "C:\\Users\\175199\\maxkcut\\src\\maxkcut\\eva_cli.py",
+      "--graphs",
+      "ALL",
+      "--max-n",
+      "20000",
+      "--max-sweeps",
+      "10000",
+      "--tolerance",
+      "0.001",
+      "--restarts",
+      "20",
+      "--cpu-threads",
+      "1",
+      "--continue-on-error",
+      "--convex-dir",
+      "reports/gset/full-sdp-batch",
+      "reports/gset/full-sdp-threads32",
+      "--output-dir",
+      "results/gset/experiment002-eva",
+      "--push",
+      "--push-branch",
+      "experiment002-eva-factor-reproduction",
+      "--push-every",
+      "250"
+    ],
+    "cpu_threads_requested": 1,
+    "input_file": "data\\G53.txt",
+    "input_sha256": "6b6ad676c69aa090a65088b40d9034875201b54a72c74a9a8fdeba225ba400f5",
+    "machine": "Windows-11-10.0.26100-SP0",
+    "max_sweeps": 10000,
+    "numpy": "2.5.4",
+    "paper_doi": "10.1016/j.rico.2026.100759",
+    "python": "3.12.15 | packaged by conda-forge | (main, Oct 13 2026, 16:44:09) [MSC v.1944 64 bit (AMD64)]",
+    "rank": 45,
+    "restarts": 20,
+    "rounding_seed": 2026,
+    "scipy": "1.18.1",
+    "seed": 2026,
+    "tolerance": 0.001
+  },
+  "status": "converged",
+  "vertices": 1000
+}

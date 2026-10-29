@@ -455,3 +455,53 @@ The 2026 Glass–Feder paper covers **17 toroidal instances**; only rows with
 matching paper cut and certified upper bound have a proven optimal cut.
 A filename match alone does not guarantee the older MAT file is canonical.
 See [the new data comparison guide](docs/canonical-data-comparison.md).
+
+## EVA vector-relaxation reproduction (experiment002)
+
+A separate research backend now reproduces the sequential greedy
+**Efficient Vector Ascent (EVA)** method (Gonzalez-Torres et al., 2026).
+Unlike the full convex CVXPY/SCS method, EVA directly optimizes an
+`n x p` factor and is **nonconvex**; its numerical objective is not
+an SDP certificate. The initial target is published G-set graphs and
+our existing full-SDP results, with independent GW, K-Means2N and
+K-MeansNM roundings applied to the saved EVA factor.
+
+The `maxkcut-eva` command writes full factor checkpoints, objective
+histories, every signed weighted cut partition and verified graph
+snapshots into the tracked `results/gset/experiment002-eva/` directory.
+See the [EVA reproduction runbook](docs/eva-reproduction.md) and
+[experiment protocol](notes/experiments/experiment002-eva-reproduction.md).
+The numerical G-set reproduction has **not yet been run**; repository
+code and documentation do not establish a result.
+
+
+## All-graph EVA vs full-SDP benchmark
+
+The independent experiment002 branch now supports an explicitly bounded
+`maxkcut-eva --graphs ALL --max-n 20000 --continue-on-error` run
+over the 71 checked-in canonical G-set graphs. Each graph archives the
+complete EVA factor, all 60 rounded cuts, sweep logs, and a resumable
+status; a per-graph summary CSV compares it against any existing
+archive-verified full convex SCS SDP result on an identical input SHA256.
+
+See [the all-graph EVA command and setup](docs/eva-reproduction.md)
+and [experiment design](notes/experiments/experiment002-eva-reproduction.md).
+No all-graph EVA numerical results have been claimed or produced in the
+authoring environment.
+
+
+### Extend archived EVA factors without another optimization solve
+
+After EVA completes a graph, use `maxkcut-eva-round` to add 80 more
+roundings per original method (20 + 80 = 100 each) without changing the
+EVA factor, restarting its optimizer, or overwriting any partition:
+
+```powershell
+python -m maxkcut.eva_rounding_cli --graphs G77 --start-restart 20 --restarts 80 --methods FJ_EVA K-Means2N_EVA K-MeansNM_EVA --push --push-branch experiment002-eva-factor-reproduction
+```
+
+Two new optional hybrid methods are `FJ-Flip_EVA` and
+`K-MeansNM-Flip_EVA`, each followed by signed-edge one-vertex
+local improvement. New results include immutable factor snapshots and
+all partitions under `results/gset/experiment002-eva/rounding-extensions/`.
+See [the runbook](docs/eva-reproduction.md).

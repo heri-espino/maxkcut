@@ -1,0 +1,85 @@
+{
+  "argv": [
+    "C:\\Users\\175199\\maxkcut\\src\\maxkcut\\eva_rounding_cli.py",
+    "--graphs",
+    "ALL",
+    "--start-restart",
+    "20",
+    "--restarts",
+    "80",
+    "--methods",
+    "FJ_EVA",
+    "K-Means2N_EVA",
+    "K-MeansNM_EVA",
+    "--continue-on-error",
+    "--push",
+    "--push-branch",
+    "experiment002-eva-factor-reproduction"
+  ],
+  "created_utc": "2026-10-28T11:10:27.243808+00:00",
+  "git": {
+    "commit": "6d94a78b6a853ea3d09e716a9f44ab7a04efb6f5",
+    "dirty": false
+  },
+  "graph": "G7",
+  "graph_diagnostics": {
+    "density": 0.06,
+    "negative_edges": 9663,
+    "positive_edges": 9513,
+    "sum_of_absolute_edge_weights": 19176.0,
+    "sum_of_edge_weights": -150.0,
+    "weight_max": 1.0,
+    "weight_min": -1.0,
+    "zero_edges": 0
+  },
+  "graph_sha256": "c088e9c06dbaab2cce4c5bc58bdb70dfb10d7789d07f486910a95b9f5260bd56",
+  "graph_snapshot": "graph.npz",
+  "graph_source": "data\\G7.txt",
+  "k": 2,
+  "m": 19176,
+  "methods": {
+    "K-Means2N_EVA": {
+      "best_cut": 1785.0,
+      "best_restart": 28,
+      "encoding": "bits-little",
+      "mean_cut": 1748.925,
+      "median_cut": 1739.0,
+      "partition_file": "K-Means2N_EVA.npz",
+      "restarts": 80,
+      "sample_std_cut": 21.647799315169973,
+      "worst_cut": 1708.0
+    }
+  },
+  "n": 800,
+  "platform": {
+    "logical_cpus": 32,
+    "os": "Windows-11-10.0.26100-SP0",
+    "python": "3.12.15"
+  },
+  "results_jsonl": "results\\gset\\experiment002-eva\\rounding-extensions\\trials\\G7\\K-Means2N_EVA\\r00020-00100.jsonl",
+  "run_id": "20261028T111027Z-6fab592961",
+  "schema_version": 1,
+  "settings": {
+    "backend": "EVA saved-factor rounding; NO EVA optimization",
+    "factor_rank": 41,
+    "factor_sha256": "d1cb843e7b1b61b6695127a9473752085be052006a619da3d2f0ac48dfdc4a88",
+    "graph_sha256": "c088e9c06dbaab2cce4c5bc58bdb70dfb10d7789d07f486910a95b9f5260bd56",
+    "max_flip_sweeps": 20,
+    "method": "K-Means2N_EVA",
+    "original_factor_sweeps": 118,
+    "rounding_seed": 2026,
+    "start_restart": 20,
+    "stop_restart_exclusive": 100
+  },
+  "status": "complete",
+  "versions": {
+    "clarabel": "0.11.1",
+    "cvxpy": "1.9.3",
+    "maxkcut": "0.1.0",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "scs": "3.3.1",
+    "sdpa-python": "0.2.3",
+    "threadpoolctl": "3.7.0"
+  }
+}

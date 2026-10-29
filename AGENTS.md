@@ -491,3 +491,77 @@ Read instructions → inspect the current branch/files → state the mathematica
   separately published 10-iteration diagnostic.
   See `docs/g77-full-convex-gpu-preflight-windows.md`
   and `tests/test_g77_gpu_preflight.py`.
+
+
+## experiment002 — EVA factor reuse and paper reproduction
+
+- New, separate `maxkcut-eva` CPU NumPy/SciPy backend reproduces the
+  sequential greedy unit-vector coordinate update of Gonzalez-Torres
+  et al. (2026), *Results in Control and Optimization* 24, 100759;
+  official Apache-2.0 MATLAB implementation: https://github.com/b3r8/EVA.
+- **Do not label** EVA's factorized nonconvex iterative solution a
+  certified full convex SDP optimum, even when `p=ceil(sqrt(2(n+1)))`
+  or an angular convergence tolerance is reached. Record the actual rank,
+  signed continuous objective, graph SHA, stopping status, and provenance.
+- The MATLAB prototype saves objective/time but **not** the final factor;
+  our solver saves the entire `n x p` vector factor, RNG, and settings
+  every 25 sweeps by default, with optional authenticated Git push each
+  configured multiple of the checkpoint interval.
+- Preserve all 20 GW, 20 K-Means2N and 20 K-MeansNM rounded partitions
+  using `archive.py`, their actual signed graph cut scores, objective
+  traces and source graph snapshots. Compare to convex SCS **only after
+  graph SHA matches** and do not interpret different factors as a pure
+  rounding-method comparison.
+- Work only in the independent `experiment002-eva-factor-reproduction`
+  branch; no unapproved merging of experiment001 or experiment002.
+- See `docs/eva-reproduction.md`,
+  `notes/experiments/experiment002-eva-reproduction.md`, and
+  `tests/test_eva.py` before running real workloads on Windows.
+
+
+## experiment002 — Full canonical G-set EVA sweep and SCS comparisons
+
+- `maxkcut-eva --graphs ALL --max-n 20000 --continue-on-error` selects
+  all 71 checked-in canonical G-set text files, not only the 67 graph
+  subset used in EVA's published evaluation. Keep numerical cases
+  strictly sequential and preserve the actual selected input SHA256.
+- EVA directly optimizes a **nonconvex vector factorization** of the
+  $k=2$ convex SDP relaxation; do not conflate an EVA converged
+  approximate KKT solution with a certified full convex SDP optimizer.
+- Reuse persisted EVA factor checkpoints and verify saved entire rounded
+  partitions before marking completed graphs skipped; preserve failure
+  diagnostics, all 60 partitions and every sweep's objective log.
+- The multi-SCS comparison option `--convex-dir folder1 folder2`
+  chooses the first completed, graph-matched and archive-verified case
+  in stated order. No cherry-picking between SCS case archives, no
+  fabricated G63/G77 SDP result; an interrupted SCS run is unavailable.
+- `summary.csv` under tracked `results/gset/experiment002-eva/`
+  is refreshed per graph and distinguishes EVA vectors from exact
+  weighted cuts, numerical full-SDP primal objectives and best rounding
+  distributions. Push only from the designated experiment branch, never
+  silently merge the draft PR.
+
+
+## 2026-10-27: reusable EVA factors, append-only rounding
+
+- Never rerun EVA simply to change `--restarts`; `maxkcut-eva-round`
+  reuses the existing complete factor and independently checks graph,
+  SHA256, dimensions and optimizer metadata.
+- Preserve original 20×3 archived partitions. Additional starts
+  (e.g. `--start-restart 20 --restarts 80`) go to separate,
+  nonoverwriting bit-packed archives. Refuse overlaps, and verify
+  saved archives before skipping a repeated command.
+- Preserve the *exact* factor used by each rounding campaign with an
+  immutable SHA256-named factor snapshot. Changing the factor's
+  checksum starts a separate study and never rewrites older results.
+- New named rounders can extend
+  `src/maxkcut/eva_rounding_cli.py::_round_one`. Existing GW and
+  k-means randomized seed schedule must remain stable; apply new
+  local search with a separate RNG stream and score signed edges
+  with `objective.cut_weight`.
+- Publish factors, all trial scores, all partitions and failure
+  diagnostics under tracked `results/gset/experiment002-eva/` with
+  user-opted `--push --push-branch experiment002-eva-factor-reproduction`.
+- See `docs/eva-reproduction.md` and
+  `tests/test_eva_rounding.py`. Do not assert experimental results
+  without actually running the workflow on user hardware.

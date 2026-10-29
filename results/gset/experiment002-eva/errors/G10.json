@@ -1,0 +1,31 @@
+{
+  "command": [
+    "<HOME>\\maxkcut\\src\\maxkcut\\eva_cli.py",
+    "--graphs",
+    "ALL",
+    "--max-n",
+    "20000",
+    "--max-sweeps",
+    "10000",
+    "--tolerance",
+    "0.001",
+    "--restarts",
+    "20",
+    "--cpu-threads",
+    "1",
+    "--continue-on-error",
+    "--convex-dir",
+    "reports/gset/full-sdp-batch",
+    "reports/gset/full-sdp-threads32",
+    "--output-dir",
+    "results/gset/experiment002-eva",
+    "--push",
+    "--push-branch",
+    "experiment002-eva-factor-reproduction",
+    "--push-every",
+    "250"
+  ],
+  "error": "ValueError: G10: saved result has different graph/settings; use a separate --output-dir to preserve previous experiments",
+  "graph": "G10",
+  "traceback": "Traceback (most recent call last):\n  File \"<HOME>\\maxkcut\\src\\maxkcut\\eva_cli.py\", line 438, in main\n    result = run_one(path, args)\n             ^^^^^^^^^^^^^^^^^^^\n  File \"<HOME>\\maxkcut\\src\\maxkcut\\eva_cli.py\", line 172, in run_one\n    raise ValueError(\nValueError: G10: saved result has different graph/settings; use a separate --output-dir to preserve previous experiments\n"
+}
