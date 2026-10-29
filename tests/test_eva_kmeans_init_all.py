@@ -10,7 +10,8 @@ import pytest
 
 from maxkcut.eva_kmeans_initializers import INIT2
 from maxkcut.eva_kmeans_init_all_cli import (
-    _bootstrap_mean_ci, _read_long_rows, aggregate, inventory,
+    _bootstrap_mean_ci, _read_long_rows, _remove_g63_only_comparison_fields,
+    aggregate, inventory,
 )
 
 
@@ -173,3 +174,46 @@ def test_incomplete_graph_never_masquerades_as_complete(tmp_path):
     report=aggregate(out=out,restarts=3)
     assert report["incomplete_candidate_count"]==1
     assert report["runs_in_all_runs_csv"]==0
+
+
+def test_repair_g63_only_fields_is_metadata_only_and_idempotent(tmp_path):
+    path=tmp_path/"G2"
+    _summary(path/"summary.csv","G2",restarts=3)
+    board={
+        "graph":"G2","target":27047,"historical_best":26917,
+        "best_observed_this_experiment":70,
+        "leaderboard":[
+            {"initializer":"paired","best_final":70,
+             "delta_vs_26917":70-26917,"gap_to_target":27047-70},
+        ],
+    }
+    (path/"leaderboard.json").write_text(
+        json.dumps(board),encoding="utf8",
+    )
+    before=_read_long_rows(
+        {"graph":"G2","output_dir":str(path),"factor_source":"saved"},
+        restarts=3,
+    )
+    record={"graph":"G2","output_dir":str(path)}
+    assert _remove_g63_only_comparison_fields(record)
+    cleaned=json.loads(
+        (path/"leaderboard.json").read_text(encoding="utf8")
+    )
+    assert "historical_best" not in cleaned
+    assert "target" not in cleaned
+    assert cleaned["legacy_run_target_setting"]==27047
+    assert "delta_vs_26917" not in cleaned["leaderboard"][0]
+    assert "gap_to_target" not in cleaned["leaderboard"][0]
+    with (path/"summary.csv").open(
+        "r",encoding="utf8",newline=""
+    ) as handle:
+        assert "gap_to_target" not in csv.DictReader(handle).fieldnames
+    after=_read_long_rows(
+        {"graph":"G2","output_dir":str(path),"factor_source":"saved"},
+        restarts=3,
+    )
+    assert after==before
+    assert not _remove_g63_only_comparison_fields(record)
+    assert not _remove_g63_only_comparison_fields(
+        {"graph":"G63","output_dir":str(path)}
+    )
