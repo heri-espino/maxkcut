@@ -761,3 +761,36 @@ Read instructions → inspect the current branch/files → state the mathematica
   src/maxkcut/eva_direct_rounding_cli.py;
   tests/test_eva_direct_rounding.py and
   notes/experiments/experiment015-direct-hyperplane-cut.md.
+
+## Experiment016 — variational soft spherical EM + Bernoulli CEM/Gibbs
+
+- Reuse original signed weighted graph and completed immutable EVA
+  factor G63 n=7000 p=119; no SDP, original EVA solve, PCA or
+  K-Means hard centroid updates.
+- Soft EM is an alternating variational mean-field optimization with
+  one explicit objective: independent Bernoulli expected signed cut +
+  kappa times spherical centroid alignment + temperature times
+  Shannon entropy. At fixed temperature, audit damped synchronous
+  Bernoulli updates for monotonicity; update centroid directions by
+  normalized probability-weighted EVA vector sums.
+- Study two seeded starts: random perturbed global sphere mean (with
+  zero-mean fallback), and verified experiment013 binary elite (best
+  reported 26917) encoded as soft probabilities. Archive and
+  independently rescore any source elite prior to use. The original
+  graph/factor/case SHA and duplicate-complement checks are vital.
+- Compare EM+KL, EM+CEM, EM+Gibbs, EM+CEM+KL. CEM uses independent
+  Bernoulli elite quantiles with global complement alignment,
+  entropy floor/injection and best hard signed cut retention.
+  Gibbs conditional flip probabilities use exact gain
+  Δ_i=s_i Σ_j w_ij s_j at annealed temperature T; audit incremental
+  gains by original-graph full rescoring. KL is a final control.
+- Output source/EMHard/candidate/final binary partitions, full float64
+  EM and learned Bernoulli probabilities, algorithm traces, source
+  factor snapshot, original signed graph SHA, result JSON/CSV,
+  validated resumes, tests, docs, and Git commits.
+- Code: eva_soft_em_bernoulli.py, eva_soft_em_bernoulli_cli.py;
+  tests/test_eva_soft_em_bernoulli.py; research notes:
+  notes/experiments/experiment016-soft-em-bernoulli.md.
+- Best observed G63 26,917; goal 27,047 (130 difference), not
+  a certified upper bound. Only independent original-graph hard
+  cut improvements count, not expected soft cut scores.

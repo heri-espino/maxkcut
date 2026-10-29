@@ -672,3 +672,25 @@ raw vs optimized GW normal, original signed graph cut, optional
 KL-refined partition and independently verified append-only archives.
 The main large-budget 100-restart run and research methodology are in
 [Experiment015 notes](../notes/experiments/experiment015-direct-hyperplane-cut.md).
+
+## Experiment016: soft EM Bernoulli CEM Gibbs, reusable EVA factors
+
+We now optimize a distribution of binary Max-Cut partitions, not a
+single hyperplane or reoptimized EVA matrix. Soft EM uses entropy,
+graph-aware Bernoulli probabilities and spherical centroid updates.
+CEM learns from complement-aligned elite samples; Gibbs performs
+annealed exact signed graph conditional Bernoulli flips. Compare
+EM+KL, EM+CEM, EM+Gibbs, EM+CEM+KL from random mean-centroid or
+verified Experiment013 elite sources.
+
+```powershell
+$env:PYTHONPATH = Join-Path (Get-Location).Path "src"
+python -m pytest tests/test_eva_soft_em_bernoulli.py -q
+python -m maxkcut.eva_soft_em_bernoulli_cli --graphs G63 --initializations mean elite --episodes 4 --chunk-size 2 --workers 4 --em-stages 4 --em-iters 8 --cem-generations 10 --population 48 --gibbs-sweeps 40 --kl-passes 25 --target 27047
+```
+
+This requires the original Experiment003 G63 EVA factor and the
+Experiment013 G63 output cases/archives to have been preserved.
+Results live under results/gset/experiment016-soft-em-bernoulli
+and each completed chunk is independently verified on restart.
+See [full runbook](../notes/experiments/experiment016-soft-em-bernoulli.md).

@@ -690,3 +690,31 @@ Every raw/optimized direction and raw/after-KL binary partition is
 saved in SHA-verified, independently rescored and resumable archives.
 Observed G63 best is 26,917, target is 27,047 (not a proof of optimality).
 See [Experiment015 notes](notes/experiments/experiment015-direct-hyperplane-cut.md).
+
+### Experiment016 — Soft EM + Bernoulli CEM/Gibbs for G63 signed Max-Cut
+
+Reuse the original full 7000×119 EVA factor Y (NO reoptimization of
+Y or K-means). Soft spherical EM alternates entropy-regularized
+signed-graph **Bernoulli mean-field probabilities** with normalized
+EVA centroids, annealing temperature and verifying that each update
+improves the same fixed-temperature free energy.
+
+Compare four complete pipelines from matched randomized mean-sphere
+starts or independently verified high-quality Experiment013 cuts:
+`em-kl`, `em-cem`, `em-gibbs`, `em-cem-kl`.
+CEM repeatedly samples and complement-aligns Bernoulli partitions,
+then updates elite probabilities; Gibbs anneals exact conditional
+single-vertex flip probabilities on the ORIGINAL signed weighted graph.
+Every candidate/best partition is evaluated with actual hard Max-Cut;
+KL is an optional comparison, not the definition of success.
+
+```powershell
+python -m pytest tests/test_eva_soft_em_bernoulli.py -q
+python -m maxkcut.eva_soft_em_bernoulli_cli --graphs G63 --initializations mean elite --episodes 4 --chunk-size 2 --workers 4 --em-stages 4 --em-iters 8 --cem-generations 10 --population 48 --gibbs-sweeps 40 --kl-passes 25 --target 27047
+```
+
+All Bernoulli probabilities, original-signed-cut binary partitions,
+complete traces, original EVA checksum and archive verifications are
+retained in Git-backed resumable results. Best prior user-reported G63
+cut is 26,917; target 27,047 is not certified optimal.
+See [experiment016 protocol](notes/experiments/experiment016-soft-em-bernoulli.md).
