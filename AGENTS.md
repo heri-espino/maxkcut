@@ -656,3 +656,24 @@ Read instructions → inspect the current branch/files → state the mathematica
   fixed search budgets. Clearly distinguish the observed G63 target
   **26,682** from a proven optimum and avoid generalizing from one
   benchmark. See notes/experiments/experiment010-kmeans-kl-tabu.md.
+
+
+## Experiment011: intensive KL elite search (target G63 27,047)
+
+- G63 user-measured experiment010 KL cut is 26,886, Tabu 26,688;
+  experiment008 K-MeansNM-Flip baseline is 26,682. Target 27,047
+  is NOT a proven optimum; all must be independently checked on
+  original signed weighted graph with verified saved partitions.
+- Start from archived experiment010 KL final labels (NOT EVA, MST or
+  newly re-rounded factors). Verify factor, graph, source archive,
+  partition checksum, original weighted cut and unique restart index.
+- Algorithms in eva_elite_search.py: ILS-KL variable perturbations,
+  complement-aligned EliteMix-KL recombination, adaptive Tabu-KL.
+  Fast indexed-heap Numba KL should reproduce the original full-scan
+  signed gain sequence and best improving prefix for identical seeds.
+- Windows-safe ProcessPoolExecutor uses deterministic per-episode
+  seeds and checkpointed independently verified partition archives,
+  complete cycle traces, per-settings summary and failure logs.
+- Always commit/push results from active VM before branch changes;
+  never substitute a guessed G63 score for actual verified results.
+  See notes/experiments/experiment011-kl-elite-search.md.
