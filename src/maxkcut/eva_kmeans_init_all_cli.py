@@ -173,6 +173,60 @@ def _read_long_rows(record,*,restarts):
     return b
 
 
+
+def _remove_g63_only_comparison_fields(record):
+    """Repair EXP020 display-only artifacts without recomputing cuts.
+
+    Experiment019's G63-specific historical cut (26917) and target
+    (27047) were carried through to the EXP020 graph-specific CSV/JSON.
+    They do not enter the statistical aggregator and are meaningless
+    for every other graph. Preserve all signed cuts, seeds, case files,
+    archive fingerprints and optimization traces unchanged.
+    """
+    if record["graph"] == "G63":
+        return False
+    root = Path(record["output_dir"])
+    changed = False
+    leaderboard = root/"leaderboard.json"
+    if leaderboard.is_file():
+        doc = json.loads(leaderboard.read_text(encoding="utf8"))
+        for key in ("historical_best", "target"):
+            if key in doc:
+                del doc[key]
+                changed = True
+        for row in doc.get("leaderboard", []):
+            for key in ("delta_vs_26917", "gap_to_target"):
+                if key in row:
+                    del row[key]
+                    changed = True
+        if changed:
+            doc["comparison_scope"] = "within_graph_only"
+            doc["legacy_run_target_setting"] = 27047
+            _write_json(leaderboard, doc)
+    summary = root/"summary.csv"
+    if summary.is_file():
+        with summary.open("r",encoding="utf8",newline="") as handle:
+            reader = csv.DictReader(handle)
+            cols = list(reader.fieldnames or [])
+            if "gap_to_target" in cols:
+                cols.remove("gap_to_target")
+                data = []
+                for row in reader:
+                    row.pop("gap_to_target", None)
+                    data.append(row)
+            else:
+                data = None
+        if data is not None:
+            tmp = summary.with_suffix(".tmp")
+            with tmp.open("w",encoding="utf8",newline="") as handle:
+                writer = csv.DictWriter(handle,fieldnames=cols)
+                writer.writeheader()
+                writer.writerows(data)
+            tmp.replace(summary)
+            changed = True
+    return changed
+
+
 def _bootstrap_mean_ci(values,seed=2026,samples=4000):
     x=np.asarray(values,dtype=np.float64)
     if len(x)<2:
@@ -204,6 +258,10 @@ def aggregate(*,out=RESULT_ROOT,restarts=50,
             else:
                 status=("reused_verified_candidate" if
                         record["status"]=="reused_019" else "complete")
+                # Remove misleading G63-only historic gaps from other
+                # graphs after successful completion is verified.
+                # This is metadata-only; no search is rerun.
+                _remove_g63_only_comparison_fields(record)
                 all_rows.extend(rows)
         coverage.append({
             "graph":record["graph"],
