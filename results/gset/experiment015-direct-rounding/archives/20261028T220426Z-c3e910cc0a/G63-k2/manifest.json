@@ -1,0 +1,129 @@
+{
+  "argv": [
+    "experiment015",
+    "es-sga"
+  ],
+  "created_utc": "2026-10-28T22:04:26.472267+00:00",
+  "git": {
+    "commit": "6bd9e2e4681276b15bc406a89bd4d8e51bebc757",
+    "dirty": false
+  },
+  "graph": "G63",
+  "graph_diagnostics": {
+    "density": 0.0016924458596125978,
+    "negative_edges": 0,
+    "positive_edges": 41459,
+    "sum_of_absolute_edge_weights": 41459.0,
+    "sum_of_edge_weights": 41459.0,
+    "weight_max": 1.0,
+    "weight_min": 1.0,
+    "zero_edges": 0
+  },
+  "graph_sha256": "4b18d3df87d09e128e7cc4a1f175fa9ba2e374567405a231eef6135b1b40c946",
+  "graph_snapshot": "graph.npz",
+  "graph_source": "C:\\Users\\175199\\maxkcut\\data\\G63.txt",
+  "k": 2,
+  "m": 41459,
+  "methods": {
+    "Exp015-GWRawKL_EVA": {
+      "best_cut": 26775.0,
+      "best_restart": 0,
+      "encoding": "bits-little",
+      "mean_cut": 26775.0,
+      "median_cut": 26775.0,
+      "partition_file": "Exp015-GWRawKL_EVA.npz",
+      "restarts": 1,
+      "sample_std_cut": null,
+      "worst_cut": 26775.0
+    },
+    "Exp015-GWRaw_EVA": {
+      "best_cut": 25869.0,
+      "best_restart": 0,
+      "encoding": "bits-little",
+      "mean_cut": 25869.0,
+      "median_cut": 25869.0,
+      "partition_file": "Exp015-GWRaw_EVA.npz",
+      "restarts": 1,
+      "sample_std_cut": null,
+      "worst_cut": 25869.0
+    },
+    "Exp015-OptimizedRawKL_EVA": {
+      "best_cut": 26837.0,
+      "best_restart": 0,
+      "encoding": "bits-little",
+      "mean_cut": 26837.0,
+      "median_cut": 26837.0,
+      "partition_file": "Exp015-OptimizedRawKL_EVA.npz",
+      "restarts": 1,
+      "sample_std_cut": null,
+      "worst_cut": 26837.0
+    },
+    "Exp015-OptimizedRaw_EVA": {
+      "best_cut": 26191.0,
+      "best_restart": 0,
+      "encoding": "bits-little",
+      "mean_cut": 26191.0,
+      "median_cut": 26191.0,
+      "partition_file": "Exp015-OptimizedRaw_EVA.npz",
+      "restarts": 1,
+      "sample_std_cut": null,
+      "worst_cut": 26191.0
+    }
+  },
+  "n": 7000,
+  "platform": {
+    "logical_cpus": 32,
+    "os": "Windows-11-10.0.26100-SP0",
+    "python": "3.12.15"
+  },
+  "results_jsonl": "C:\\Users\\175199\\maxkcut\\results\\gset\\experiment015-direct-rounding\\trials\\G63-es-sga-9f81e0e9829a93b677e0.jsonl",
+  "run_id": "20261028T220426Z-c3e910cc0a",
+  "schema_version": 1,
+  "settings": {
+    "method": "es-sga",
+    "optimization_variables": "rounding normal r only; EVA Y frozen",
+    "restart_indices": [
+      9
+    ],
+    "settings": {
+      "edge_batch": 2048,
+      "kl_passes": 25,
+      "kl_repeats": 2,
+      "learning_rate": 0.08,
+      "line_directions": 40,
+      "restart_patience": 80,
+      "rounding_seed": 2026,
+      "search_seed": 2026,
+      "sga_population": 8,
+      "sga_steps": 100,
+      "sigma_end": 0.025,
+      "sigma_start": 0.3,
+      "target": 27047.0,
+      "temperature_end": 0.04,
+      "temperature_start": 0.5
+    },
+    "source_factor_sha256": "ae14711285d29ab1050a508de108e6e8da9fce5c1debe7f600c6aad28d3efc24",
+    "source_graph_sha256": "4b18d3df87d09e128e7cc4a1f175fa9ba2e374567405a231eef6135b1b40c946",
+    "version": "experiment015-direct-rounding-sga-v2"
+  },
+  "solver_info": {
+    "directions_path": "results\\gset\\experiment015-direct-rounding\\normals\\G63-es-sga-9f81e0e9829a93b677e0.npz",
+    "directions_sha256": "9dadf33da90c91dc2b047721cde60c07ae2a68d544571d1725aa9bdedb096f23",
+    "factor_immutable": true,
+    "method": "es-sga",
+    "no_kmeans": true,
+    "optimized_variables": "original EVA hyperplane normal ONLY",
+    "original_graph_signed_weighted_MaxCut": true
+  },
+  "status": "complete",
+  "versions": {
+    "clarabel": "0.11.1",
+    "cvxpy": "1.9.3",
+    "maxkcut": "0.1.0",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "scs": "3.3.1",
+    "sdpa-python": "0.2.3",
+    "threadpoolctl": "3.7.0"
+  }
+}
