@@ -510,3 +510,29 @@ stopped with Ctrl+C without stopping the solver. Requires GitHub
 authentication and checked-out `main`; non-fast-forward Git pushes
 fail safely without force pushing. See
 [full-SDP publishing guide](full-sdp-publication.md).
+
+
+## Experiment005: MST rounding on the original EVA ambient coordinates
+
+On the `experiment005-eva-mst-single-linkage` branch, use the saved
+Numba EVA factor directly: no PCA, no new EVA run, no complete distance
+matrix. One longest-edge MST cut per metric (L1, L2, Linf):
+
+    $env:PYTHONPATH = Join-Path (Get-Location).Path "src"
+    python -m pytest tests/test_eva_mst.py -q
+    python -m maxkcut.eva_mst_cli --graphs G63 --metrics l1 l2 linf --max-n 10000 --source-dir results/gset/experiment003-eva-numba --output-dir results/gset/experiment005-eva-mst
+
+For the remaining large G-set instances, explicitly choose
+`--max-n 20000`. The exact algorithm costs O(n^2 p) time. All tree
+edges, component sizes and weighted cuts are archived. The `--push`
+option pushes **once after all graphs**, unlike EVA sweep checkpoints.
+See [MST research protocol](../notes/experiments/experiment005-eva-mst.md).
+
+
+To attempt the full 71-instance corpus from *existing* factors only,
+add `--graphs ALL --max-n 20000` and use the fallback NumPy factors:
+
+    python -m maxkcut.eva_mst_cli --graphs ALL --max-n 20000 --metrics l1 l2 linf --source-dir results/gset/experiment003-eva-numba --fallback-source-dir results/gset/experiment002-eva --output-dir results/gset/experiment005-eva-mst --continue-on-error --push --push-branch experiment005-eva-mst-single-linkage
+
+The command produces no new EVA solution, only three exact MST cuts
+per available frozen factor; missing graphs remain recorded as errors.
