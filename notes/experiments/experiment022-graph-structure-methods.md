@@ -154,6 +154,20 @@ These **best-of-20 gains** are the unweighted average of per-graph `(best_KMeans
 
 **EM provenance and source leakage:** EM elite variants explicitly load archived elite partitions. In all eight EM variant categories (four algorithms × two starts) the source scores are reported separately from EM soft scores and final hard partitions. The `26917` elite tie is **not** a new EM optimum: all elite episodes' `final_cut - source_cut ≤ 0`. Only mean-start methods with KL record gains over their *own* source in the small pilot. These observations cannot justify an EM-vs-MST or EM-vs-K-Means general ranking.
 
+### Historical-method figures
+
+![Best of three raw EVA rounders by generator family](../../results/gset/experiment022-graph-structure-methods/historical_raw_rounding_family_wins.svg)
+
+![G63 historical algorithms at their actual archived, heterogeneous budgets](../../results/gset/experiment022-graph-structure-methods/historical_g63_method_bests.svg)
+
+The figures are generated directly from the archived retrospective tables, without rerunning a graph solver:
+
+```powershell
+python scripts/plot_experiment022_historical.py
+```
+
+Figure labels emphasize that all G63 methods use different stages/budgets and the elite-EM 26,917 is **inherited**, not a newly found cut.
+
 ### Reproduce the historic retrospective audit, no optimization required
 
 ```powershell
