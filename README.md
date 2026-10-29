@@ -7,6 +7,10 @@ The project is motivated by Ángel Eduardo Rodríguez Fernández's 2021 disserta
 **AI/research handoff:** Start with [RESEARCH_HANDOFF.md](RESEARCH_HANDOFF.md) for a concise chronology through the verified 71-graph Experiment021 dataset, numerical conclusions, open questions, and links to detailed archives. Follow [AGENTS.md](AGENTS.md) for binding implementation and reproducibility rules.
 
 
+## Experiment023 — 71-graph missing-method and topology benchmark
+
+**Status: workflow staged; numeric completion must be verified.** An independent [Experiment023 protocol](notes/experiments/experiment023-all-method-topology.md) and [self-hosted Windows workflow](.github/workflows/experiment023-method-topology.yml) evaluate 17 method/refinement protocols (MST, EM/CEM/Gibbs, direct hyperplane, multi-group, cut-aware, Tabu control) on every canonical G-set graph using **frozen EVA factors** and a common Flip → KL → ILS final stage. Three-family pilot gates the 71-graph sweep. Each case has capped CPU time, hard timeouts, factor/graph SHA, four archived binary partitions and graph-level checkpoints. The final graph/topology report must explicitly mark incomplete graph-method cells. **Do not claim this experiment is complete before GitHub Actions results and the coverage table confirm it.**
+
 ## Experiment022 historical-method extension: GW, MST, EM, KL/ILS
 
 The [historical-method audit](notes/experiments/experiment022-graph-structure-methods.md#extension-include-historical-gw-mst-em-cut-aware-and-multigroup-methods) broadens the structural study beyond nine centroid initializers **without claiming 71-graph results for algorithms run only on G63**.
