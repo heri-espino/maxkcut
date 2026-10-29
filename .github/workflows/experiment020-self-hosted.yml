@@ -118,11 +118,23 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $root = 'results/gset/experiment020-all-gset-paired-inits'
+          # Refresh coverage from already committed summaries, including
+          # G63's 450 verified Experiment019 runs. Only recover incomplete
+          # graph outputs; do not recompute 61 finished graphs.
+          & $env:MAXKCUT_PYTHON -m maxkcut.eva_kmeans_init_all_cli aggregate --output-root $root --restarts 50
+          if ($LASTEXITCODE -ne 0) { throw 'Could not refresh saved Experiment020 coverage.' }
           $list = Get-Content "$root/inventory.json" -Raw | ConvertFrom-Json
-          $ready = @($list.records | Where-Object { $_.status -eq 'ready' })
+          $coverage = @(Import-Csv "$root/statistics/coverage.csv")
+          $pending = [System.Collections.Generic.HashSet[string]]::new()
+          foreach ($entry in $coverage) {
+            if ($entry.status -eq 'missing_or_incomplete_experiment') {
+              [void]$pending.Add([string]$entry.graph)
+            }
+          }
+          $ready = @($list.records | Where-Object { $_.status -eq 'ready' -and $pending.Contains([string]$_.graph) })
           $missing = @($list.records | Where-Object { $_.status -notin @('ready','reused_019') })
-          Write-Host ("New eligible graphs: {0}; reused G63: 1; missing: {1}" -f $ready.Count, $missing.Count)
-          if ($ready.Count -lt 1) { throw 'No completed original EVA factors available.' }
+          Write-Host ("Recovered completed graphs: {0}; missing source factors: {1}; recovery graphs: {2}" -f ($list.verified_ready - $ready.Count + 1), $missing.Count, $ready.Count)
+          if ($ready.Count -eq 0) { Write-Host 'All saved-EVA graph comparisons are already complete; verifying statistics only.' }
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           $failed = [System.Collections.Generic.List[string]]::new()
