@@ -1,0 +1,171 @@
+name: Experiment019 — self-hosted Windows paired Flips KL ILS
+
+# Only our dedicated experiment branch; avoid executing external PR code
+# on the university Windows workstation.
+on:
+  push:
+    branches:
+      - experiment019-kmeans-init-full-pipeline
+    paths:
+      - .github/workflows/experiment019-self-hosted.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: experiment019-windows-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  pilot:
+    name: 50 matched starts, 9 KMeans initializers + Flips KL ILS — G63
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 120
+    defaults:
+      run:
+        shell: powershell
+    env:
+      PYTHONPATH: ${{ github.workspace }}\src
+      PYTHONUTF8: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      NUMBA_NUM_THREADS: '1'
+    steps:
+      - name: Checkout Experiment019 and original immutable G63 EVA
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 1
+
+      - name: Select existing maxkcut Conda Python (no admin/install)
+        id: select-python
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $candidates = @(
+            "$env:USERPROFILE\miniconda3\envs\maxkcut\python.exe"
+            "$env:USERPROFILE\miniforge3\envs\maxkcut\python.exe"
+            "$env:USERPROFILE\anaconda3\envs\maxkcut\python.exe"
+            "$env:LOCALAPPDATA\miniconda3\envs\maxkcut\python.exe"
+            "$env:LOCALAPPDATA\Programs\miniconda3\envs\maxkcut\python.exe"
+            "C:\ProgramData\miniconda3\envs\maxkcut\python.exe"
+          )
+          $python = $null
+          foreach ($candidate in $candidates) {
+            if (Test-Path -LiteralPath $candidate) { $python = $candidate; break }
+          }
+          if (-not $python) {
+            $conda = Get-Command conda -ErrorAction SilentlyContinue
+            if ($conda) {
+              $envlist = & conda env list --json | ConvertFrom-Json
+              foreach ($prefix in $envlist.envs) {
+                if ((Split-Path $prefix -Leaf) -eq 'maxkcut') {
+                  $candidate = Join-Path $prefix 'python.exe'
+                  if (Test-Path $candidate) { $python = $candidate; break }
+                }
+              }
+            }
+          }
+          if (-not $python) {
+            $fallback = Get-Command python -ErrorAction SilentlyContinue
+            if ($fallback) { $python = $fallback.Source }
+          }
+          if (-not $python) {
+            throw "Python not found for this runner user. Install the maxkcut Conda env in the runner account or add its Python path to this workflow."
+          }
+          Write-Host "Using Python: $python"
+          & $python -c "import sys,numpy,scipy,numba,pytest; print(sys.executable); print('Numba',numba.__version__)"
+          if ($LASTEXITCODE -ne 0) {
+            throw "The selected Python is missing numpy/scipy/numba/pytest. Activate or locate the existing maxkcut Conda environment."
+          }
+          "MAXKCUT_PYTHON=$python" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          # Calling Conda's python.exe directly on Windows leaves
+          # env/Library/bin out of PATH. BLAS LAPACK and scipy can
+          # then abort with Windows delay-load error 0xc06d007f,
+          # despite 'import numpy' passing. Add the environment's
+          # own DLL and Scripts paths to EVERY subsequent step.
+          $condaPrefix = Split-Path $python -Parent
+          if (Test-Path (Join-Path $condaPrefix 'conda-meta')) {
+            @(
+              (Join-Path $condaPrefix 'Library\\mingw-w64\\bin')
+              (Join-Path $condaPrefix 'Library\\usr\\bin')
+              (Join-Path $condaPrefix 'Library\\bin')
+              (Join-Path $condaPrefix 'Scripts')
+              $condaPrefix
+            ) | ForEach-Object {
+              if (Test-Path -LiteralPath $_) {
+                $_ | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+              }
+            }
+            Write-Host 'Prepared Conda DLL PATH for numerical linear algebra.'
+          }
+
+      - name: Check original G63 factor, case and graph are present
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $inputs = @(
+            'data/G63.txt'
+            'results/gset/experiment003-eva-numba/cases/G63.json'
+            'results/gset/experiment003-eva-numba/factors/G63.npz'
+          )
+          foreach ($file in $inputs) {
+            if (-not (Test-Path $file)) { throw "Missing required committed source: $file" }
+            Write-Host "Found $file"
+          }
+
+      - name: Test complete original signed-cut Flip KL ILS pipeline
+        run: |
+          & $env:MAXKCUT_PYTHON -m pytest tests/test_eva_kmeans_init_full.py -q
+          if ($LASTEXITCODE -ne 0) { throw 'Experiment019 full-pipeline tests failed; full run not started.' }
+
+      - name: G63 full 9-initializer x 50 matched restarts Flip KL ILS
+        run: |
+          & $env:MAXKCUT_PYTHON -m maxkcut.eva_kmeans_init_full_cli `
+            --graphs G63 `
+            --methods paired independent sample-antipodal sample-pair farthest-pair spherical-pp mean-perturb pca-antipodal gw-screen16 `
+            --restarts 50 `
+            --chunk-size 5 `
+            --workers 4 `
+            --kmeans-iters 100 `
+            --flip-sweeps 20 `
+            --kl-passes 30 `
+            --ils-cycles 80 `
+            --ils-kl-passes 8 `
+            --kick-sizes 8 16 32 64 `
+            --temperature 12 `
+            --target 27047
+          if ($LASTEXITCODE -ne 0) { throw 'G63 full 50-start matched pipeline failed.' }
+
+      - name: Compare all KMeans initialization full-pipeline results
+        run: |
+          $folder = 'results/gset/experiment019-kmeans-init-full-pipeline'
+          Get-Content "$folder/leaderboard.json"
+          Import-Csv "$folder/summary.csv" | Sort-Object { [double]$_.post_KL_cut } -Descending | Select-Object -First 10 | Format-Table -AutoSize
+
+      - name: Upload independently verified G63 pilot partitions and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: experiment019-G63-self-hosted-${{ github.run_id }}
+          path: |
+            results/gset/experiment019-kmeans-init-full-pipeline/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Commit verified full experiment019 partition archives and leaderboard
+        if: success() && github.ref == 'refs/heads/experiment019-kmeans-init-full-pipeline'
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- results/gset/experiment019-kmeans-init-full-pipeline
+          git diff --cached --quiet
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host 'All pilot result files are already committed.'
+            exit 0
+          }
+          git commit -m "experiment019: save verified 50-paired-start G63 full pipeline results"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not commit pilot results.' }
+          git push origin "HEAD:experiment019-kmeans-init-full-pipeline"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not push pilot results to GitHub.' }
