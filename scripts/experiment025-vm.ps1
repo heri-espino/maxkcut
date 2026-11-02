@@ -1,9 +1,9 @@
 <#
 Experiment025 VM driver: no Actions six-hour limit; resume by graph/method/seed.
 Run at repository root:
-  pwsh -NoProfile -File .\scripts\experiment025-vm.ps1 -Phase pilot
-  pwsh -NoProfile -File .\scripts\experiment025-vm.ps1 -Phase full -AllGraphs
-  pwsh -NoProfile -File .\scripts\experiment025-vm.ps1 -Phase coverage
+  powershell.exe -NoProfile -File .\scripts\experiment025-vm.ps1 -Phase pilot
+  powershell.exe -NoProfile -File .\scripts\experiment025-vm.ps1 -Phase full -AllGraphs
+  powershell.exe -NoProfile -File .\scripts\experiment025-vm.ps1 -Phase coverage
 
 Requires: Windows, Git for Windows with Git LFS, available "maxkcut"
 Conda environment and GitHub push credentials. Writes ONLY to the dedicated
@@ -91,18 +91,45 @@ if ($LASTEXITCODE -ne 0 -or "$jsonlProbe" -notmatch 'filter: lfs$') {
     throw 'Git LFS attributes not active for Experiment025 iteration logs'
 }
 
-# Activate the actual Conda environment (not merely a similarly named Python).
+# Use the existing university VM's "maxkcut" Conda Python. Windows
+# PowerShell 5.1 is sufficient; PowerShell 7 (pwsh) is NOT required.
+# Conda can be installed at a custom university path, not only under USERPROFILE.
 $conda = Get-Command conda -ErrorAction SilentlyContinue
+$discoveredPrefix = $null
 if ($null -ne $conda) {
-    $hook = (& conda shell.powershell hook | Out-String)
-    if ($LASTEXITCODE -ne 0 -or -not $hook) { throw 'Conda PowerShell hook failed' }
-    Invoke-Expression $hook
-    conda activate maxkcut
-    if ($LASTEXITCODE -ne 0) { throw 'Cannot activate Conda environment maxkcut' }
+    $rawCondaEnvs = (& conda env list --json | Out-String)
+    if ($LASTEXITCODE -eq 0 -and $rawCondaEnvs) {
+        try {
+            $allCondaEnvs = @((ConvertFrom-Json $rawCondaEnvs).envs)
+            foreach ($envPath in $allCondaEnvs) {
+                if ((Split-Path $envPath -Leaf) -ieq 'maxkcut') {
+                    $discoveredPrefix = $envPath
+                    break
+                }
+            }
+        } catch {
+            Write-Warning "Could not interpret conda env list JSON; falling back to known paths."
+        }
+    }
+    # Attempt normal Conda shell activation, then ALWAYS use the actual
+    # maxkcut\python.exe, including when the PowerShell hook is unavailable.
+    try {
+        $hook = (& conda shell.powershell hook | Out-String)
+        if ($LASTEXITCODE -eq 0 -and $hook) {
+            Invoke-Expression $hook
+            conda activate maxkcut
+        }
+    } catch {
+        Write-Warning "Conda PowerShell hook unavailable; using direct maxkcut interpreter."
+    }
 }
 $python = $null
-if ($env:CONDA_PREFIX -and (Split-Path $env:CONDA_PREFIX -Leaf) -eq 'maxkcut') {
+if ($env:CONDA_PREFIX -and (Split-Path $env:CONDA_PREFIX -Leaf) -ieq 'maxkcut') {
     $candidate=Join-Path $env:CONDA_PREFIX 'python.exe'
+    if (Test-Path $candidate) { $python=$candidate }
+}
+if (-not $python -and $discoveredPrefix) {
+    $candidate=Join-Path $discoveredPrefix 'python.exe'
     if (Test-Path $candidate) { $python=$candidate }
 }
 if (-not $python) {
@@ -131,7 +158,9 @@ $env:OMP_NUM_THREADS='1'
 $env:NUMBA_NUM_THREADS='1'
 $env:PYTHONUTF8='1'
 Write-Host "Experiment025 source branch: $branch"
-Write-Host "Conda executable: $python"
+Write-Host "Windows PowerShell version: $($PSVersionTable.PSVersion)"
+Write-Host "Conda environment: maxkcut ($prefix)"
+Write-Host "Conda Python executable: $python"
 $env:EXP025_EXPECTED_SOURCE_SHA=$ExpectedSourceSha256
 @'
 import json
