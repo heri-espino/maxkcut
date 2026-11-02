@@ -94,7 +94,12 @@ if ($Phase -eq 'pilot') {
     if ($LASTEXITCODE -ne 0) { throw 'Synthetic test suite failed; full benchmark blocked.' }
     & $python -m maxkcut.experiment023_methods inventory
     if ($LASTEXITCODE -ne 0) { throw 'Original frozen EVA factor inventory incomplete.' }
-    & $python -c 'from maxkcut.experiment023_references import load_references; a,m=load_references(); assert len(a)==71 and m["toroidal_paper_count"]==17; print("Reference archive audited:",len(a))'
+    @'
+from maxkcut.experiment023_references import load_references
+references, metadata = load_references()
+assert len(references) == 71 and metadata["toroidal_paper_count"] == 17
+print("Reference archive audited:", len(references))
+'@ | & $python -
     if ($LASTEXITCODE -ne 0) { throw 'Best-known cut archive failed preflight.' }
     & $python -m maxkcut.graph_structure_methods
     if ($LASTEXITCODE -ne 0) { throw 'Structure feature extraction failed.' }
