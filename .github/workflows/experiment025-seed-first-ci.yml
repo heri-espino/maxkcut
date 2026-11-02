@@ -7,6 +7,8 @@ on:
       - "scripts/experiment025-vm.ps1"
       - "scripts/experiment025_actions_matrix.py"
       - "tests/test_experiment025_seed_first.py"
+      - "tests/test_experiment025_seed_progress.py"
+      - "src/maxkcut/experiment025_seed_progress.py"
       - ".github/workflows/experiment025-seed-round.yml"
       - ".github/workflows/experiment025-seed-shard.yml"
       - ".github/workflows/experiment025-seed-first-ci.yml"
@@ -16,6 +18,8 @@ on:
       - "scripts/experiment025-vm.ps1"
       - "scripts/experiment025_actions_matrix.py"
       - "tests/test_experiment025_seed_first.py"
+      - "tests/test_experiment025_seed_progress.py"
+      - "src/maxkcut/experiment025_seed_progress.py"
       - ".github/workflows/experiment025-seed-round.yml"
       - ".github/workflows/experiment025-seed-shard.yml"
 
@@ -37,7 +41,7 @@ jobs:
       - name: Run seed-first, previous best-ever, and runner integration tests
         run: |
           python -m compileall -q src/maxkcut scripts/experiment025_actions_matrix.py
-          python -m pytest tests/test_experiment025_seed_first.py tests/test_experiment025_bestcut.py tests/test_experiment025_actions_matrix.py tests/test_experiment025_vm_preflight.py tests/test_experiment024_paired_gw16.py tests/test_experiment024_integration.py -q
+          python -m pytest tests/test_experiment025_seed_first.py tests/test_experiment025_seed_progress.py tests/test_experiment025_bestcut.py tests/test_experiment025_actions_matrix.py tests/test_experiment025_vm_preflight.py tests/test_experiment024_paired_gw16.py tests/test_experiment024_integration.py -q
       - name: Validate chained GitHub Actions YAML and matrix bounds
         run: |
           python - <<'PY'
@@ -51,6 +55,8 @@ jobs:
               assert job["with"]["batch"]==i
               if i:
                   assert f"batch{i-1}" in job["needs"]
+          assert "report" in parent["jobs"]
+          assert "batch5" in parent["jobs"]["report"]["needs"]
           assert shard["jobs"]["execute"]["strategy"]["max-parallel"]==1
           assert shard["jobs"]["execute"]["runs-on"]==["self-hosted","Windows","X64","PCAG103A-13"]
           print("Validated 6 chained seed-round batches and correct runner")
