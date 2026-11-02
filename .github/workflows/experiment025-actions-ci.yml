@@ -1,0 +1,55 @@
+name: "Experiment025 PCAG103A-13 matrix and runner safety tests"
+on:
+  push:
+    branches: [experiment025-actions-pcag103a13]
+    paths:
+      - "scripts/experiment025_actions_matrix.py"
+      - "scripts/experiment025-vm.ps1"
+      - ".github/workflows/experiment025-quality-first.yml"
+      - ".github/workflows/experiment025-actions-ci.yml"
+      - "tests/test_experiment025_actions_matrix.py"
+      - "tests/test_experiment025_vm_preflight.py"
+  pull_request:
+    paths:
+      - "scripts/experiment025_actions_matrix.py"
+      - "scripts/experiment025-vm.ps1"
+      - ".github/workflows/experiment025-quality-first.yml"
+      - "tests/test_experiment025_actions_matrix.py"
+      - "tests/test_experiment025_vm_preflight.py"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install project tests and YAML validator
+        run: python -m pip install -e ".[test,eva-fast]" pyyaml
+      - name: Verify matrix coverage, 16 GW integration, and workflow YAML
+        run: |
+          python -m pytest tests/test_experiment025_actions_matrix.py tests/test_experiment025_vm_preflight.py tests/test_experiment025_bestcut.py tests/test_experiment024_paired_gw16.py tests/test_experiment024_integration.py -q
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
+          x=yaml.safe_load(Path('.github/workflows/experiment025-quality-first.yml').read_text())
+          assert 'experiment' in x['jobs']
+          assert x['jobs']['experiment']['strategy']['max-parallel']==1
+          assert x['jobs']['experiment']['runs-on']==['self-hosted','Windows','X64','PCAG103A-13']
+          assert 'prepare' in x['jobs']
+          print('PCAG103A-13 workflow YAML and matrix validated')
+          PY
+      - name: Verify PowerShell 7 runner parses correctly
+        shell: pwsh
+        run: |
+          $tokens=$null
+          $errors=$null
+          [System.Management.Automation.Language.Parser]::ParseFile("./scripts/experiment025-vm.ps1",[ref]$tokens,[ref]$errors) | Out-Null
+          if ($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_ }; exit 1 }
+          Write-Host "Runner script syntax valid."
