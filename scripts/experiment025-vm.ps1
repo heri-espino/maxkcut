@@ -10,11 +10,12 @@ Conda environment and GitHub push credentials. Writes ONLY to the dedicated
 experiment025-results branch; no force-push, no changes to old experiments.
 #>
 param(
-    [ValidateSet('pilot','full','coverage')][string]$Phase = 'pilot',
+    [ValidateSet('pilot','full','coverage','seed-report')][string]$Phase = 'pilot',
     [string]$Graph = 'G11',
     [string]$Method = '',
     [switch]$OnlyGraph,
     [ValidateRange(0,16)][int]$Seed = 0,
+    [ValidateSet('pilot','full')][string]$ReportPhase = 'full',
     [string]$ExpectedSourceSha256 = '',
     [switch]$AllGraphs,
     [ValidateRange(1,16)][int]$ChunkSize = 16,
@@ -216,7 +217,11 @@ if (-not $SkipTests) {
     & $python -m pytest tests/test_experiment025_bestcut.py tests/test_experiment024_paired_gw16.py tests/test_experiment024_integration.py -q
     if ($LASTEXITCODE -ne 0) { throw 'Numerical integration tests failed: no optimization executed' }
 }
-if ($Phase -eq 'coverage') {
+if ($Phase -eq 'seed-report') {
+    & $python -m maxkcut.experiment025_seed_progress --phase $ReportPhase
+    if ($LASTEXITCODE -ne 0) { throw 'Seed-round cumulative best-so-far report failed' }
+    Publish-Checkpoint "experiment025: record $ReportPhase cumulative seed-quality progress"
+} elseif ($Phase -eq 'coverage') {
     & $python -m maxkcut.experiment025_bestcut summary --phase full
     if ($LASTEXITCODE -ne 0) { throw 'Coverage report failed' }
     Publish-Checkpoint 'experiment025: final original-cut coverage and best-ever summaries'
