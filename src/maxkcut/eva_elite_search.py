@@ -140,7 +140,7 @@ def _fast_kl_kernel():
     return kernel
 
 
-def optimize_kl_fast(adjacency, labels, rng, *, passes=15):
+def optimize_kl_fast(adjacency, labels, rng, *, passes=15, on_iteration=None):
     """Fast exact greedy KL gain-selection rule (not global Max-Cut)."""
     if passes < 1:
         raise ValueError("passes must be >= 1")
@@ -151,16 +151,26 @@ def optimize_kl_fast(adjacency, labels, rng, *, passes=15):
     gains = []
     flips = 0
     termination = "pass_limit"
-    for _ in range(passes):
+    for pass_index in range(1, passes+1):
         order = np.asarray(rng.permutation(len(spins)), dtype=np.int32)
         gain, prefix = kernel(
             adjacency.indptr, adjacency.indices, adjacency.data, spins, order,
         )
         if gain <= 1e-10:
             termination = "no_improving_gain_sequence"
+            if on_iteration is not None:
+                current = (spins < 0).astype(np.int8)
+                on_iteration({"stage":"KL","pass":pass_index,
+                  "improved":False,"current_cut":float(cut_weight(edges,current))},current.copy())
             break
         gains.append(float(gain))
         flips += int(prefix)
+        if on_iteration is not None:
+            current = (spins < 0).astype(np.int8)
+            on_iteration({"stage":"KL","pass":pass_index,
+                "improved":True,"gain":float(gain),
+                "accepted_flips":int(prefix),
+                "current_cut":float(cut_weight(edges,current))},current.copy())
     final = (spins < 0).astype(np.int8)
     score_after = float(cut_weight(edges, final))
     if (score_after + 1e-7 < score_before
@@ -244,7 +254,7 @@ def optimize_elite(
     kick_sizes=(8, 16, 32, 64, 128, 256),
     boundary_fraction=0.65, temperature=12.0,
     tabu_steps=10000, tabu_tenure=15,
-    tabu_stagnation=3000, target=None,
+    tabu_stagnation=3000, target=None, on_iteration=None,
 ):
     """Run a complete independently seeded diversification episode.
 
@@ -357,7 +367,7 @@ def optimize_elite(
         if accepted:
             walk_labels = next_labels.copy()
             walk_score = score
-        trace.append({
+        record = {
             "cycle": cycle + 1,
             "transition": transition,
             "candidate_cut": score,
@@ -365,7 +375,12 @@ def optimize_elite(
             "accepted_walk": accepted,
             "kl_passes_improved": kl["passes_improved"],
             "kl_seconds": kl["seconds"],
-        })
+        }
+        trace.append(record)
+        if on_iteration is not None:
+            on_iteration({"stage":"ILS","best_improved":bool(
+                 best_events and best_events[-1]["cycle"]==cycle+1),**record},
+                 best_labels.copy())
         if target is not None and best_score >= target:
             break
     final_score = float(cut_weight(edges, best_labels))

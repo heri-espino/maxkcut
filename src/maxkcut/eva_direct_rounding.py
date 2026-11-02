@@ -202,6 +202,7 @@ def _guided_tangent(graph, y, r, rng, mode, boundary_vertices=96):
 def optimize_hyperplane(
     graph, vectors, rng, *, initial=None, directions=250,
     modes=("random", "gain", "boundary"), target=None,
+    on_iteration=None,
 ):
     """Iterated exact-line-search ascent on the original rounded Max-Cut.
 
@@ -248,6 +249,10 @@ def optimize_hyperplane(
             best_score = float(info["realized_arc_cut"])
             r = next_r.copy()
             accepted += 1
+        if on_iteration is not None:
+            on_iteration({"stage":"Hyperplane","direction":iteration+1,
+                "mode":mode,"best_cut":best_score,
+                "current_cut":float(info["realized_arc_cut"])},best_labels.copy())
         trace.append({
             "direction": iteration + 1,
             "mode": mode,

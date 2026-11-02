@@ -64,7 +64,7 @@ def _centroids(y, p, c0, c1):
 
 def soft_em(graph, y, rng, *, mode="mean", anchor=None, kappa=1.,
             delta=.25, temp_start=5., temp_end=.15, stages=8,
-            em_iters=20, damping=.4):
+            em_iters=20, damping=.4, on_iteration=None):
     """Seeded soft EM with audited mean-field/centroid coordinate ascent.
 
     'mean' starts from perturbed mean direction on the sphere;
@@ -143,6 +143,11 @@ def soft_em(graph, y, rng, *, mode="mean", anchor=None, kappa=1.,
                 raise RuntimeError("Soft EM centroid M-step decreased its free energy")
             change=abs(after-last)
             last=after
+            if on_iteration is not None:
+                binary=(p>=.5).astype(np.int8)
+                on_iteration({"stage":"SoftEM","temperature_stage":stage+1,
+                    "iteration":iteration+1,"free_energy":float(after),
+                    "current_cut":float(cut_weight(edges,binary))},binary.copy())
             trace.append({
                 "stage":stage+1, "iteration":iteration+1,
                 "temperature":float(temperature),
@@ -191,7 +196,8 @@ def _samples(edges, probabilities, rng, count):
 def cem(graph, initial_p, rng, *, anchor=None,
         generations=30, population=96, elite_fraction=.15,
         update_rate=.6, min_probability=.003,
-        anchor_weight=.96, injection=.035, target=None):
+        anchor_weight=.96, injection=.035, target=None,
+        on_iteration=None):
     """Complement-aligned elite CEM on independent Bernoulli partitions.
 
     Strong anchor conditioning makes independent Bernoulli sampling
@@ -248,6 +254,10 @@ def cem(graph, initial_p, rng, *, anchor=None,
         if injection:
             p=(1-injection)*p+injection*.5
         p=np.clip(p,min_probability,1-min_probability)
+        if on_iteration is not None:
+            on_iteration({"stage":"CEM","generation":generation+1,
+                "population_best":float(np.max(scores)),
+                "best_cut":best_score},best.copy())
         trace.append({
             "generation":generation+1,
             "best_cut":best_score,
@@ -294,7 +304,8 @@ def _gibbs_kernel():
 
 
 def gibbs_anneal(graph, initial, rng, *, sweeps=150,
-                 temp_start=12.,temp_end=.4,target=None):
+                 temp_start=12.,temp_end=.4,target=None,
+                 on_iteration=None):
     """Single-site Gibbs heat bath on ORIGINAL signed Max-Cut energy.
 
     Exact graph flip gain is computed with current neighboring spins;
@@ -321,8 +332,37 @@ def gibbs_anneal(graph, initial, rng, *, sweeps=150,
     kernel=_gibbs_kernel()
     for t,temp in enumerate(np.geomspace(temp_start,temp_end,sweeps)):
         order=np.asarray(rng.permutation(n),dtype=np.int32)
-        delta=kernel(a.indptr,a.indices,a.data,spins,order,
-                     rng.random(n),float(temp))
+        order_uniforms=rng.random(n)
+        if on_iteration is None:
+            # Keep the original, tested fast Numba sweep unchanged.
+            delta=kernel(a.indptr,a.indices,a.data,spins,order,
+                         order_uniforms,float(temp))
+        else:
+            # Python observer mode yields the same heat-bath transition,
+            # but can retain a better intermediate cut that the fast
+            # full-sweep result might erase before its end.
+            delta=0.
+            for move,int_vertex in enumerate(order,start=1):
+                vertex=int(int_vertex)
+                first,last=a.indptr[vertex:vertex+2]
+                field=float(np.dot(a.data[first:last],
+                                   spins[a.indices[first:last]]))
+                gain=float(spins[vertex]*field)
+                q=1./(1.+np.exp(-np.clip(gain/float(temp),-60.,60.)))
+                if order_uniforms[move-1]<q:
+                    spins[vertex]=-spins[vertex]
+                    delta+=gain
+                    candidate_cut=score+delta
+                    if candidate_cut>best_score+1e-8:
+                        intermediate=(spins<0).astype(np.int8)
+                        exact=float(cut_weight(edges,intermediate))
+                        if not np.isclose(candidate_cut,exact,rtol=0,atol=1e-6):
+                            raise AssertionError("Gibbs intermediate signed cut mismatch")
+                        best_score=exact
+                        best=intermediate.copy()
+                        on_iteration({"stage":"GibbsBestMove","sweep":t+1,
+                            "move":move,"current_cut":exact,
+                            "best_cut":best_score},best.copy())
         labels=(spins<0).astype(np.int8)
         current=float(cut_weight(edges,labels))
         if not np.isclose(score+delta,current,rtol=0,atol=1e-6):
@@ -331,6 +371,10 @@ def gibbs_anneal(graph, initial, rng, *, sweeps=150,
         if score>best_score+1e-8:
             best_score=score
             best=labels.copy()
+        if on_iteration is not None:
+            on_iteration({"stage":"Gibbs","sweep":t+1,
+                "temperature":float(temp),"current_cut":score,
+                "best_cut":best_score},best.copy())
         trace.append({
             "sweep":t+1, "temperature":float(temp),
             "current_cut":score, "best_cut":best_score,
