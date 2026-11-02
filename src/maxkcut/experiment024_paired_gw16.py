@@ -192,7 +192,7 @@ def generate_candidate(graph,y,edges,method,r,gw,s,cfg,folder,graphsha,factorsha
             child,_=diameter_center_edge(parent,lengths)
             candidate=labels_cutting_edge(parent,child)
         elif method.endswith("-bestcut"):
-            child,_=best_cut_edge(parent,lengths,graph)
+            child,_=best_cut_edge(parent,lengths,edges)
             candidate=labels_cutting_edge(parent,child)
         elif method.endswith("-multicut"):
             options=list(multi_edge_candidates(
