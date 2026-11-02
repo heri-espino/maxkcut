@@ -38,7 +38,7 @@ jobs:
           EXP_BATCH: ${{ inputs.batch }}
         run: |
           python scripts/experiment025_actions_matrix.py --mode seed-batch --phase "$EXP_PHASE" --batch "$EXP_BATCH" > cases.json
-          echo "cases=$(cat cases.json)" }} "$GITHUB_OUTPUT"
+          echo "cases=$(cat cases.json)" >> "$GITHUB_OUTPUT"
           python -c 'import json; x=json.load(open("cases.json")); print("GW seed batch cases:",len(x["include"]))'
 
   execute:
