@@ -19,16 +19,42 @@ $candidates = @(
 foreach ($candidate in $candidates) {
     if (Test-Path -LiteralPath $candidate) { $python = $candidate; break }
 }
-if (-not $python) { throw 'Existing maxkcut Conda environment not found; install/configure manually.' }
+# Match the environment discovery used by successfully completed Experiment021.
+# On lab PCs the Conda prefix is not always under USERPROFILE.
+if (-not $python) {
+    $conda = Get-Command conda -ErrorAction SilentlyContinue
+    if ($conda) {
+        $envs = & conda env list --json | ConvertFrom-Json
+        foreach ($candidatePrefix in $envs.envs) {
+            if ((Split-Path $candidatePrefix -Leaf) -eq 'maxkcut') {
+                $candidate = Join-Path $candidatePrefix 'python.exe'
+                if (Test-Path -LiteralPath $candidate) { $python = $candidate; break }
+            }
+        }
+    }
+}
+if (-not $python) {
+    throw 'No usable maxkcut Conda Python found. This script does not install packages on the lab PC.'
+}
+Write-Host "Selected Conda Python: $python"
 $prefix=Split-Path $python -Parent
-$env:PATH = "$(Join-Path $prefix 'Library\bin');$(Join-Path $prefix 'Scripts');$prefix;$env:PATH"
+$paths = @(
+    (Join-Path $prefix 'Library\mingw-w64\bin'),
+    (Join-Path $prefix 'Library\usr\bin'),
+    (Join-Path $prefix 'Library\bin'),
+    (Join-Path $prefix 'Scripts'),
+    $prefix
+)
+foreach ($candidate in $paths) {
+    if (Test-Path -LiteralPath $candidate) { $env:PATH = "$candidate;$env:PATH" }
+}
 $env:PYTHONPATH = Join-Path (Get-Location).Path 'src'
 $env:OPENBLAS_NUM_THREADS = '1'
 $env:OMP_NUM_THREADS = '1'
 $env:MKL_NUM_THREADS = '1'
 $env:NUMBA_NUM_THREADS = '1'
 $env:PYTHONUTF8 = '1'
-& $python -c 'import numpy, scipy, numba, pytest; import maxkcut.experiment023_methods; print("Verified maxkcut Conda")'
+& $python -c 'import numpy, scipy, numba, pytest; import maxkcut.experiment023_methods; print("Verified maxkcut Conda", numpy.__version__, scipy.__version__)'
 if ($LASTEXITCODE -ne 0) { throw 'Missing required installed packages.' }
 
 function Publish-Results {
