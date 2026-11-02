@@ -43,6 +43,10 @@ and commits/pushes the new seed archive using scoped Git LFS to
 the dedicated experiment025-results branch. A later seed can complete
 before an earlier one without resetting the global saved method status.
 
+## Windows PowerShell 5.1 detached HEAD regression
+
+The follow-up run #41538460202 passed the real PCAG103A-13 environment smoke test but the first numerical seed failed due to `.Trim()` on an absent Git branch. An inline `[string]` cast was insufficient on Windows PowerShell 5.1. The Git branch reader has been isolated into `scripts/experiment025-git-branch.ps1` with an explicit null guard; hosted Windows CI executes it under an actual detached checkout and after switching to a named branch. Never restart a full seed sweep until the first pilot job reaches the optimizer and publishes a verified seed archive.
+
 ## GitHub checkout and cross-platform optimizer fingerprint
 
 GitHub Actions generally checks out an exact commit into **detached HEAD** mode. `git branch --show-current` therefore returns an empty string; `experiment025-vm.ps1` treats it as empty (not null .Trim()) and then safely creates or resumes the existing dedicated `experiment025-results` branch. Always pin numerical operations to the dispatch source SHA before switching branches. The Linux-hosted validation stage and Windows-runner computation may check out Python files with LF and CRLF line endings respectively. The optimizer source hash canonicalizes CRLF to LF before SHA256 so a byte-level platform checkout difference does not spuriously invalidate the mathematical protocol. No best-cut computations completed in the earlier run #41534228271, although Windows Conda and dataset preflight passed.
