@@ -2,6 +2,12 @@
 
 **Status: GW-RR baseline implemented; 71-graph reference table committed. Workflow push trigger attempted; Windows execution and numerical completion not independently verified.** A one-time, branch-specific GitHub Actions workflow launches the **three-family pilot** and, only if all pilots pass, schedules **all 71 canonical G-set graphs**. The Windows runner's live status and all graph-method results must be checked before claiming they completed. This work is independent of frozen Experiment021 and retrospective Experiment022.
 
+## Recovery log and merge policy (2026-11-01)
+
+The original workflow was reported failed, but the exact failed GitHub Actions job/step was not accessible during this review. The script was missing the Conda `env list --json` fallback that worked in the successful Experiment021 runner. That fallback and DLL search-path setup have now been incorporated. Each method now archives its last 20 KiB of stdout/traceback in `results/gset/experiment023-method-topology/<phase>/<graph>/logs/`. The pilot publishes its statuses and traces *before* checking its success gate. A workflow-file push (`38c846b2063eb8634ad539dfaca830e16c06d074`) attempted to retrigger the pilot; do not mistake this commit for proof that the runner accepted, completed, or passed a run. The job status must be inspected on GitHub Actions.
+
+PR #53 was merged into `main` (merge SHA `a45640d413169f9740755c315f2dd181c9c45984`); PR #54 was retargeted to `main`. The user authorized merging completed PRs. **Do not merge #54 until 71 x 18 coverage and numerical/provenance audit have passed**. On an unsuccessful rerun, use the new committed diagnostics to identify the first failing method and make a specific correction; avoid labeling unverified numerical work as complete.
+
 ## Question and motivation
 
 Across the G-set's **30 random, 24 planar-family/almost-planar, and 17 toroidal** instances, which *rounding algorithm family* tends to produce the strongest binary signed Max-Cut when paired with the **same** downstream graph-local refinement? Can original topology and EVA-vector geometry help predict that choice on new graph instances?
