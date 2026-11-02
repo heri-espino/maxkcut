@@ -1,0 +1,4 @@
+# Experiment025 iteration archives can be very large.
+# Scope LFS to new outputs only; preserve frozen earlier EVA/result files unchanged.
+results/gset/experiment025-gw16-bestcut-quality/**/*.npz filter=lfs diff=lfs merge=lfs -text
+results/gset/experiment025-gw16-bestcut-quality/**/*.jsonl filter=lfs diff=lfs merge=lfs -text
