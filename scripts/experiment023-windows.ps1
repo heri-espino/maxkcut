@@ -54,8 +54,17 @@ $env:OMP_NUM_THREADS = '1'
 $env:MKL_NUM_THREADS = '1'
 $env:NUMBA_NUM_THREADS = '1'
 $env:PYTHONUTF8 = '1'
-& $python -c 'import numpy, scipy, numba, pytest; import maxkcut.experiment023_methods; print("Verified maxkcut Conda", numpy.__version__, scipy.__version__)'
-if ($LASTEXITCODE -ne 0) { throw 'Missing required installed packages.' }
+# Windows PowerShell passes embedded double quotes through native -c arguments
+# inconsistently; send a literal UTF-8 program to Python on standard input.
+@'
+import numpy
+import scipy
+import numba
+import pytest
+import maxkcut.experiment023_methods
+print("Verified maxkcut Conda", numpy.__version__, scipy.__version__)
+'@ | & $python -
+if ($LASTEXITCODE -ne 0) { throw 'Python environment or package import check failed; see preceding traceback.' }
 
 function Publish-Results {
     param([string]$Message)
