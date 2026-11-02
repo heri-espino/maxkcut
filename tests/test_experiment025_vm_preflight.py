@@ -76,6 +76,11 @@ def test_actions_detached_head_does_not_raise_or_assume_branch_name():
     """Checkout pins a SHA and often leaves HEAD detached."""
     runner=(Path(__file__).resolve().parents[1]/
             "scripts"/"experiment025-vm.ps1").read_text(encoding="utf-8")
-    assert runner.count("([string](& git branch --show-current)).Trim()")==2
+    helper=(Path(__file__).resolve().parents[1]/
+            "scripts"/"experiment025-git-branch.ps1").read_text(encoding="utf-8")
+    assert runner.count("Get-Experiment025GitBranch")==2
     assert "(& git branch --show-current).Trim()" not in runner
+    assert "([string](& git branch --show-current)).Trim()" not in runner
+    assert ". (Join-Path $PSScriptRoot 'experiment025-git-branch.ps1')" in runner
+    assert "if ($null -eq $name)" in helper
     assert 'git switch -c $ResultsBranch "origin/main"' in runner
