@@ -18,7 +18,12 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
 if ($LASTEXITCODE -ne 0) { throw 'Git LFS is not available' }
 
 $prefix = $null
-if ($env:CONDA_PREFIX -and (Split-Path $env:CONDA_PREFIX -Leaf) -ieq 'maxkcut') {
+if ($env:MAXKCUT_CONDA_PREFIX) {
+    if ((Split-Path $env:MAXKCUT_CONDA_PREFIX -Leaf) -ine 'maxkcut') { throw 'MAXKCUT_CONDA_PREFIX must identify the maxkcut environment' }
+    if (-not (Test-Path (Join-Path $env:MAXKCUT_CONDA_PREFIX 'python.exe'))) { throw 'Configured MAXKCUT_CONDA_PREFIX is not usable' }
+    $prefix=$env:MAXKCUT_CONDA_PREFIX
+}
+if (-not $prefix -and $env:CONDA_PREFIX -and (Split-Path $env:CONDA_PREFIX -Leaf) -ieq 'maxkcut') {
     if (Test-Path (Join-Path $env:CONDA_PREFIX 'python.exe')) {
         $prefix=$env:CONDA_PREFIX
     }
@@ -41,6 +46,9 @@ if (-not $prefix) {
         "$env:USERPROFILE\miniconda3\envs\maxkcut",
         "$env:USERPROFILE\miniforge3\envs\maxkcut",
         "$env:USERPROFILE\anaconda3\envs\maxkcut",
+        "$env:USERPROFILE\.conda\envs\maxkcut",
+        "$env:LOCALAPPDATA\Programs\miniconda3\envs\maxkcut",
+        "C:\ProgramData\anaconda3\envs\maxkcut",
         "$env:LOCALAPPDATA\miniconda3\envs\maxkcut",
         "C:\ProgramData\miniconda3\envs\maxkcut"
     )) {
