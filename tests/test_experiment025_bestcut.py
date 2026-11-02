@@ -54,7 +54,7 @@ def test_selected_method_winner_is_best_seen_not_last(tmp_path):
       dict(stages=dict(Round=10.,Flip=14.,KL=16.,Final=16.),best_seen_cut=16.),
       dict(stages=dict(Round=11.,Flip=12.,KL=13.,Final=13.),best_seen_cut=17.),
     ]
-    status=_status("G11","em-gibbs","pilot","fp",records[0:2],0.)
+    status=_status("G11","em-gibbs","pilot","fp",2,records[0:2],0.)
     assert status["best_seen"]==17.
     assert status["best_final"]==17.
     assert status["selection_metric"].startswith("max_best_seen")
