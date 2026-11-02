@@ -94,7 +94,7 @@ if len(entries)!=18 or errors:
 }
 
 if ($Phase -eq 'pilot') {
-    & $python -m pytest tests/test_experiment024_paired_gw16.py -q
+    & $python -m pytest tests/test_experiment024_paired_gw16.py tests/test_experiment024_integration.py -q
     if ($LASTEXITCODE -ne 0) { throw 'Seed-pairing unit tests failed' }
     foreach ($g in @('G1','G14','G11')) {
         Write-Host "::group::PILOT $g"

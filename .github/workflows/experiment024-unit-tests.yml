@@ -26,4 +26,4 @@ jobs:
       - name: Compile and test shared 16-GW initialization contract
         run: |
           python -m compileall -q src/maxkcut/experiment024_paired_gw16.py src/maxkcut/experiment024_analysis.py tests/test_experiment024_paired_gw16.py
-          python -m pytest tests/test_experiment024_paired_gw16.py -q
+          python -m pytest tests/test_experiment024_paired_gw16.py tests/test_experiment024_integration.py -q
