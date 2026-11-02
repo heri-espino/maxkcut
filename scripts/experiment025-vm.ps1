@@ -74,7 +74,13 @@ $branch = (& git branch --show-current).Trim()
 if ($branch -ne $ResultsBranch) { throw "Unexpected active branch $branch" }
 if ((@(& git status --porcelain)).Count -gt 0) { throw "Dirty worktree after checkout" }
 $lfsProbe=& git check-attr filter -- 'results/gset/experiment025-gw16-bestcut-quality/full/G11/gw-rr/0000.npz'
-if ($LASTEXITCODE -ne 0 -or "$lfsProbe" -notmatch 'filter: lfs
+if ($LASTEXITCODE -ne 0 -or "$lfsProbe" -notmatch 'filter: lfs$') {
+    throw 'Git LFS attributes not active for Experiment025 partitions'
+}
+$jsonlProbe=& git check-attr filter -- 'results/gset/experiment025-gw16-bestcut-quality/full/G11/gw-rr/progress/0000/events.jsonl'
+if ($LASTEXITCODE -ne 0 -or "$jsonlProbe" -notmatch 'filter: lfs$') {
+    throw 'Git LFS attributes not active for Experiment025 iteration logs'
+}
 
 # Activate the actual Conda environment (not merely a similarly named Python).
 $conda = Get-Command conda -ErrorAction SilentlyContinue
