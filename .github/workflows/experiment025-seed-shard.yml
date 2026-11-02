@@ -48,10 +48,12 @@ jobs:
       max-parallel: 1
       matrix: ${{ fromJSON(needs.matrix.outputs.cases) }}
     runs-on: [self-hosted, Windows, X64]
+    env:
+      MAXKCUT_CONDA_PREFIX: ${{ vars.MAXKCUT_CONDA_PREFIX }}
     timeout-minutes: 360
     defaults:
       run:
-        shell: pwsh
+        shell: powershell
     steps:
       - uses: actions/checkout@v4
         with:

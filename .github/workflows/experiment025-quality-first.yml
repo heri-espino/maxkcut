@@ -96,10 +96,12 @@ jobs:
     # No custom label required: this runner has only self-hosted, Windows, X64.
     # The next step validates RUNNER_NAME before any scientific work.
     runs-on: [self-hosted, Windows, X64]
+    env:
+      MAXKCUT_CONDA_PREFIX: ${{ vars.MAXKCUT_CONDA_PREFIX }}
     timeout-minutes: 360
     defaults:
       run:
-        shell: pwsh
+        shell: powershell
     steps:
       - uses: actions/checkout@v4
         with:

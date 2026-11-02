@@ -51,8 +51,26 @@ jobs:
         run: |
           echo "optimizer_hash=$(python -c 'from maxkcut.experiment025_bestcut import algorithm_source_sha256; print(algorithm_source_sha256())')" >> "$GITHUB_OUTPUT"
 
-  batch0:
+  windows_preflight:
     needs: validate
+    runs-on: [self-hosted, Windows, X64]
+    env:
+      MAXKCUT_CONDA_PREFIX: ${{ vars.MAXKCUT_CONDA_PREFIX }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+          persist-credentials: false
+      - name: Check Conda maxkcut on PCAG103A-13 before numerical matrix
+        run: ./scripts/experiment025-windows-preflight.ps1
+
+  batch0:
+    needs: [validate, windows_preflight]
     uses: ./.github/workflows/experiment025-seed-shard.yml
     with:
       phase: ${{ inputs.phase }}
@@ -120,10 +138,12 @@ jobs:
   report:
     needs: [validate, batch5]
     runs-on: [self-hosted, Windows, X64]
+    env:
+      MAXKCUT_CONDA_PREFIX: ${{ vars.MAXKCUT_CONDA_PREFIX }}
     timeout-minutes: 90
     defaults:
       run:
-        shell: pwsh
+        shell: powershell
     steps:
       - uses: actions/checkout@v4
         with:

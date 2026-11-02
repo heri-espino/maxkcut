@@ -12,7 +12,7 @@ This is an execution runbook for the original signed Max-Cut quality-first objec
 
 4. **Large storage.** Git LFS applies ONLY to Experiment025 .npz binary partitions and .jsonl progress streams, via a scoped root .gitattributes. The VM driver checks that git lfs is installed and these rules are active before computing. All other historical data/factors are unchanged. The repository owner's Git LFS storage and bandwidth allowances are finite; check them before a full sweep. Push failures fail closed without claiming archived remote success.
 
-## VM commands (PowerShell 7; from the repository root)
+## VM commands (built-in Windows PowerShell 5.1; from the repository root)
 
 The existing maxkcut Conda environment, Git for Windows, Git LFS and Git push credentials must already be configured. Do not execute a second competing writer on the same working directory or experiment025-results branch. Experiment023 may use the separate GitHub runner concurrently, but avoid competing for physical CPU resources.
 
@@ -24,7 +24,7 @@ First update the code and Git LFS locally:
 
 Run the pilot, all 18 methods across three short-setting test graphs (G1 random, G14 planar-family, G11 toroidal):
 
-    pwsh -NoProfile -File .\scripts\experiment025-vm.ps1 -Phase pilot
+    powershell.exe -NoProfile -File .\scripts\experiment025-vm.ps1 -Phase pilot
 
 Inspect the local pilot coverage:
 
@@ -32,15 +32,15 @@ Inspect the local pilot coverage:
 
 Run a full-quality trial on one graph, all methods, all 16 independently refined starts:
 
-    pwsh -NoProfile -File .\scripts\experiment025-vm.ps1 -Phase full -Graph G11
+    powershell.exe -NoProfile -File .\scripts\experiment025-vm.ps1 -Phase full -Graph G11
 
 Run the full 71-graph set (previously completed G11 seeds are verified and reused). This command does not impose a job time limit:
 
-    pwsh -NoProfile -File .\scripts\experiment025-vm.ps1 -Phase full -AllGraphs -SkipTests
+    powershell.exe -NoProfile -File .\scripts\experiment025-vm.ps1 -Phase full -AllGraphs -SkipTests
 
 When all results are safely published, construct and audit the global completeness report:
 
-    pwsh -NoProfile -File .\scripts\experiment025-vm.ps1 -Phase coverage -SkipTests
+    powershell.exe -NoProfile -File .\scripts\experiment025-vm.ps1 -Phase coverage -SkipTests
 
 Optional: -Method gw-rr to select one of the 18 methods; -ChunkSize 4 for more frequent Git pushes (default 16). The driver handles Conda PowerShell activation, native DLL directory PATH entries, PYTHONPATH, Numba and BLAS environment variables. It tests dependencies and the archived 71-graph reference table before optimization. The source-tree SHA pin rejects mixing optimizer revisions.
 

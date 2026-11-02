@@ -5,6 +5,8 @@ on:
     paths:
       - "src/maxkcut/experiment025_bestcut.py"
       - "scripts/experiment025-vm.ps1"
+      - "scripts/experiment025-windows-preflight.ps1"
+      - "tests/test_experiment025_windows_shell.py"
       - "scripts/experiment025_actions_matrix.py"
       - "tests/test_experiment025_seed_first.py"
       - "tests/test_experiment025_seed_progress.py"
@@ -16,6 +18,8 @@ on:
     paths:
       - "src/maxkcut/experiment025_bestcut.py"
       - "scripts/experiment025-vm.ps1"
+      - "scripts/experiment025-windows-preflight.ps1"
+      - "tests/test_experiment025_windows_shell.py"
       - "scripts/experiment025_actions_matrix.py"
       - "tests/test_experiment025_seed_first.py"
       - "tests/test_experiment025_seed_progress.py"
@@ -41,7 +45,7 @@ jobs:
       - name: Run seed-first, previous best-ever, and runner integration tests
         run: |
           python -m compileall -q src/maxkcut scripts/experiment025_actions_matrix.py
-          python -m pytest tests/test_experiment025_seed_first.py tests/test_experiment025_seed_progress.py tests/test_experiment025_bestcut.py tests/test_experiment025_actions_matrix.py tests/test_experiment025_vm_preflight.py tests/test_experiment024_paired_gw16.py tests/test_experiment024_integration.py -q
+          python -m pytest tests/test_experiment025_windows_shell.py tests/test_experiment025_seed_first.py tests/test_experiment025_seed_progress.py tests/test_experiment025_bestcut.py tests/test_experiment025_actions_matrix.py tests/test_experiment025_vm_preflight.py tests/test_experiment024_paired_gw16.py tests/test_experiment024_integration.py -q
       - name: Validate chained GitHub Actions YAML and matrix bounds
         run: |
           python - <<'PY'
@@ -57,15 +61,21 @@ jobs:
                   assert f"batch{i-1}" in job["needs"]
           assert "report" in parent["jobs"]
           assert "batch5" in parent["jobs"]["report"]["needs"]
+          assert "windows_preflight" in parent["jobs"]
+          assert "windows_preflight" in parent["jobs"]["batch0"]["needs"]
+          assert parent["jobs"]["windows_preflight"]["defaults"]["run"]["shell"]=="powershell"
+          assert shard["jobs"]["execute"]["defaults"]["run"]["shell"]=="powershell"
           assert shard["jobs"]["execute"]["strategy"]["max-parallel"]==1
           assert shard["jobs"]["execute"]["runs-on"]==["self-hosted","Windows","X64"]
           print("Validated 6 chained seed-round batches and correct runner")
           PY
-      - name: PowerShell 7 syntax check
+      - name: Parse both Windows PowerShell scripts on hosted CI
         shell: pwsh
         run: |
           $tokens=$null
           $errors=$null
           [System.Management.Automation.Language.Parser]::ParseFile("./scripts/experiment025-vm.ps1",[ref]$tokens,[ref]$errors) | Out-Null
           if($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_ }; exit 1 }
-          Write-Host "Seed-first VM driver syntax validated."
+          [System.Management.Automation.Language.Parser]::ParseFile("./scripts/experiment025-windows-preflight.ps1",[ref]$tokens,[ref]$errors) | Out-Null
+          if($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_ }; exit 1 }
+          Write-Host "Both Experiment025 Windows PowerShell scripts parse successfully."
