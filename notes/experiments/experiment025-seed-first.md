@@ -43,6 +43,10 @@ and commits/pushes the new seed archive using scoped Git LFS to
 the dedicated experiment025-results branch. A later seed can complete
 before an earlier one without resetting the global saved method status.
 
+## GitHub checkout and cross-platform optimizer fingerprint
+
+GitHub Actions generally checks out an exact commit into **detached HEAD** mode. `git branch --show-current` therefore returns an empty string; `experiment025-vm.ps1` treats it as empty (not null .Trim()) and then safely creates or resumes the existing dedicated `experiment025-results` branch. Always pin numerical operations to the dispatch source SHA before switching branches. The Linux-hosted validation stage and Windows-runner computation may check out Python files with LF and CRLF line endings respectively. The optimizer source hash canonicalizes CRLF to LF before SHA256 so a byte-level platform checkout difference does not spuriously invalidate the mathematical protocol. No best-cut computations completed in the earlier run #41534228271, although Windows Conda and dataset preflight passed.
+
 ## University Windows 11 shell/Conda preflight
 
 PCAG103A-13 currently has built-in Windows PowerShell (`powershell.exe`) but its Actions environment does not provide `pwsh`. All Windows jobs therefore select `shell: powershell`. Before any seed matrix, a single `windows_preflight` job uses `scripts/experiment025-windows-preflight.ps1` to verify runner name, Git LFS, existing `maxkcut` Conda Python, NumPy/SciPy/Numba/pytest and 71 archived reference graphs. The numerical driver then invokes the precise `maxkcut/python.exe` and sets native Conda `Library/bin` directories in `PATH`. If Conda was installed under a nonstandard university path and the Actions account cannot discover it, set repository Actions variable `MAXKCUT_CONDA_PREFIX` to its exact environment directory (ending in `maxkcut`). This is optional when automatic discovery works. No environment installation is performed by the workflows.
