@@ -1,6 +1,6 @@
 # Experiment023 — Full G-set comparison of missing algorithm families and graph topology
 
-**Status: IMPLEMENTED, NOT YET VERIFIED COMPLETE.** A one-time, branch-specific GitHub Actions workflow launches the **three-family pilot** and, only if all pilots pass, schedules **all 71 canonical G-set graphs**. The Windows runner's live status and all graph-method results must be checked before claiming they completed. This work is independent of frozen Experiment021 and retrospective Experiment022.
+**Status: GW-RR baseline and best-known reference comparison implemented; workflow execution unverified.** A one-time, branch-specific GitHub Actions workflow launches the **three-family pilot** and, only if all pilots pass, schedules **all 71 canonical G-set graphs**. The Windows runner's live status and all graph-method results must be checked before claiming they completed. This work is independent of frozen Experiment021 and retrospective Experiment022.
 
 ## Question and motivation
 
@@ -14,14 +14,16 @@ Experiment021's 31,950 saved searches compared nine **ways to initialize spheric
 - Frozen nonconvex EVA factors, in priority order: Experiment021's completed G60/G61/G62, Experiment003's available verified large factors, Experiment002's verified older factors. No new factor is solved; graph/factor identities are recorded in every case.
 - Every distinct hard binary candidate is scored using exactly `sum_(i<j) w_ij 1[x_i != x_j]` on the **original signed edges**.
 - The common postprocessing sequence is: **20 positive flip sweeps → generalized KL 30 passes → ILS-KL 80 cycles, eight inner KL passes and kicks 8/16/32/64**. The pilot uses smaller KL/ILS budgets purely for code and resource validation; never pool it into final results.
+- **Primary comparator is GW randomized rounding (GW-RR),** implemented as original `FJ_EVA`, not the threshold-optimized `gw-threshold`. K-MeansNM is a secondary method, not the normalization denominator.
+- **Best-known feasible cut targets:** the maximum of Experiment021's 9 × 50 archived best cuts, Experiment013's saved G63 record (26,917), and the 17 published toroidal feasible values recorded in `src/maxkcut/references.py`. Source CSV SHA256 values are recorded; only matching upper bound and feasible cut can be conditionally called a proven optimum. Archived feasible maxima are NOT certified optima and must not be used as universal approximation ratios.
 - Original `SeedSequence` downstream streams: flips `[2026,g,restart,1313]`, KL `[2026,g,restart,101]`, ILS `[2026,g,restart,1401]` reused consistently. Initializer randomness is independently seeded by method ID. The historical original K-MeansNM baseline and alternate *Tabu-KL* postprocessor appear as controls.
 - Save each restart's binary Round, Flip, KL and Final partitions, exact scores, timing, original factor and graph SHA256, algorithm configuration fingerprint and optimization trace. Re-scoring and SHA checks precede reuse. Running again must be **idempotent**; do not overwrite preexisting completed Experiments002–022.
 
-## Registered methods (17 distinct protocols)
+## Registered methods (18 distinct protocols)
 
 | Family | New full-protocol names | Important comparison caveat |
 | --- | --- | --- |
-| Baseline control | `control-paired` | Original K-MeansNM restart, but **new** evaluation budget; do not mix with Experiment021's best-of-50 |
+| Baseline control | `gw-rr` (**primary**) and `control-paired` (**secondary**) | GW/FJ-EVA unmodified random Gaussian hyperplane is primary. Both start from matched Gaussian seeds; K-MeansNM uses that direction and may optimize it. Neither includes a prior elite solution |
 | Exact hyperplane threshold | `gw-threshold` | Optimizes the threshold **conditional on the sampled projection**, not general Max-Cut |
 | Cut-aware spherical rounding | `cutaware-kmeans` | Multiple directional proposals; overhead measured |
 | Direct hyperplane arc optimization | `hyperplane-sweep` | Exact great-semicircle line sweeps per proposed tangent; overhead measured |
@@ -36,8 +38,8 @@ The earlier experimental grid included **additional hyperparameter variants, com
 ## Two stages and hard cost limits
 
 1. **Pilot:** G1 (random), G14 (almost planar), G11 (toroidal); 2 restarts per randomized algorithm, reduced KL/ILS; maximum ~120 seconds per algorithm with 270-second hard process timeout. If any algorithm fails or hits the hard timeout, the 71-graph matrix **does not begin**. The graph-feature extractor must also pass and save all original-graph measurements.
-2. **Full:** 71 GitHub Actions matrix graph jobs, each covering **all 17 registered protocols**, up to 100 restarts *or* **240 seconds cumulative wall-clock method budget**, whichever comes first. A method exceeding 510 seconds is forcibly terminated; it is recorded as `hard_timeout`, **not a completed result**. Each graph job has a 360-minute cap. The suite uses **one** self-hosted Windows runner with `max-parallel=1` jobs and three concurrent non-MST subprocesses per graph; MST jobs are serialized to avoid duplicate tree caches.
-3. **Final coverage:** a distinct job publishes a 71 × 17 = **1,207-cell** graph-method coverage table. `not_run`, `failed`, `hard_timeout`, `budget_limited`, and `completed_restarts` are explicit. It **fails** if any of the 1,207 cells lacks a verified completed/budget-limited status. A budget-limited result with `over_budget=true` is **censored for equal-time claims**; the raw score remains archived.
+2. **Full:** 71 GitHub Actions matrix graph jobs, each covering **all 18 registered protocols**, up to 100 restarts *or* **240 seconds cumulative wall-clock method budget**, whichever comes first. A method exceeding 510 seconds is forcibly terminated; it is recorded as `hard_timeout`, **not a completed result**. Each graph job has a 360-minute cap. The suite uses **one** self-hosted Windows runner with `max-parallel=1` jobs and three concurrent non-MST subprocesses per graph; MST jobs are serialized to avoid duplicate tree caches.
+3. **Final coverage:** a distinct job publishes a 71 × 18 = **1,278-cell** graph-method coverage table. `not_run`, `failed`, `hard_timeout`, `budget_limited`, and `completed_restarts` are explicit. It **fails** if any of the 1,278 cells lacks a verified completed/budget-limited status. A budget-limited result with `over_budget=true` is **censored for equal-time claims**; the raw score remains archived.
 
 **Interpretation:** These initial results impose a per-method wall-clock ceiling, but not a guaranteed identical number of cut evaluations or a rigorous equal-time *anytime curve*. The exact O(n²p) MST preprocessing and expensive EM/hyperplane internal loops may overrun the budget; an algorithm that cannot return its first candidate within the cap is a documented failure or timeout, not a missing observation silently filtered from comparisons. The subsequent scientific analysis must account for paired graph identity, sign fraction, graph size, training/test separation, generator siblings, multiple comparisons, remaining runtime differences and deterministic vs randomized initializers.
 
@@ -64,9 +66,9 @@ The matching PowerShell runner harness is `scripts/experiment023-windows.ps1`, w
 
 1. Best feasible signed cut **within budget**, its source and refinement stage, and average signed cut over available restarts.
 2. Fractional wins within each graph, separating tied scores, failure/censoring and deterministic algorithms. Avoid artificially calling repeated identical MST sources 100 independent candidate solutions.
-3. Graph-normalized uplift relative to **newly rerun** original `control-paired` under the *same* experiment budget, with original Experiment021 best-of-50 shown separately as historical context.
+3. Graph-normalized uplift relative to **newly rerun GW-RR (`gw-rr`)**, with K-MeansNM secondary, both within this experiment budget. Independently report per-method gaps/ratios to the reference feasible cut (and certified upper bound where present); never describe `cut / best-known` as a proven approximation ratio.
 4. Runtime including **preprocessing**, with cached MST preprocessing reported separately and clearly cost-allocated; report Pareto trade-offs rather than cherry-picking winners.
-5. Stratify 30/24/17 graph-family results, signed/positive edge classes, graph size, vertex-degree CV, transitivity, cycle rank. Avoid claiming the generator's `planar` label implies graph planarity (e.g., G14 is almost-planar).
+5. Stratify 30/24/18 graph-family results, signed/positive edge classes, graph size, vertex-degree CV, transitivity, cycle rank. Avoid claiming the generator's `planar` label implies graph planarity (e.g., G14 is almost-planar).
 6. Repeated graph-generator families are correlated: use graph-level paired interval estimation, family-block cross-validation and holdout models. Never use 1,207 graph-method cells as 1,207 independent experimental graphs.
 
 No strong method-selection conclusion or new approximation guarantee is justified until all complete case statuses, budgets and signed cut rescoring are verified.
