@@ -1,7 +1,7 @@
-name: "Experiment023 - all missing method families by G-set topology"
+name: "Experiment023 - GW-RR baseline and 71-graph method-topology benchmark"
 
-# Only this branch-specific workflow-file insertion launches the long sweep;
-# subsequent checkpoint commits cannot trigger duplicate full jobs.
+# This workflow-file update launches the revised GW-RR + best-known pilot and sweep;
+# subsequent results-only checkpoint commits do not retrigger the experiment.
 on:
   push:
     branches: [experiment023-all-method-topology]
@@ -28,7 +28,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: true
-      - name: Test implementations, validate all 71 source factors, and run pilot families
+      - name: Validate 71 frozen factors and best-known references; test GW-RR and pilot families
         run: powershell -ExecutionPolicy Bypass -File .\scripts\experiment023-windows.ps1 -Phase pilot
 
   full:
@@ -65,5 +65,5 @@ jobs:
         with:
           ref: experiment023-all-method-topology
           fetch-depth: 0
-      - name: Publish authoritative final coverage, fail if any graph/method missing
+      - name: Publish 71 x 18 GW-RR / best-known comparisons and fail on missing coverage
         run: powershell -ExecutionPolicy Bypass -File .\scripts\experiment023-windows.ps1 -Phase aggregate
