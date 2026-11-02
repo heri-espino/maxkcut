@@ -161,7 +161,7 @@ def _weighted_direction(vectors, adjacency, labels):
 def improve_kmeans_direction(
     vectors, graph, rng, *, direction_trials=96,
     kmeans_iters=50, perturb_scales=(0.03,0.08,0.16,0.35),
-    threshold_search=True, target=None,
+    threshold_search=True, target=None, initial_direction=None,
 ):
     """Best original signed graph cut across K-MeansNM and direction trials.
 
@@ -190,7 +190,14 @@ def improve_kmeans_direction(
     n, p = y.shape
     started = time.monotonic()
     centers = rng.standard_normal((2, p))
-    centers[1] = -centers[0]
+    if initial_direction is not None:
+        direction = _unit(np.asarray(initial_direction, dtype=np.float64))
+        if direction is None or direction.shape != (p,):
+            raise ValueError("Invalid shared GW initial direction")
+        # Assign the same GW hyperplane as the initial 2-means partition.
+        centers[0], centers[1] = -direction, direction
+    else:
+        centers[1] = -centers[0]
     centers /= np.linalg.norm(centers, axis=1)[:, None]
     best_labels = None
     best_cut = float("-inf")
