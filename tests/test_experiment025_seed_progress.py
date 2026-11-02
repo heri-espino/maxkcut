@@ -37,7 +37,7 @@ def test_seed_progress_strictly_matched_prefixes_and_topology(tmp_path,monkeypat
     assert len(rows)==3*18*16
     assert sum(int(r["tied_graph_best"]) for r in rows if r["seed_prefix"]=="1")==3
     # No unequal seed counts masquerading as a paired method win.
-    assert sum(int(r["tied_graph_best"]) for r in rows if r["seed_prefix"]=="2")==0
+    assert all(r["tied_graph_best"]=="" for r in rows if r["seed_prefix"]=="2")
     assert all(r["best_seen_cut"]=="" for r in rows
                if r["seed_prefix"]=="2" and r["method"]!="gw-rr")
     assert (tmp_path/"analysis/pilot_seed_completion.csv").is_file()
