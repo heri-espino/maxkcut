@@ -10,8 +10,8 @@ def test_complete_graph_and_method_registry():
     assert len(e.GRAPH_IDS) == 71
     assert len(set(e.GRAPH_IDS)) == 71
     assert e.GRAPH_IDS[-4:] == ("G67", "G70", "G72", "G77", "G81")[-4:]
-    assert len(e.METHODS) == 17
-    assert len(set(e.METHODS)) == 17
+    assert len(e.METHODS) == 18
+    assert len(set(e.METHODS)) == 18
     assert "em-cem" in e.METHODS and "mst-l2-multicut" in e.METHODS
 
 
@@ -66,3 +66,17 @@ def test_topology_analysis_reports_incomplete_graphs_without_winners(tmp_path):
     assert report["total_graph_method_cells"]==71*17
     assert report["graphs_with_complete_budget_eligible_ils_comparison"]==0
     assert (tmp_path/"analysis"/"full_topology_summary.csv").is_file()
+
+
+def test_gw_rr_is_primary_and_uses_true_random_hyperplane(monkeypatch, tmp_path):
+    called=[]
+    def fake_round(y, graph, edges, method, number, restart, seed):
+        called.append((method, number, restart, seed))
+        return np.array([0, 1, 0], dtype=np.int8), {"rounding_iterations": 1}
+    monkeypatch.setattr(e, "_round_one", fake_round)
+    labels, diagnostics = e.initial(None, np.ones((3, 2)), None, "gw-rr",
+                                     7, e.config("pilot"), tmp_path / "G11", "g", "f")
+    assert e.METHODS[0] == "gw-rr"
+    assert diagnostics["rounder"] == "FJ_EVA"
+    assert called == [("FJ_EVA", 11, 7, 2026)]
+    assert labels.tolist() == [0, 1, 0]
