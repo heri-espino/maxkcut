@@ -92,7 +92,11 @@ if ($Phase -eq 'pilot') {
     foreach ($g in @('G1','G14','G11')) {
         Write-Host "::group::PILOT $g"
         & $python -m maxkcut.experiment023_methods batch --graph $g --phase pilot --budget-seconds 120 --timeout-seconds 270
-        if ($LASTEXITCODE -ne 0) { throw "Pilot process failed for $g" }
+        $batchExitCode = $LASTEXITCODE
+        # Publish *before* asserting all methods passed. A previous workflow
+        # discarded every failed pilot diagnostic by throwing before git add.
+        Publish-Results "experiment023: preserve pilot $g results, statuses and diagnostic logs"
+        if ($batchExitCode -ne 0) { throw "Pilot process failed for $g; inspect committed diagnostic logs." }
         # A pilot only passes if every method ran without failure or hard timeout.
         @'
 import json, pathlib, sys
@@ -103,7 +107,6 @@ assert all(r['status'] in ('completed_restarts','budget_limited') for r in rows)
 print('Pilot passed:',sys.argv[1],len(rows),'method protocols')
 '@ | & $python - $g
         if ($LASTEXITCODE -ne 0) { throw "Pilot $g has failed, incomplete or timed-out methods; full sweep blocked." }
-        Publish-Results "experiment023: checkpoint pilot $g (all historical method families)"
         Write-Host '::endgroup::'
     }
     & $python -m maxkcut.experiment023_methods aggregate --phase pilot
