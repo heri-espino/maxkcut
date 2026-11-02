@@ -101,3 +101,47 @@ def test_refinement_records_all_three_stages(tmp_path):
     assert diagnostics["iteration_events"]>=4
     assert diagnostics["best_partition_improvements"]>=1
     assert diagnostics["ils_cycles_completed"]==2
+
+
+
+def test_seed_chunk_checkpoint_resume_and_best_ever(monkeypatch,tmp_path):
+    """An interrupted 16-seed study can resume without losing its records."""
+    import maxkcut.experiment025_bestcut as study
+    g,edges=graph()
+    y=np.array([[1.,0.],[-1.,0.],[0.,1.],[0.,-1.]],dtype=float)
+    monkeypatch.setattr(study,"select_factor",lambda graph: tmp_path/"frozen_factor")
+    monkeypatch.setattr(study,"_factor_and_case",
+                        lambda path,folder:(g,y,None,"graphhash","factorhash"))
+    monkeypatch.setattr(study,"load_references",
+                        lambda:({"G11":{"reference_cut":11.,
+                                         "published_upper_bound":None}},{}))
+    monkeypatch.setitem(study.SETTINGS,"pilot",
+        dict(starts=16,kmeans_iters=2,direction_trials=1,
+             line_directions=1,em_stages=1,em_iters=1,
+             cem_generations=1,cem_population=4,gibbs_sweeps=1,
+             kl_passes=1,ils_cycles=1,ils_kl_passes=1))
+    root=tmp_path/"results"
+    a=study.run_method("G11","gw-rr","pilot",root=root,max_new_seeds=4)
+    assert a["starts_completed"]==4
+    assert a["status"]=="partially_refined"
+    b=study.run_method("G11","gw-rr","pilot",root=root,max_new_seeds=4)
+    assert b["starts_completed"]==8
+    c=study.run_method("G11","gw-rr","pilot",root=root,max_new_seeds=4)
+    assert c["starts_completed"]==12
+    d=study.run_method("G11","gw-rr","pilot",root=root,max_new_seeds=4)
+    assert d["starts_completed"]==16
+    assert d["status"]=="complete_16_best_seen"
+    assert d["best_seen"]>=d["best_last_ils_candidate"]
+    assert d["selected_seed_index"] in range(16)
+    # Every start preserves its independent stage snapshots and iteration log.
+    target=root/"pilot"/"G11"/"gw-rr"
+    for seed in range(16):
+        case=study.result_for_seed(root/"pilot"/"G11",
+                                   "gw-rr",seed,g,edges,d["fingerprint"])
+        assert case is not None
+        assert case["best_seen_cut"]>=case["last_iteration_cut"]
+        assert (target/"progress"/f"{seed:04d}"/"events.jsonl").exists()
+    # Repeating after all sixteen starts cannot erase earlier best partitions.
+    e=study.run_method("G11","gw-rr","pilot",root=root,max_new_seeds=4)
+    assert e["best_seen"]==d["best_seen"]
+    assert e["selected_seed_index"]==d["selected_seed_index"]
