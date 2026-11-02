@@ -65,7 +65,7 @@ def test_optimizer_source_hash_is_same_on_windows_crlf_and_linux_lf(monkeypatch)
     def simulate_windows_checkout(self):
         raw=original_read_bytes(self)
         if self.suffix==".py":
-            raw=raw.replace(b"\\r\\n",b"\\n").replace(b"\\n",b"\\r\\n")
+            raw=raw.replace(b"\r\n",b"\n").replace(b"\n",b"\r\n")
         return raw
 
     monkeypatch.setattr(Path,"read_bytes",simulate_windows_checkout)
