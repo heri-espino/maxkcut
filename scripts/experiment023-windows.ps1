@@ -70,13 +70,22 @@ function Publish-Results {
     param([string]$Message)
     git config user.name 'github-actions[bot]'
     git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-    git add -- 'results/gset/experiment023-method-topology'
-    $feature = 'results/gset/experiment022-graph-structure-methods/graph_features.csv'
-    if (Test-Path -LiteralPath $feature) { git add -- $feature }
+    # The topology extractor refreshes all retrospective summary files,
+    # not only graph_features.csv; stage the entire pair of generated
+    # result directories before rebasing so no tracked changes are stranded.
+    git add -A -- 'results/gset/experiment023-method-topology' 'results/gset/experiment022-graph-structure-methods'
+    if ($LASTEXITCODE -ne 0) { throw 'Unable to stage experiment checkpoint outputs' }
     git diff --cached --quiet
     if ($LASTEXITCODE -eq 0) { Write-Host 'No new results to publish'; return }
     git commit -m $Message
     if ($LASTEXITCODE -ne 0) { throw 'Cannot commit results' }
+    $dirty = @(git status --porcelain)
+    if ($LASTEXITCODE -ne 0) { throw 'Unable to inspect post-commit worktree' }
+    if ($dirty.Count -gt 0) {
+        Write-Host 'Uncommitted files remain after checkpoint:'
+        $dirty | ForEach-Object { Write-Host $_ }
+        throw 'Checkpoint is not clean; refusing rebase and preserving all results.'
+    }
     for ($attempt=1; $attempt -le 5; $attempt++) {
         git fetch origin $branch
         if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }
