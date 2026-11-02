@@ -161,7 +161,8 @@ def refine_with_journal(graph, edges, initial, method, restart, graph_number,
         graph,kl.copy(),[(kl,journal._verify(kl))],random(1401),
         method=refiner,
         cycles=cfg["ils_cycles"],kl_passes=cfg["ils_kl_passes"],
-        kick_sizes=(8,16,32,64),temperature=12.,
+        kick_sizes=tuple(min(graph.shape[0],v) for v in (8,16,32,64)),
+        temperature=12.,
         **(dict(tabu_steps=1000,tabu_stagnation=250)
            if refiner=="Tabu-KL" else {}),
         on_iteration=journal.observe)
