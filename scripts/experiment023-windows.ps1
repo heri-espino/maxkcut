@@ -55,10 +55,12 @@ function Publish-Results {
 }
 
 if ($Phase -eq 'pilot') {
-    & $python -m pytest tests/test_experiment023_methods.py tests/test_graph_structure_methods.py tests/test_historical_structure_comparison.py -q
+    & $python -m pytest tests/test_experiment023_methods.py tests/test_experiment023_references.py tests/test_graph_structure_methods.py tests/test_historical_structure_comparison.py -q
     if ($LASTEXITCODE -ne 0) { throw 'Synthetic test suite failed; full benchmark blocked.' }
     & $python -m maxkcut.experiment023_methods inventory
     if ($LASTEXITCODE -ne 0) { throw 'Original frozen EVA factor inventory incomplete.' }
+    & $python -c 'from maxkcut.experiment023_references import load_references; a,m=load_references(); assert len(a)==71 and m["toroidal_paper_count"]==17; print("Reference archive audited:",len(a))'
+    if ($LASTEXITCODE -ne 0) { throw 'Best-known cut archive failed preflight.' }
     & $python -m maxkcut.graph_structure_methods
     if ($LASTEXITCODE -ne 0) { throw 'Structure feature extraction failed.' }
     foreach ($g in @('G1','G14','G11')) {
@@ -70,9 +72,9 @@ if ($Phase -eq 'pilot') {
 import json, pathlib, sys
 root=pathlib.Path('results/gset/experiment023-method-topology/pilot')/sys.argv[1]/'statuses'
 rows=[json.loads(p.read_text()) for p in root.glob('*.json')]
-assert len(rows)==17, (sys.argv[1], len(rows))
+assert len(rows)==18, (sys.argv[1], len(rows))
 assert all(r['status'] in ('completed_restarts','budget_limited') for r in rows), [(r['method'], r['status']) for r in rows]
-print('Pilot passed:',sys.argv[1],len(rows),'methods')
+print('Pilot passed:',sys.argv[1],len(rows),'method protocols')
 '@ | & $python - $g
         if ($LASTEXITCODE -ne 0) { throw "Pilot $g has failed, incomplete or timed-out methods; full sweep blocked." }
         Publish-Results "experiment023: checkpoint pilot $g (all historical method families)"
@@ -80,6 +82,8 @@ print('Pilot passed:',sys.argv[1],len(rows),'methods')
     }
     & $python -m maxkcut.experiment023_methods aggregate --phase pilot
     if ($LASTEXITCODE -ne 0) { throw 'Pilot coverage aggregate failed' }
+    & $python -m maxkcut.experiment023_methods analyze --phase pilot
+    if ($LASTEXITCODE -ne 0) { throw 'GW-RR and reference analysis failed' }
     Publish-Results 'experiment023: preserve pilot completeness report and graph features'
 } elseif ($Phase -eq 'full') {
     & $python -m maxkcut.experiment023_methods batch --graph $Graph --phase full --budget-seconds 240 --timeout-seconds 510
@@ -96,7 +100,7 @@ import json, pathlib, sys
 p=pathlib.Path('results/gset/experiment023-method-topology/analysis/full_coverage.json')
 r=json.loads(p.read_text())
 print(json.dumps(r,indent=2))
-if r['complete_graph_method_rows']!=71*17:
+if r['complete_graph_method_rows']!=71*18:
     print('INCOMPLETE: some graph-methods timed out, failed, or have not run',file=sys.stderr)
     sys.exit(2)
 '@ | & $python -
