@@ -68,7 +68,7 @@ The matching PowerShell runner harness is `scripts/experiment023-windows.ps1`, w
 2. Fractional wins within each graph, separating tied scores, failure/censoring and deterministic algorithms. Avoid artificially calling repeated identical MST sources 100 independent candidate solutions.
 3. Graph-normalized uplift relative to **newly rerun GW-RR (`gw-rr`)**, with K-MeansNM secondary, both within this experiment budget. Independently report per-method gaps/ratios to the reference feasible cut (and certified upper bound where present); never describe `cut / best-known` as a proven approximation ratio.
 4. Runtime including **preprocessing**, with cached MST preprocessing reported separately and clearly cost-allocated; report Pareto trade-offs rather than cherry-picking winners.
-5. Stratify 30/24/18 graph-family results, signed/positive edge classes, graph size, vertex-degree CV, transitivity, cycle rank. Avoid claiming the generator's `planar` label implies graph planarity (e.g., G14 is almost-planar).
-6. Repeated graph-generator families are correlated: use graph-level paired interval estimation, family-block cross-validation and holdout models. Never use 1,207 graph-method cells as 1,207 independent experimental graphs.
+5. Stratify 30/24/17 graph-family results, signed/positive edge classes, graph size, vertex-degree CV, transitivity, cycle rank. Avoid claiming the generator's `planar` label implies graph planarity (e.g., G14 is almost-planar).
+6. Repeated graph-generator families are correlated: use graph-level paired interval estimation, family-block cross-validation and holdout models. Never use 1,278 graph-method cells as 1,207 independent experimental graphs.
 
 No strong method-selection conclusion or new approximation guarantee is justified until all complete case statuses, budgets and signed cut rescoring are verified.
