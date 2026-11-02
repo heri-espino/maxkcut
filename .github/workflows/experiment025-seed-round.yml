@@ -138,6 +138,8 @@ jobs:
   report:
     needs: [validate, batch5]
     runs-on: [self-hosted, Windows, X64]
+    env:
+      MAXKCUT_CONDA_PREFIX: ${{ vars.MAXKCUT_CONDA_PREFIX }}
     timeout-minutes: 90
     defaults:
       run:
