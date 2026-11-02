@@ -288,11 +288,6 @@ def _gibbs_kernel():
     @njit(cache=True)
     def sweep(indptr,indices,weights,spins,ordering,uniforms,temp):
         gain_total=0.
-        # Track accepted moves to recover the best intermediate Gibbs cut,
-        # including a cut reached and then lost within the same sweep.
-        indices=np.empty(len(ordering),dtype=np.int32)
-        increments=np.empty(len(ordering),dtype=np.float64)
-        accepted=0
         for pos in range(len(ordering)):
             i=ordering[pos]
             field=0.
@@ -303,10 +298,7 @@ def _gibbs_kernel():
             if uniforms[pos]<q:
                 spins[i]=-spins[i]
                 gain_total+=gain
-                indices[accepted]=i
-                increments[accepted]=gain
-                accepted+=1
-        return gain_total,indices[:accepted],increments[:accepted]
+        return gain_total
 
     return sweep
 
@@ -340,28 +332,37 @@ def gibbs_anneal(graph, initial, rng, *, sweeps=150,
     kernel=_gibbs_kernel()
     for t,temp in enumerate(np.geomspace(temp_start,temp_end,sweeps)):
         order=np.asarray(rng.permutation(n),dtype=np.int32)
-        old_spins=spins.copy() if on_iteration is not None else None
-        delta,moves,move_gains=kernel(a.indptr,a.indices,a.data,spins,order,
-                     rng.random(n),float(temp))
-        if on_iteration is not None:
-            # Exact incremental gains reconstruct all accepted Gibbs moves.
-            # Only improvements need a partition snapshot; sweep-level
-            # current scores are still recorded for all sweeps.
-            replay=old_spins
-            running=score
-            for move_number,(vertex,increment) in enumerate(zip(moves,move_gains),start=1):
-                replay[int(vertex)]*=-1
-                running+=float(increment)
-                if running>best_score+1e-8:
-                    part=(replay<0).astype(np.int8)
-                    actual=float(cut_weight(edges,part))
-                    if not np.isclose(running,actual,rtol=0,atol=1e-6):
-                        raise AssertionError("Gibbs intermediate move cut disagrees with original signed graph")
-                    best_score=actual
-                    best=part.copy()
-                    on_iteration({"stage":"GibbsBestMove","sweep":t+1,
-                        "move":move_number,"current_cut":actual,
-                        "best_cut":best_score},best.copy())
+        order_uniforms=rng.random(n)
+        if on_iteration is None:
+            # Keep the original, tested fast Numba sweep unchanged.
+            delta=kernel(a.indptr,a.indices,a.data,spins,order,
+                         order_uniforms,float(temp))
+        else:
+            # Python observer mode yields the same heat-bath transition,
+            # but can retain a better intermediate cut that the fast
+            # full-sweep result might erase before its end.
+            delta=0.
+            for move,int_vertex in enumerate(order,start=1):
+                vertex=int(int_vertex)
+                first,last=a.indptr[vertex:vertex+2]
+                field=float(np.dot(a.data[first:last],
+                                   spins[a.indices[first:last]]))
+                gain=float(spins[vertex]*field)
+                q=1./(1.+np.exp(-np.clip(gain/float(temp),-60.,60.)))
+                if order_uniforms[move-1]<q:
+                    spins[vertex]=-spins[vertex]
+                    delta+=gain
+                    candidate_cut=score+delta
+                    if candidate_cut>best_score+1e-8:
+                        intermediate=(spins<0).astype(np.int8)
+                        exact=float(cut_weight(edges,intermediate))
+                        if not np.isclose(candidate_cut,exact,rtol=0,atol=1e-6):
+                            raise AssertionError("Gibbs intermediate signed cut mismatch")
+                        best_score=exact
+                        best=intermediate.copy()
+                        on_iteration({"stage":"GibbsBestMove","sweep":t+1,
+                            "move":move,"current_cut":exact,
+                            "best_cut":best_score},best.copy())
         labels=(spins<0).astype(np.int8)
         current=float(cut_weight(edges,labels))
         if not np.isclose(score+delta,current,rtol=0,atol=1e-6):
