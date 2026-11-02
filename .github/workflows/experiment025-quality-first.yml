@@ -55,12 +55,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     outputs:
-      matrix: \${{ steps.build.outputs.matrix }}
-      source_hash: \${{ steps.build.outputs.source_hash }}
+      matrix: ${{ steps.build.outputs.matrix }}
+      source_hash: ${{ steps.build.outputs.source_hash }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: \${{ github.sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -73,11 +73,11 @@ jobs:
       - id: build
         shell: bash
         env:
-          INPUT_SCOPE: \${{ inputs.scope }}
-          INPUT_BATCH: \${{ inputs.batch }}
-          INPUT_GRAPH: \${{ inputs.graph }}
-          INPUT_METHOD: \${{ inputs.method }}
-          INPUT_PHASE: \${{ inputs.single_phase }}
+          INPUT_SCOPE: ${{ inputs.scope }}
+          INPUT_BATCH: ${{ inputs.batch }}
+          INPUT_GRAPH: ${{ inputs.graph }}
+          INPUT_METHOD: ${{ inputs.method }}
+          INPUT_PHASE: ${{ inputs.single_phase }}
         run: |
           python scripts/experiment025_actions_matrix.py --mode "$INPUT_SCOPE" --batch "$INPUT_BATCH" --graph "$INPUT_GRAPH" --method "$INPUT_METHOD" --phase "$INPUT_PHASE" > matrix.json
           echo "matrix=$(cat matrix.json)" >> "$GITHUB_OUTPUT"
@@ -90,7 +90,7 @@ jobs:
     strategy:
       fail-fast: false
       max-parallel: 1
-      matrix: \${{ fromJSON(needs.prepare.outputs.matrix) }}
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
     # GitHub does NOT label a runner automatically with its runner name.
     # Add "PCAG103A-13" as a custom label to runner 21 in repository Settings.
     runs-on: [self-hosted, Windows, X64, PCAG103A-13]
@@ -101,7 +101,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: \${{ github.sha }}
+          ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: true
           lfs: true
@@ -112,11 +112,11 @@ jobs:
           }
       - name: Archive signed best-ever Max-Cuts on results branch
         env:
-          EXP_GRAPH: \${{ matrix.graph }}
-          EXP_METHOD: \${{ matrix.method }}
-          EXP_PHASE: \${{ matrix.phase }}
-          EXP_CHUNK: \${{ inputs.chunk_size }}
-          EXP_SOURCE_SHA256: \${{ needs.prepare.outputs.source_hash }}
+          EXP_GRAPH: ${{ matrix.graph }}
+          EXP_METHOD: ${{ matrix.method }}
+          EXP_PHASE: ${{ matrix.phase }}
+          EXP_CHUNK: ${{ inputs.chunk_size }}
+          EXP_SOURCE_SHA256: ${{ needs.prepare.outputs.source_hash }}
         run: |
           $opts = @{
             Phase                = $env:EXP_PHASE
