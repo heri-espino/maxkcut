@@ -14,6 +14,7 @@ param(
     [string]$Graph = 'G11',
     [string]$Method = '',
     [switch]$OnlyGraph,
+    [string]$ExpectedSourceSha256 = '',
     [switch]$AllGraphs,
     [ValidateRange(1,16)][int]$ChunkSize = 16,
     [string]$ResultsBranch = 'experiment025-results',
@@ -124,6 +125,7 @@ $env:NUMBA_NUM_THREADS='1'
 $env:PYTHONUTF8='1'
 Write-Host "Experiment025 source branch: $branch"
 Write-Host "Conda executable: $python"
+$env:EXP025_EXPECTED_SOURCE_SHA=$ExpectedSourceSha256
 @'
 import json
 import numpy
@@ -133,6 +135,10 @@ import pytest
 from maxkcut.experiment025_bestcut import GRAPH_IDS, METHODS, algorithm_source_sha256
 from maxkcut.experiment023_references import load_references
 assert len(GRAPH_IDS)==71 and len(METHODS)==18
+import os
+expected=os.environ.get("EXP025_EXPECTED_SOURCE_SHA", "").strip()
+if expected and algorithm_source_sha256()!=expected:
+    raise RuntimeError("Optimizer source does not match the GitHub Actions dispatch revision")
 references,_=load_references()
 assert len(references)==71
 print("Preflight:",json.dumps(dict(graphs=71,methods=18,
