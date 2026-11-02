@@ -24,6 +24,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
+. (Join-Path $PSScriptRoot 'experiment025-git-branch.ps1')
 # Seed 1..16 is user-facing, but source GW seed indices are 0..15.
 # Seed 0 retains the legacy 16-seed-per-method behavior.
 if ($Seed -gt 0 -and (-not $OnlyGraph -or -not $Method -or $AllGraphs -or $Phase -eq 'coverage')) {
@@ -48,7 +49,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Git LFS is required. Install Git LFS before ex
 if ($LASTEXITCODE -ne 0) { throw 'git lfs install failed' }
 & git fetch origin main
 if ($LASTEXITCODE -ne 0) { throw 'Could not fetch current main' }
-$branch = ([string](& git branch --show-current)).Trim()
+$branch = Get-Experiment025GitBranch
 if ($branch -ne $ResultsBranch) {
     # Refuse switching away from another agent's active worktree.
     $existingLocal = @(& git branch --list $ResultsBranch)
@@ -79,7 +80,7 @@ if ($branch -ne $ResultsBranch) {
 }
 # Important: do NOT merge latest main into a branch with partially completed
 # seeds. The source-tree SHA256 pin will reject mixing changed optimizer code.
-$branch = ([string](& git branch --show-current)).Trim()
+$branch = Get-Experiment025GitBranch
 if ($branch -ne $ResultsBranch) { throw "Unexpected active branch $branch" }
 if ((@(& git status --porcelain)).Count -gt 0) { throw "Dirty worktree after checkout" }
 $lfsProbe=& git check-attr filter -- 'results/gset/experiment025-gw16-bestcut-quality/full/G11/gw-rr/0000.npz'

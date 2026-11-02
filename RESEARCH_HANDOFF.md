@@ -2,6 +2,10 @@
 
 **Snapshot:** 2026-10-29 · **Current research branch:** `experiment021-complete-71-gset` ([PR #51](https://github.com/heri-espino/maxkcut/pull/51), based on Experiment020 [PR #50](https://github.com/heri-espino/maxkcut/pull/50)). **Read [AGENTS.md](AGENTS.md) first** for binding numerical, archive, and workflow rules. This page is an **index**, not a replacement for experiment notes or machine-readable results. Do not assume either PR is merged into `main`.
 
+## Experiment025 live Windows pilot verification and second detached-HEAD incident (2026-11-02)
+
+Run #41538460202 uses verified source PR #64 and passed validation, matching PCAG103A-13, built-in Windows PowerShell 5.1, Conda maxkcut, Git LFS and 71 historic references. Its first numerical G1/GW seed job nevertheless failed on `$branch = ([string](& git branch --show-current)).Trim()` because PowerShell 5.1 returned null for a detached HEAD despite the inline cast. Avoid inline method calls on possibly absent native command output: read safely through `scripts/experiment025-git-branch.ps1` and test both detached and named branch states on actual Windows PowerShell 5.1. Until a complete seed and Git push can be verified, the scientific pilot remains uncompleted; never infer success from preflight alone.
+
 ## Experiment025 detached HEAD and source-fingerprint fix (2026-11-02)
 
 Run #41534228271 on main reached PCAG103A-13 and completed the new Windows/Conda/Python preflight successfully, including all 71 G-set references. The nine first-batch pilot jobs subsequently failed in `scripts/experiment025-vm.ps1` on `.Trim()` of `git branch --show-current`, because GitHub Actions checked out a detached HEAD. Change branch handling to cast null to an empty string, then create/fetch and switch to the dedicated results branch. Secondary risk: Git's Windows CRLF checkout can produce a distinct SHA256 from hosted Linux for identical `.py` code; normalize line endings in `algorithm_source_sha256` and verify with a simulated Windows source test. These are execution/provenance fixes only; no numerical pilot results were produced in run #41534228271 and no historical EVA factors have been modified.

@@ -5,6 +5,7 @@ on:
     paths:
       - "src/maxkcut/experiment025_bestcut.py"
       - "scripts/experiment025-vm.ps1"
+      - "scripts/experiment025-git-branch.ps1"
       - "scripts/experiment025-windows-preflight.ps1"
       - "tests/test_experiment025_windows_shell.py"
       - "scripts/experiment025_actions_matrix.py"
@@ -18,6 +19,7 @@ on:
     paths:
       - "src/maxkcut/experiment025_bestcut.py"
       - "scripts/experiment025-vm.ps1"
+      - "scripts/experiment025-git-branch.ps1"
       - "scripts/experiment025-windows-preflight.ps1"
       - "tests/test_experiment025_windows_shell.py"
       - "scripts/experiment025_actions_matrix.py"
@@ -79,3 +81,22 @@ jobs:
           [System.Management.Automation.Language.Parser]::ParseFile("./scripts/experiment025-windows-preflight.ps1",[ref]$tokens,[ref]$errors) | Out-Null
           if($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_ }; exit 1 }
           Write-Host "Both Experiment025 Windows PowerShell scripts parse successfully."
+
+  detached_head_windows:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reproduce GitHub detached HEAD under Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          . ./scripts/experiment025-git-branch.ps1
+          git checkout --detach HEAD
+          if ($LASTEXITCODE -ne 0) { throw 'Could not create detached HEAD test state' }
+          $branch = Get-Experiment025GitBranch
+          if ($null -ne $branch -and $branch -ne '') { throw "Detached HEAD returned branch '$branch'" }
+          git switch -c experiment025-detached-smoke
+          if ($LASTEXITCODE -ne 0) { throw 'Could not create test branch' }
+          $branch = Get-Experiment025GitBranch
+          if ($branch -ne 'experiment025-detached-smoke') { throw "Expected named branch, got '$branch'" }
+          Write-Host 'PASS: Windows PowerShell 5.1 handles detached and named Git branches'
