@@ -1,0 +1,46 @@
+name: "Experiment025 - VM release preflight"
+on:
+  push:
+    branches: [fix/experiment025-vm-preflight]
+    paths:
+      - "src/maxkcut/experiment025_bestcut.py"
+      - "scripts/experiment025-vm.ps1"
+      - ".gitattributes"
+      - ".github/workflows/experiment025-quality-first.yml"
+      - ".github/workflows/experiment025-vm-preflight-ci.yml"
+      - "tests/test_experiment025_vm_preflight.py"
+  pull_request:
+    paths:
+      - "src/maxkcut/experiment025_bestcut.py"
+      - "scripts/experiment025-vm.ps1"
+      - ".gitattributes"
+      - ".github/workflows/experiment025-quality-first.yml"
+      - "tests/test_experiment025_vm_preflight.py"
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install numerical test dependencies
+        run: python -m pip install -e ".[test,eva-fast]"
+      - name: Verify optimizer syntax and existing experiment tests
+        run: |
+          python -m compileall -q src/maxkcut
+          python -m pytest tests/test_experiment025_vm_preflight.py tests/test_experiment025_bestcut.py tests/test_experiment024_paired_gw16.py tests/test_experiment024_integration.py -q
+      - name: Check PowerShell 7 VM driver syntax without executing optimization
+        shell: pwsh
+        run: |
+          $tokens=$null
+          $errors=$null
+          [System.Management.Automation.Language.Parser]::ParseFile("./scripts/experiment025-vm.ps1", [ref]$tokens, [ref]$errors) | Out-Null
+          if ($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_ }; exit 1 }
+          Write-Host "Experiment025 VM driver syntax validated."
