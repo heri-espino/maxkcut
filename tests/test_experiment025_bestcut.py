@@ -145,3 +145,24 @@ def test_seed_chunk_checkpoint_resume_and_best_ever(monkeypatch,tmp_path):
     e=study.run_method("G11","gw-rr","pilot",root=root,max_new_seeds=4)
     assert e["best_seen"]==d["best_seen"]
     assert e["selected_seed_index"]==d["selected_seed_index"]
+
+
+
+def test_gibbs_records_best_within_a_sweep():
+    """A transient high cut within a Gibbs sweep must not be discarded."""
+    from maxkcut.eva_soft_em_bernoulli import gibbs_anneal
+    g,edges=graph()
+    states=[]
+    def observer(event,labels):
+        states.append((dict(event),np.array(labels,copy=True)))
+    initial=np.array([0,0,0,0],dtype=np.int8)
+    best,diag=gibbs_anneal(g,initial,np.random.default_rng(725),
+                          sweeps=8,temp_start=6.,temp_end=.5,
+                          on_iteration=observer)
+    all_reported=[float(d.get("best_cut",-1e9)) for d,_ in states]
+    assert len([d for d,_ in states if d["stage"]=="Gibbs"])==8
+    assert all_reported and all(d["best_cut"]<=diag["best_cut"]+1e-8
+                                for d,_ in states)
+    assert abs(diag["best_cut"] - float(
+        __import__("maxkcut.objective",fromlist=["cut_weight"]).cut_weight(edges,best)))<1e-8
+    assert any(d["stage"]=="Gibbs" for d,_ in states)
