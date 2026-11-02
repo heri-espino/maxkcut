@@ -1,63 +1,99 @@
-name: "Experiment025 - safe manual graph-method checkpoint"
-
-# Replaces old monolithic 18-method-per-graph / six-hour workflow.
-# Explicit manual dispatch ONLY, from main. No automatic branch pushes.
+name: "Experiment025 - PCAG103A-13 matched GW16"
+# Manual pilot first: 54 jobs. Then full-batch 0..5 (213 jobs each).
+# Each graph/method gets 16 full refinements and retains best-ever cut.
 on:
   workflow_dispatch:
     inputs:
-      phase:
-        description: "Pilot (G1,G14,G11) or full graph"
+      scope:
+        description: "Select pilot, one full method batch, a single case, or coverage"
+        required: true
+        type: choice
+        options: [pilot, full-batch, single, coverage]
+        default: pilot
+      batch:
+        description: "Full-batch number: 0-5 (three methods per batch)"
+        required: true
+        type: choice
+        options: ["0", "1", "2", "3", "4", "5"]
+        default: "0"
+      graph:
+        description: "Single mode graph: G1-G67, G70, G72, G77, G81"
+        required: true
+        type: string
+        default: G11
+      method:
+        description: "Single mode method"
+        required: true
+        type: choice
+        options: [gw-rr, control-paired, gw-threshold, cutaware-kmeans, hyperplane-sweep, multigroup-k4, multigroup-k8, em-hard, em-cem, em-gibbs, mst-l2-longest, mst-l2-balanced, mst-l2-diameter, mst-l2-bestcut, mst-l2-multicut, mst-l1-bestcut, mst-linf-bestcut, control-tabu]
+        default: gw-rr
+      single_phase:
+        description: "Single mode phase"
         required: true
         type: choice
         options: [pilot, full]
-        default: pilot
-      graph:
-        description: "Canonical graph ID (full phase only; e.g. G11)"
-        required: true
-        default: G11
-        type: string
-      method:
-        description: "Exactly one of 18 method protocol IDs"
-        required: true
-        type: choice
-        options:
-          - gw-rr
-          - control-paired
-          - gw-threshold
-          - cutaware-kmeans
-          - hyperplane-sweep
-          - multigroup-k4
-          - multigroup-k8
-          - em-hard
-          - em-cem
-          - em-gibbs
-          - mst-l2-longest
-          - mst-l2-balanced
-          - mst-l2-diameter
-          - mst-l2-bestcut
-          - mst-l2-multicut
-          - mst-l1-bestcut
-          - mst-linf-bestcut
-          - control-tabu
-        default: gw-rr
+        default: full
       chunk_size:
-        description: "New seed refinements to run in each checkpoint (1-16)"
+        description: "Number of new seeds between Git/LFS pushes"
         required: true
-        default: "4"
         type: choice
-        options: ["1", "2", "4", "8", "16"]
+        options: ["1", "4", "8", "16"]
+        default: "4"
 
 permissions:
   contents: write
 
+# Launch the six batches sequentially. GitHub can replace an older pending
+# run if multiple dispatches share a concurrency group.
 concurrency:
-  group: experiment023-complete-topology
+  group: experiment025-results-pcag103a13
   cancel-in-progress: false
 
 jobs:
-  single_method:
+  prepare:
     if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/main'
-    runs-on: [self-hosted, Windows, X64]
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    outputs:
+      matrix: \${{ steps.build.outputs.matrix }}
+      source_hash: \${{ steps.build.outputs.source_hash }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: \${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Validate the registered methods and 16-seed algorithm
+        run: |
+          python -m pip install -e ".[test,eva-fast]"
+          python -m pytest tests/test_experiment025_bestcut.py tests/test_experiment024_paired_gw16.py tests/test_experiment024_integration.py tests/test_experiment025_vm_preflight.py tests/test_experiment025_actions_matrix.py -q
+      - id: build
+        shell: bash
+        env:
+          INPUT_SCOPE: \${{ inputs.scope }}
+          INPUT_BATCH: \${{ inputs.batch }}
+          INPUT_GRAPH: \${{ inputs.graph }}
+          INPUT_METHOD: \${{ inputs.method }}
+          INPUT_PHASE: \${{ inputs.single_phase }}
+        run: |
+          python scripts/experiment025_actions_matrix.py --mode "$INPUT_SCOPE" --batch "$INPUT_BATCH" --graph "$INPUT_GRAPH" --method "$INPUT_METHOD" --phase "$INPUT_PHASE" > matrix.json
+          echo "matrix=$(cat matrix.json)" >> "$GITHUB_OUTPUT"
+          echo "source_hash=$(python -c 'from maxkcut.experiment025_bestcut import algorithm_source_sha256; print(algorithm_source_sha256())')" >> "$GITHUB_OUTPUT"
+          python -c 'import json; print("Planned jobs:",len(json.load(open("matrix.json"))["include"]))'
+
+  experiment:
+    needs: prepare
+    if: needs.prepare.result == 'success'
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix: \${{ fromJSON(needs.prepare.outputs.matrix) }}
+    # GitHub does NOT label a runner automatically with its runner name.
+    # Add "PCAG103A-13" as a custom label to runner 21 in repository Settings.
+    runs-on: [self-hosted, Windows, X64, PCAG103A-13]
     timeout-minutes: 360
     defaults:
       run:
@@ -65,15 +101,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main
+          ref: \${{ github.sha }}
           fetch-depth: 0
           persist-credentials: true
           lfs: true
-      - name: Run one method with explicit 16 GW seeds and safe result branch
-        env:
-          EXPERIMENT_PHASE: ${{ inputs.phase }}
-          EXPERIMENT_GRAPH: ${{ inputs.graph }}
-          EXPERIMENT_METHOD: ${{ inputs.method }}
-          EXPERIMENT_CHUNK: ${{ inputs.chunk_size }}
+      - name: Verify machine identity
         run: |
-          ./scripts/experiment025-vm.ps1 -Phase $env:EXPERIMENT_PHASE -Graph $env:EXPERIMENT_GRAPH -Method $env:EXPERIMENT_METHOD -ChunkSize ([int]$env:EXPERIMENT_CHUNK)
+          if ($env:RUNNER_NAME -ne 'PCAG103A-13') {
+            throw "Wrong runner: $env:RUNNER_NAME; expected PCAG103A-13"
+          }
+      - name: Archive signed best-ever Max-Cuts on results branch
+        env:
+          EXP_GRAPH: \${{ matrix.graph }}
+          EXP_METHOD: \${{ matrix.method }}
+          EXP_PHASE: \${{ matrix.phase }}
+          EXP_CHUNK: \${{ inputs.chunk_size }}
+          EXP_SOURCE_SHA256: \${{ needs.prepare.outputs.source_hash }}
+        run: |
+          $opts = @{
+            Phase                = $env:EXP_PHASE
+            Graph                = $env:EXP_GRAPH
+            Method               = $env:EXP_METHOD
+            ChunkSize            = [int]$env:EXP_CHUNK
+            ExpectedSourceSha256 = $env:EXP_SOURCE_SHA256
+            SkipTests            = $true
+          }
+          if ($env:EXP_PHASE -eq 'pilot') { $opts.OnlyGraph = $true }
+          ./scripts/experiment025-vm.ps1 @opts
