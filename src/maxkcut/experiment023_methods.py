@@ -335,17 +335,31 @@ def orchestrate(graph, phase, methods, budget_seconds, method_timeout_seconds, *
                  "--phase",phase,"--method",method,"--output",str(output),
                  "--budget-seconds",str(budget_seconds)]
         began=time.monotonic()
+        logdir=Path(output)/phase/graph/"logs"
+        logdir.mkdir(parents=True,exist_ok=True)
+        logpath=logdir/(method+".log")
+        transcript=""
         try:
-            subprocess.run(command,check=True,timeout=method_timeout_seconds,
+            proc=subprocess.run(command,check=True,timeout=method_timeout_seconds,
                            env={**os.environ,"OPENBLAS_NUM_THREADS":"1","OMP_NUM_THREADS":"1",
-                                "MKL_NUM_THREADS":"1","NUMBA_NUM_THREADS":"1"})
+                                "MKL_NUM_THREADS":"1","NUMBA_NUM_THREADS":"1"},
+                           stdout=subprocess.PIPE,stderr=subprocess.STDOUT,
+                           text=True,errors="replace")
+            transcript=proc.stdout or ""
             row=json.loads((Path(output)/phase/graph/method/"status.json").read_text(encoding="utf8"))
-        except subprocess.TimeoutExpired:
+        except subprocess.TimeoutExpired as err:
+            raw=err.stdout or b""
+            transcript=(raw.decode("utf8","replace") if isinstance(raw,bytes) else raw)
             row=dict(status="hard_timeout",method=method,graph=graph,phase=phase,
                      timeout_seconds=method_timeout_seconds,completed_saved_cases="check method dir")
         except subprocess.CalledProcessError as err:
+            transcript=err.stdout or ""
             row=dict(status="failed",method=method,graph=graph,phase=phase,
                      error=f"exit code {err.returncode}",completed_saved_cases="check method dir")
+        # Each method now has an independently persisted error transcript.
+        # Limit size so a Numba traceback cannot make branch pushes enormous.
+        logpath.write_text(transcript[-20000:],encoding="utf8")
+        row["method_log"]=str(logpath)
         row["orchestrator_seconds"]=time.monotonic()-began
         atomic_json(Path(output)/phase/graph/"statuses"/(method+".json"),row)
         print(json.dumps({"graph":graph,"method":method,"status":row["status"]}),flush=True)
