@@ -7,6 +7,14 @@ The project is motivated by Ángel Eduardo Rodríguez Fernández's 2021 disserta
 **AI/research handoff:** Start with [RESEARCH_HANDOFF.md](RESEARCH_HANDOFF.md) for a concise chronology through the verified 71-graph Experiment021 dataset, numerical conclusions, open questions, and links to detailed archives. Follow [AGENTS.md](AGENTS.md) for binding implementation and reproducibility rules.
 
 
+## Experiment025 — Keep EVERY iteration and select the best-ever cut
+
+[Experiment025 protocol](notes/experiments/experiment025-gw16-bestcut-quality.md) promotes **maximal feasible original signed Max-Cut found anywhere in the search**, not the last local-search iterate, to the primary objective. Every one of **16 common GW starts per method and graph** now undergoes its **own complete Flip / KL / ILS refinement** (not just the seed with the highest raw cut). The best cut from ANY initializer iteration, Flip sweep, KL pass, or ILS cycle wins.
+
+A crash-recoverable [iteration journal](src/maxkcut/experiment025_journal.py) stores scores and diagnostics after each meaningful iteration and atomically saves the binary partition at every strict new best. Original signed graph cuts, graph/factor hashes, last ILS candidate and best-seen labels are separately verified. GitHub runner results are committed back to the experiment branch every **four completed seeds**, with 16-of-16 coverage required for the final method ranking. **Running time is not a ranking criterion**; unavoidable GitHub job timeouts are tracked as incomplete infrastructure constraints.
+
+Implementation: [best-ever runner](src/maxkcut/experiment025_bestcut.py), [tests](tests/test_experiment025_bestcut.py), [Windows workflow](.github/workflows/experiment025-quality-first.yml). This is a separate experiment from Experiments023 and 024. Do not treat workflow launch or unit-test pass as completed numerical coverage.
+
 ## Experiment024 — 16 paired GW starts for every method
 
 The [prospective Experiment024 protocol](notes/experiments/experiment024-paired-gw16.md) addresses an initialization-budget asymmetry: GW-screen16 screened 16 directions, while earlier K-MeansNM comparisons sometimes used one per restart. **Every one of the 18 method protocols now receives the exact same 16 Gaussian GW normals per graph**. Each method archives 16 signed raw cuts and raw partitions; the best initial candidate gets **one common Flip → KL → ILS refinement**. Method-specific preprocessing/evaluation costs remain unequal, so this is a *paired-start* comparison, not a proven equal-compute benchmark. GW-RR is primary; K-MeansNM secondary. The seven MST arms are explicitly **GW-anchored deterministic-tree hybrids** (no misleading 16 independent MST random restarts). Results and completeness are separate from ongoing Experiment023.
