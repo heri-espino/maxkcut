@@ -47,7 +47,7 @@ jobs:
       fail-fast: false
       max-parallel: 1
       matrix: ${{ fromJSON(needs.matrix.outputs.cases) }}
-    runs-on: [self-hosted, Windows, X64, PCAG103A-13]
+    runs-on: [self-hosted, Windows, X64]
     timeout-minutes: 360
     defaults:
       run:
