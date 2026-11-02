@@ -31,9 +31,9 @@ manually dispatch six method batches.
 Each job runs exactly one graph, one method and one GW seed. This
 avoids the six-hour timeout being shared by multiple methods or seeds.
 The same physical PCAG103A-13 self-hosted Windows X64 runner processes
-its jobs sequentially. A custom runner label PCAG103A-13 must be assigned
-in GitHub Settings because a runner name is not automatically a label.
-The job verifies the exact RUNNER_NAME as well.
+its jobs sequentially. This runner reports only the three built-in labels `self-hosted`, `Windows`, and
+`X64`. The workflow now matches those actual labels and verifies the exact
+`RUNNER_NAME=PCAG103A-13` before beginning any numerical optimization.
 
 The optimizer accepts a 0-based seed index 0..15 corresponding to the
 1-based workflow input 1..16. Each job reads any existing archives,
@@ -47,7 +47,7 @@ before an earlier one without resetting the global saved method status.
 
 1. Open the runner settings:
    https://github.com/heri-espino/maxkcut/settings/actions/runners/21
-   Verify it is active and has custom label PCAG103A-13.
+   Verify it is active/Idle and has the labels self-hosted, Windows, X64.
 2. Open the new seed-first workflow:
    https://github.com/heri-espino/maxkcut/actions/workflows/experiment025-seed-round.yml
    Select main, phase=pilot, seed=1. This runs 54 short-setting

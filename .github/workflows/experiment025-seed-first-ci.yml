@@ -58,7 +58,7 @@ jobs:
           assert "report" in parent["jobs"]
           assert "batch5" in parent["jobs"]["report"]["needs"]
           assert shard["jobs"]["execute"]["strategy"]["max-parallel"]==1
-          assert shard["jobs"]["execute"]["runs-on"]==["self-hosted","Windows","X64","PCAG103A-13"]
+          assert shard["jobs"]["execute"]["runs-on"]==["self-hosted","Windows","X64"]
           print("Validated 6 chained seed-round batches and correct runner")
           PY
       - name: PowerShell 7 syntax check

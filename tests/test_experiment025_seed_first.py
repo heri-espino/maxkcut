@@ -110,7 +110,8 @@ def test_seed_first_workflow_pins_source_and_serializes_method_shards():
     ps=(root/"scripts/experiment025-vm.ps1").read_text()
     assert "workflow_dispatch:" in parent
     assert "queue: max" in parent
-    assert "PCAG103A-13" in shard
+    assert "runs-on: [self-hosted, Windows, X64]" in shard
+    assert "RUNNER_NAME -ne 'PCAG103A-13'" in shard
     assert "timeout-minutes: 360" in shard
     assert "max-parallel: 1" in shard
     assert "seed-batch" in shard

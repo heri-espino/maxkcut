@@ -9,9 +9,8 @@ common GW starting directions. Reuse archived EVA factors; no new EVA solves.
 GitHub automatically gives a self-hosted runner OS/architecture labels such as
 self-hosted, Windows, X64. The runner NAME is not automatically a label.
 Therefore, open the [runner settings](https://github.com/heri-espino/maxkcut/settings/actions/runners/21).
-If missing, create/assign the custom label **PCAG103A-13** under Labels. It must
-be assigned to this runner; otherwise targeted jobs remain queued even when
-the runner status is Active. The workflow checks RUNNER_NAME and refuses to
+This runner has only `self-hosted`, `Windows`, and `X64` labels. The
+workflow now requests those three labels, without requiring a custom label. The workflow checks RUNNER_NAME and refuses to
 compute on any other machine. The connected GitHub plugin cannot inspect or
 change runner labels or dispatch new workflow runs.
 
