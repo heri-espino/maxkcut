@@ -98,6 +98,7 @@ def enumerate_group_merges(edges, groups, k, *, top=4):
 def optimize_multigroup_kmeans(
     vectors, graph, rng, *, k=4, init="paired",
     max_iter=100, top_merges=4, initial_direction=None,
+    on_iteration=None,
 ):
     """Keep best original signed graph binary merges over Lloyd iterations.
 
@@ -155,6 +156,11 @@ def optimize_multigroup_kmeans(
                     "groups":groups.copy(),
                     "iteration":iteration,
                 }
+        if on_iteration is not None:
+            on_iteration({"stage":"Multigroup","iteration":iteration,
+                "current_cut":float(merges[0][0]),
+                "evaluated_group_merges":int(1<<(k-1))},
+                np.asarray(merges[0][2],dtype=np.int8).copy())
         trace.append({
             "iteration":iteration,
             "best_merge_cut":float(merges[0][0]),
