@@ -1,0 +1,118 @@
+name: "Experiment025 - one GW seed across all 71 graphs and 18 methods"
+on:
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: "Matched GW seed 1-16 (one complete study round)"
+        required: true
+        type: choice
+        options: ["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16"]
+        default: "1"
+      phase:
+        description: "Use pilot for G1/G14/G11, full for all 71 graphs"
+        required: true
+        type: choice
+        options: [pilot, full]
+        default: pilot
+
+permissions:
+  contents: write
+
+# In current GitHub Actions, queue:max retains up to 100 waiting workflow
+# runs, unlike the default queue:single which replaces pending runs.
+# Each entire seed round is serialized on the single Windows runner.
+concurrency:
+  group: experiment025-seed-first-results
+  cancel-in-progress: false
+  queue: max
+
+jobs:
+  validate:
+    if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    outputs:
+      optimizer_hash: ${{ steps.fingerprint.outputs.optimizer_hash }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Verify source, seed-first checkpointing, method matrix, and iteration logs
+        run: |
+          python -m pip install -e ".[test,eva-fast]"
+          python -m pytest tests/test_experiment025_seed_first.py tests/test_experiment025_bestcut.py tests/test_experiment025_actions_matrix.py tests/test_experiment025_vm_preflight.py tests/test_experiment024_paired_gw16.py tests/test_experiment024_integration.py -q
+      - id: fingerprint
+        shell: bash
+        run: |
+          echo "optimizer_hash=$(python -c 'from maxkcut.experiment025_bestcut import algorithm_source_sha256; print(algorithm_source_sha256())')" }} "$GITHUB_OUTPUT"
+
+  batch0:
+    needs: validate
+    uses: ./.github/workflows/experiment025-seed-shard.yml
+    with:
+      phase: ${{ inputs.phase }}
+      batch: 0
+      seed: ${{ fromJSON(inputs.seed) }}
+      source_sha: ${{ github.sha }}
+      optimizer_hash: ${{ needs.validate.outputs.optimizer_hash }}
+    secrets: inherit
+
+  batch1:
+    needs: [validate, batch0]
+    uses: ./.github/workflows/experiment025-seed-shard.yml
+    with:
+      phase: ${{ inputs.phase }}
+      batch: 1
+      seed: ${{ fromJSON(inputs.seed) }}
+      source_sha: ${{ github.sha }}
+      optimizer_hash: ${{ needs.validate.outputs.optimizer_hash }}
+    secrets: inherit
+
+  batch2:
+    needs: [validate, batch1]
+    uses: ./.github/workflows/experiment025-seed-shard.yml
+    with:
+      phase: ${{ inputs.phase }}
+      batch: 2
+      seed: ${{ fromJSON(inputs.seed) }}
+      source_sha: ${{ github.sha }}
+      optimizer_hash: ${{ needs.validate.outputs.optimizer_hash }}
+    secrets: inherit
+
+  batch3:
+    needs: [validate, batch2]
+    uses: ./.github/workflows/experiment025-seed-shard.yml
+    with:
+      phase: ${{ inputs.phase }}
+      batch: 3
+      seed: ${{ fromJSON(inputs.seed) }}
+      source_sha: ${{ github.sha }}
+      optimizer_hash: ${{ needs.validate.outputs.optimizer_hash }}
+    secrets: inherit
+
+  batch4:
+    needs: [validate, batch3]
+    uses: ./.github/workflows/experiment025-seed-shard.yml
+    with:
+      phase: ${{ inputs.phase }}
+      batch: 4
+      seed: ${{ fromJSON(inputs.seed) }}
+      source_sha: ${{ github.sha }}
+      optimizer_hash: ${{ needs.validate.outputs.optimizer_hash }}
+    secrets: inherit
+
+  batch5:
+    needs: [validate, batch4]
+    uses: ./.github/workflows/experiment025-seed-shard.yml
+    with:
+      phase: ${{ inputs.phase }}
+      batch: 5
+      seed: ${{ fromJSON(inputs.seed) }}
+      source_sha: ${{ github.sha }}
+      optimizer_hash: ${{ needs.validate.outputs.optimizer_hash }}
+    secrets: inherit
