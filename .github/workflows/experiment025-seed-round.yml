@@ -49,7 +49,7 @@ jobs:
       - id: fingerprint
         shell: bash
         run: |
-          echo "optimizer_hash=$(python -c 'from maxkcut.experiment025_bestcut import algorithm_source_sha256; print(algorithm_source_sha256())')" }} "$GITHUB_OUTPUT"
+          echo "optimizer_hash=$(python -c 'from maxkcut.experiment025_bestcut import algorithm_source_sha256; print(algorithm_source_sha256())')" >> "$GITHUB_OUTPUT"
 
   batch0:
     needs: validate
