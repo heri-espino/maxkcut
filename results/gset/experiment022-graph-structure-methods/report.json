@@ -1,0 +1,58 @@
+{
+  "status": "retrospective_analysis",
+  "groups": {
+    "random": 30,
+    "planar": 24,
+    "toroidal": 17
+  },
+  "total_graphs": 71,
+  "total_methods": 9,
+  "restarts": 50,
+  "source_csv_blob_sha": "e2f9c716856780b6163f14b97c0e6cbbca00949d",
+  "external_label_source": "https://github.com/KULeuven-MICAS/openising/blob/main/ising/benchmarks/G/README.md",
+  "original_graph_weight_audit_note": "G48/G49/G50 contain only +1 weights despite secondary table claiming signed",
+  "caveat": "No equal-budget comparison: 16 extra initial cut evaluations for GW screen-16",
+  "fisher_signed_toroidal_vs_other_signed_gw_shared_win_table": [
+    8,
+    6,
+    2,
+    20
+  ],
+  "fisher_two_sided_exploratory": 0.005450258214767801,
+  "loo": {
+    "global_all_methods": {
+      "mean_gain": 0.7323943661971831,
+      "mean_relative_gain_percent": 0.014277155530628622,
+      "mean_regret": 3.9859154929577465,
+      "gains": 33,
+      "losses": 25
+    },
+    "family_all_methods": {
+      "mean_gain": 0.11267605633802817,
+      "mean_relative_gain_percent": 0.0010305730438663681,
+      "mean_regret": 4.605633802816901,
+      "gains": 29,
+      "losses": 25
+    },
+    "global_without_screen16": {
+      "mean_gain": -0.6901408450704225,
+      "mean_relative_gain_percent": -0.022746531930943985,
+      "mean_regret": 4.76056338028169,
+      "gains": 25,
+      "losses": 31
+    },
+    "family_without_screen16": {
+      "mean_gain": -0.6901408450704225,
+      "mean_relative_gain_percent": -0.02166867707429037,
+      "mean_regret": 4.76056338028169,
+      "gains": 25,
+      "losses": 30
+    }
+  },
+  "output_files": [
+    "graph_winners.csv",
+    "method_by_family.csv",
+    "method_by_graph.csv",
+    "leave_one_graph_out.csv"
+  ]
+}
