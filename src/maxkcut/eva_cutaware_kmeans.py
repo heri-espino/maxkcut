@@ -162,6 +162,7 @@ def improve_kmeans_direction(
     vectors, graph, rng, *, direction_trials=96,
     kmeans_iters=50, perturb_scales=(0.03,0.08,0.16,0.35),
     threshold_search=True, target=None, initial_direction=None,
+    on_iteration=None,
 ):
     """Best original signed graph cut across K-MeansNM and direction trials.
 
@@ -231,6 +232,10 @@ def improve_kmeans_direction(
             diag = {"cut": score_zero, "threshold": 0.0}
         score = float(diag["cut"])
         evaluated += 1
+        if on_iteration is not None:
+            on_iteration({"stage":"CutAware","candidate":evaluated,
+                "origin":origin,"current_cut":score},
+                np.asarray(part,dtype=np.int8).copy())
         if score > best_cut + 1e-10:
             best_cut = score
             best_labels = np.asarray(part, dtype=np.int8)
