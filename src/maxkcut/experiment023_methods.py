@@ -39,7 +39,7 @@ FACTOR_DIRS = (
     Path("results/gset/experiment002-eva"),
 )
 METHODS = (
-    "control-paired", "gw-threshold", "cutaware-kmeans", "hyperplane-sweep",
+    "gw-rr", "control-paired", "gw-threshold", "cutaware-kmeans", "hyperplane-sweep",
     "multigroup-k4", "multigroup-k8", "em-hard", "em-cem", "em-gibbs",
     "mst-l2-longest", "mst-l2-balanced", "mst-l2-diameter",
     "mst-l2-bestcut", "mst-l2-multicut", "mst-l1-bestcut", "mst-linf-bestcut",
@@ -137,7 +137,12 @@ def initial(graph, y, edges, method, restart, cfg, folder, graphsha, factorsha):
     rng = np.random.default_rng(np.random.SeedSequence([2026, number, restart, 2301,
                                                          METHODS.index(method)]))
     diag = dict(method=method, initial_cut_evaluations="not-instrumented")
-    if method in ("control-paired", "control-tabu"):
+    if method == "gw-rr":
+        # The actual Goemans-Williamson random hyperplane: no optimized threshold.
+        # FJ_EVA shares restart Gaussian seeds with K-MeansNM_EVA.
+        labels, d = _round_one(y, graph, edges, "FJ_EVA", number, restart, 2026)
+        diag["rounder"] = "FJ_EVA"
+    elif method in ("control-paired", "control-tabu"):
         labels, d = _round_one(y, graph, edges, "K-MeansNM_EVA", number, restart, 2026)
         diag["rounder"] = "K-MeansNM_EVA"
     elif method == "gw-threshold":
@@ -393,11 +398,14 @@ def summarize_topology(output=ROOT, phase="full"):
     Historical Experiment021 is NOT merged into this dataset.
     """
     from .graph_structure_methods import labels as graph_labels
+    from .experiment023_references import load_references, compare_cut
+    references, reference_meta = load_references()
     base=Path(output)/phase
     records=[]
     full=[]
     for graph in GRAPH_IDS:
         family,weight_class=graph_labels(graph)
+        reference=references[graph]
         graph_methods=[]
         for method in METHODS:
             f=base/graph/"statuses"/(method+".json")
@@ -409,10 +417,15 @@ def summarize_topology(output=ROOT, phase="full"):
                           method=method,status=x.get("status","not_run"),eligible=bool(valid),
                           completed=x.get("completed",0),observed_best=x.get("best"),
                           time_seconds=x.get("cumulative_wall_seconds",x.get("wall_seconds")),
-                          is_tabu=(method=="control-tabu")))
+                          is_tabu=(method=="control-tabu"),
+                          reference_cut=reference["reference_cut"],
+                          reference_kind=reference["reference_kind"],
+                          reference_source=reference["reference_source"],
+                          published_upper_bound=reference["published_upper_bound"],
+                          published_reference_status=reference["published_reference_status"]))
         candidates=[x for x in graph_methods if not x["is_tabu"]]
         full_rows=all(x["eligible"] for x in candidates)
-        base_row=next(x for x in candidates if x["method"]=="control-paired")
+        base_row=next(x for x in candidates if x["method"]=="gw-rr")
         base_score=base_row["observed_best"] if base_row["eligible"] else None
         win=max(x["observed_best"] for x in candidates) if full_rows else None
         ties=sum(x["observed_best"]==win for x in candidates) if full_rows else 0
@@ -421,8 +434,11 @@ def summarize_topology(output=ROOT, phase="full"):
             x["shared_win"]=(int(x["observed_best"]==win) if full_rows and not x["is_tabu"] else None)
             x["fractional_win"]=(1/ties if full_rows and not x["is_tabu"]
                                   and x["observed_best"]==win else 0. if full_rows and not x["is_tabu"] else None)
-            x["gain_vs_new_control"]=(x["observed_best"]-base_score if x["eligible"]
+            x["gain_vs_GW_RR"]=(x["observed_best"]-base_score if x["eligible"]
                                      and base_score is not None else None)
+            x["gain_vs_reference"]=(x["observed_best"]-reference["reference_cut"]
+                                     if x["eligible"] else None)
+            x.update(compare_cut(x["observed_best"] if x["eligible"] else None, reference))
             records.append(x)
         if full_rows:full.append(graph)
     dest=Path(output)/"analysis"
@@ -441,15 +457,24 @@ def summarize_topology(output=ROOT, phase="full"):
                                complete_comparison_graphs=len(comparable),
                                shared_wins=sum(r["shared_win"] or 0 for r in comparable),
                                fractional_wins=sum(r["fractional_win"] or 0 for r in comparable),
-                               mean_gain_vs_control=(sum(r["gain_vs_new_control"] for r in valid)/len(valid)
-                                                     if valid and all(r["gain_vs_new_control"] is not None for r in valid) else None)))
+                               mean_gain_vs_GW_RR=(sum(r["gain_vs_GW_RR"] for r in valid)/len(valid)
+                                                     if valid and all(r["gain_vs_GW_RR"] is not None for r in valid) else None)))
     with (dest/f"{phase}_topology_summary.csv").open("w",newline="",encoding="utf8") as file:
         cols=list(groups[0]);writer=csv.DictWriter(file,fieldnames=cols)
         writer.writeheader();writer.writerows(groups)
+    # Archive the observed-vs-best-known table separately from the topology effects.
+    comparison=dest/f"{phase}_best_known_comparison.csv"
+    with comparison.open("w",newline="",encoding="utf8") as file:
+        cols=list(records[0]);writer=csv.DictWriter(file,fieldnames=cols)
+        writer.writeheader();writer.writerows(records)
+    atomic_json(dest/"reference_provenance.json",reference_meta)
     out=dict(phase=phase,graph_count=len(GRAPH_IDS),total_graph_method_cells=len(records),
              graphs_with_complete_budget_eligible_ils_comparison=len(full),
              graph_ids_with_complete_ils_comparison=full,
              topology_method_summary_file=f"{phase}_topology_summary.csv",
+             best_known_comparison_file=comparison.name,
+             baseline="gw-rr",
+             literature_toroidal_graphs=reference_meta["toroidal_paper_count"],
              caveat="Generator families are not independent; no equal-evaluation-count guarantee; Tabu uses different refiner; require hardware and budget audit")
     atomic_json(dest/f"{phase}_topology_report.json",out)
     return out
@@ -460,7 +485,7 @@ def main():
     parser.add_argument("action",choices=("single","batch","aggregate","inventory","analyze"))
     parser.add_argument("--graph",choices=GRAPH_IDS,default="G11")
     parser.add_argument("--phase",choices=("pilot","full"),default="pilot")
-    parser.add_argument("--method",choices=METHODS,default="control-paired")
+    parser.add_argument("--method",choices=METHODS,default="gw-rr")
     parser.add_argument("--methods",nargs="+",choices=METHODS,default=list(METHODS))
     parser.add_argument("--output",type=Path,default=ROOT)
     parser.add_argument("--budget-seconds",type=float)
