@@ -1,0 +1,80 @@
+name: "Experiment025 reusable GW seed-batch shard"
+on:
+  workflow_call:
+    inputs:
+      phase:
+        required: true
+        type: string
+      batch:
+        required: true
+        type: number
+      seed:
+        required: true
+        type: number
+      source_sha:
+        required: true
+        type: string
+      optimizer_hash:
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      cases: ${{ steps.build.outputs.cases }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
+      - id: build
+        shell: bash
+        env:
+          EXP_PHASE: ${{ inputs.phase }}
+          EXP_BATCH: ${{ inputs.batch }}
+        run: |
+          python scripts/experiment025_actions_matrix.py --mode seed-batch --phase "$EXP_PHASE" --batch "$EXP_BATCH" > cases.json
+          echo "cases=$(cat cases.json)" >> "$GITHUB_OUTPUT"
+          python -c 'import json; x=json.load(open("cases.json")); print("GW seed batch cases:",len(x["include"]))'
+
+  execute:
+    needs: matrix
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix: ${{ fromJSON(needs.matrix.outputs.cases) }}
+    runs-on: [self-hosted, Windows, X64, PCAG103A-13]
+    timeout-minutes: 360
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 0
+          persist-credentials: true
+          lfs: true
+      - name: Verify dedicated Windows runner and seed identity
+        env:
+          REQUESTED_SEED: ${{ inputs.seed }}
+        run: |
+          if ($env:RUNNER_NAME -ne 'PCAG103A-13') {
+            throw "Wrong runner: $env:RUNNER_NAME"
+          }
+          if ([int]$env:REQUESTED_SEED -lt 1 -or [int]$env:REQUESTED_SEED -gt 16) {
+            throw 'GW seed must be an integer from 1 through 16'
+          }
+      - name: Run ONE matched GW seed; save best intermediate cut
+        env:
+          EXP_PHASE: ${{ matrix.phase }}
+          EXP_GRAPH: ${{ matrix.graph }}
+          EXP_METHOD: ${{ matrix.method }}
+          EXP_SEED: ${{ inputs.seed }}
+          EXP_SOURCE_HASH: ${{ inputs.optimizer_hash }}
+        run: |
+          ./scripts/experiment025-vm.ps1 -Phase $env:EXP_PHASE -Graph $env:EXP_GRAPH -Method $env:EXP_METHOD -OnlyGraph -Seed ([int]$env:EXP_SEED) -ExpectedSourceSha256 $env:EXP_SOURCE_HASH -SkipTests

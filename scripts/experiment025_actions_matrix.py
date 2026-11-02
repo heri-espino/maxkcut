@@ -35,6 +35,11 @@ def matrix(mode: str, *, batch: int = 0, graph: str = "G11",
         if batch not in range(6):
             raise ValueError("batch must be 0-5")
         cases = [(g, m, "full") for g in GRAPHS for m in METHOD_BATCHES[batch]]
+    elif mode == "seed-batch":
+        if batch not in range(6) or phase not in ("pilot","full"):
+            raise ValueError("Invalid seed batch or phase")
+        graphs=PILOT_GRAPHS if phase=="pilot" else GRAPHS
+        cases=[(g,m,phase) for g in graphs for m in METHOD_BATCHES[batch]]
     elif mode == "single":
         if graph not in GRAPHS or method not in METHODS or phase not in ("pilot", "full"):
             raise ValueError("Unknown graph, method, or phase")
@@ -52,7 +57,7 @@ def matrix(mode: str, *, batch: int = 0, graph: str = "G11",
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--mode", required=True,
-                   choices=("pilot", "full-batch", "single", "coverage"))
+                   choices=("pilot", "full-batch", "seed-batch", "single", "coverage"))
     p.add_argument("--batch", type=int, default=0)
     p.add_argument("--graph", default="G11")
     p.add_argument("--method", default="gw-rr")

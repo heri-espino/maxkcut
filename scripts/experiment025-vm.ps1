@@ -10,10 +10,12 @@ Conda environment and GitHub push credentials. Writes ONLY to the dedicated
 experiment025-results branch; no force-push, no changes to old experiments.
 #>
 param(
-    [ValidateSet('pilot','full','coverage')][string]$Phase = 'pilot',
+    [ValidateSet('pilot','full','coverage','seed-report')][string]$Phase = 'pilot',
     [string]$Graph = 'G11',
     [string]$Method = '',
     [switch]$OnlyGraph,
+    [ValidateRange(0,16)][int]$Seed = 0,
+    [ValidateSet('pilot','full')][string]$ReportPhase = 'full',
     [string]$ExpectedSourceSha256 = '',
     [switch]$AllGraphs,
     [ValidateRange(1,16)][int]$ChunkSize = 16,
@@ -22,6 +24,11 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
+# Seed 1..16 is user-facing, but source GW seed indices are 0..15.
+# Seed 0 retains the legacy 16-seed-per-method behavior.
+if ($Seed -gt 0 -and (-not $OnlyGraph -or -not $Method -or $AllGraphs -or $Phase -eq 'coverage')) {
+    throw 'Seed-specific Actions jobs require -OnlyGraph, -Method, and pilot/full phase'
+}
 $repo = (& git rev-parse --show-toplevel 2>$null)
 if ($LASTEXITCODE -ne 0 -or -not $repo) { throw 'Run from a checked-out Git repository.' }
 Set-Location $repo.Trim()
@@ -178,6 +185,18 @@ function Execute-One {
     $logdir="results/gset/experiment025-gw16-bestcut-quality/$Part/$G/logs"
     New-Item -ItemType Directory -Force -Path $logdir | Out-Null
     $logfile=Join-Path $logdir "$M-vm.log"
+    if ($Seed -gt 0) {
+        $seedIndex=$Seed-1
+        & $python -m maxkcut.experiment025_bestcut single --graph $G --method $M --phase $Part --seed-index $seedIndex 2>&1 | Tee-Object -FilePath $logfile -Append
+        $exit=$LASTEXITCODE
+        Publish-Checkpoint "experiment025: $Part $G $M matched GW seed $Seed"
+        if ($exit -ne 0) { throw "Experiment025 seed $Seed on $G/$M failed; inspect journal" }
+        $record=Get-Content -LiteralPath (Join-Path $base 'status.json') -Raw | ConvertFrom-Json
+        if (@($record.completed_seed_indices) -notcontains $seedIndex) {
+            throw "Seed $Seed was not verified and checkpointed on $G/$M"
+        }
+        return
+    }
     $tryCount=[int][math]::Ceiling(16.0/$ChunkSize)
     for($chunk=1; $chunk -le $tryCount; $chunk++) {
         # Neither Python nor PowerShell imposes a method-level time budget.
@@ -198,7 +217,11 @@ if (-not $SkipTests) {
     & $python -m pytest tests/test_experiment025_bestcut.py tests/test_experiment024_paired_gw16.py tests/test_experiment024_integration.py -q
     if ($LASTEXITCODE -ne 0) { throw 'Numerical integration tests failed: no optimization executed' }
 }
-if ($Phase -eq 'coverage') {
+if ($Phase -eq 'seed-report') {
+    & $python -m maxkcut.experiment025_seed_progress --phase $ReportPhase
+    if ($LASTEXITCODE -ne 0) { throw 'Seed-round cumulative best-so-far report failed' }
+    Publish-Checkpoint "experiment025: record $ReportPhase cumulative seed-quality progress"
+} elseif ($Phase -eq 'coverage') {
     & $python -m maxkcut.experiment025_bestcut summary --phase full
     if ($LASTEXITCODE -ne 0) { throw 'Coverage report failed' }
     Publish-Checkpoint 'experiment025: final original-cut coverage and best-ever summaries'
@@ -220,8 +243,10 @@ if ($Phase -eq 'coverage') {
     foreach($g in $graphs) {
         foreach($m in $methods) { Execute-One -G $g -M $m -Part $Phase }
     }
-    & $python -m maxkcut.experiment025_bestcut summary --phase $Phase
-    if ($LASTEXITCODE -ne 0) { throw 'Final summary calculation failed' }
-    Publish-Checkpoint "experiment025: updated $Phase status and reference-cut comparisons"
+    if ($Seed -eq 0) {
+        & $python -m maxkcut.experiment025_bestcut summary --phase $Phase
+        if ($LASTEXITCODE -ne 0) { throw 'Final summary calculation failed' }
+        Publish-Checkpoint "experiment025: updated $Phase status and reference-cut comparisons"
+    }
 }
 Write-Host "Experiment025 operation completed for phase $Phase. All tracked results are in $ResultsBranch."
