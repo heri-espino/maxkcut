@@ -100,10 +100,18 @@ def result_for_seed(folder, method, index, graph, edges, identity):
 def _status(graph,method,phase,identity,completed,details,started):
     ends=[float(x["best_seen_cut"]) for x in details]
     raws=[float(x["stages"]["Round"]) for x in details]
-    best=int(np.argmax(ends)) if len(details)==16 else None
+    winpos=int(np.argmax(ends)) if ends else None
+    best=(int(details[winpos].get("index",winpos))
+          if len(details)==16 and winpos is not None else None)
+    seen_indices=sorted(int(x.get("index",i)) for i,x in enumerate(details))
+    if len(seen_indices)!=len(set(seen_indices)):
+        raise ValueError("Duplicate saved GW seed index")
     return dict(graph=graph,method=method,phase=phase,fingerprint=identity,
        status="complete_16_best_seen" if len(details)==16 else "partially_refined",
        starts_completed=len(details),starts_requested=16,
+       completed_seed_indices=seen_indices,
+       current_best_seed_index=(int(details[winpos].get("index",winpos))
+           if winpos is not None else None),
        all_starts_independently_refined=len(details)==16,
        selected_seed_index=best,
        best_final=max(ends) if ends else None,
@@ -120,7 +128,7 @@ def _status(graph,method,phase,identity,completed,details,started):
        deterministic_mst_hybrid=method in MST)
 
 
-def run_method(graph,method,phase,*,root=ROOT,max_new_seeds=None):
+def run_method(graph,method,phase,*,root=ROOT,max_new_seeds=None,seed_index=None):
     if graph not in GRAPH_IDS or method not in METHODS or phase not in SETTINGS:
         raise ValueError("Invalid graph/method/phase")
     cfg=SETTINGS[phase].copy()
@@ -138,13 +146,19 @@ def run_method(graph,method,phase,*,root=ROOT,max_new_seeds=None):
     target.mkdir(parents=True,exist_ok=True)
     status_file=target/"status.json"
     _check_status(status_file,identity)
-    details=[]
     newly_completed=0
+    if seed_index is not None:
+        if not isinstance(seed_index,int) or seed_index not in range(16):
+            raise ValueError("seed_index must be an integer from 0 through 15")
+        if max_new_seeds is not None:
+            raise ValueError("Choose either a single seed or max_new_seeds")
     if max_new_seeds is not None and max_new_seeds<1:
         raise ValueError('max_new_seeds must be positive')
-    for index,(normal,gw) in enumerate(zip(normals,gw_labels)):
+    chosen=([seed_index] if seed_index is not None else list(range(16)))
+    for index in chosen:
         if max_new_seeds is not None and newly_completed>=max_new_seeds:
             break
+        normal,gw=normals[index],gw_labels[index]
         saved=result_for_seed(folder,method,index,g,edges,identity)
         if saved is None:
             start=time.monotonic()
@@ -193,12 +207,24 @@ def run_method(graph,method,phase,*,root=ROOT,max_new_seeds=None):
             raise ValueError("Saved seed index mismatch")
         if float(saved["best_seen_cut"])+1e-8 < max(saved["stages"].values()):
             raise AssertionError("Saved best-seen cut lower than a stage checkpoint")
+    # Build a GLOBAL status from every verified seed archive, not from only
+    # the seed requested by this GitHub Actions job. Seed 12 may finish before
+    # seed 1; an out-of-order run must never reset or corrupt the best cut.
+    details=[]
+    for index in range(16):
+        saved=result_for_seed(folder,method,index,g,edges,identity)
+        if saved is None:
+            continue
+        if saved.get("graph_sha256")!=graph_sha or saved.get("factor_sha256")!=factor_sha:
+            raise ValueError("Saved seed belongs to another graph or factor")
+        if saved.get("index")!=index:
+            raise ValueError("Saved seed index mismatch")
+        if float(saved["best_seen_cut"])+1e-8 < max(saved["stages"].values()):
+            raise AssertionError("Saved best-seen cut lower than a stage checkpoint")
         details.append(saved)
-        # Every success is resumable on the self-hosted runner; no fixed time limit.
-        partial=_status(graph,method,phase,identity,len(details),details,started)
-        atomic_json(status_file,partial)
-        atomic_json(folder/"statuses"/(method+".json"),partial)
     status=_status(graph,method,phase,identity,len(details),details,started)
+    atomic_json(status_file,status)
+    atomic_json(folder/"statuses"/(method+".json"),status)
     if len(details)<16:
         return status
     refs,_=load_references()
@@ -305,9 +331,12 @@ def main():
     p.add_argument("--phase",choices=tuple(SETTINGS),default="pilot")
     p.add_argument("--root",type=Path,default=ROOT)
     p.add_argument("--max-new-seeds",type=int,default=None)
+    p.add_argument("--seed-index",type=int,choices=range(16),default=None,
+                   help="0-based GW seed index; run exactly one trajectory")
     a=p.parse_args()
     if a.action=="single":r=run_method(a.graph,a.method,a.phase,root=a.root,
-                                       max_new_seeds=a.max_new_seeds)
+                                       max_new_seeds=a.max_new_seeds,
+                                       seed_index=a.seed_index)
     elif a.action=="batch":r=batch(a.graph,a.phase,root=a.root)
     else:r=summarize(root=a.root,phase=a.phase)
     print(json.dumps(r,indent=2,default=str))
