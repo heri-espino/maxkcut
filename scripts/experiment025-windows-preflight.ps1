@@ -66,6 +66,21 @@ $env:NUMBA_NUM_THREADS='1'
 $env:OPENBLAS_NUM_THREADS='1'
 $env:MKL_NUM_THREADS='1'
 $env:OMP_NUM_THREADS='1'
-& $python -c 'import sys,numpy,scipy,numba,pytest; from maxkcut.experiment025_bestcut import GRAPH_IDS, METHODS, algorithm_source_sha256; from maxkcut.experiment023_references import load_references; refs,_=load_references(); assert len(GRAPH_IDS)==71 and len(METHODS)==18 and len(refs)==71; print("Conda Python:",sys.executable); print("NumPy:",numpy.__version__); print("SciPy:",scipy.__version__); print("Numba:",numba.__version__); print("Optimizer source hash:",algorithm_source_sha256())'
+@'
+import sys
+import numpy
+import scipy
+import numba
+import pytest
+from maxkcut.experiment025_bestcut import GRAPH_IDS, METHODS, algorithm_source_sha256
+from maxkcut.experiment023_references import load_references
+references, _ = load_references()
+assert len(GRAPH_IDS) == 71 and len(METHODS) == 18 and len(references) == 71
+print("Conda Python:", sys.executable)
+print("NumPy:", numpy.__version__)
+print("SciPy:", scipy.__version__)
+print("Numba:", numba.__version__)
+print("Optimizer source hash:", algorithm_source_sha256())
+'@ | & $python -
 if ($LASTEXITCODE -ne 0) { throw "maxkcut Conda Python import/reference preflight failed" }
 Write-Host "PASS: Windows PowerShell, dedicated runner, Git LFS, Conda maxkcut and 71 reference graphs."
