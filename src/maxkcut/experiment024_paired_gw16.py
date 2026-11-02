@@ -213,6 +213,11 @@ def generate_candidate(graph,y,edges,method,r,gw,s,cfg,folder,graphsha,factorsha
                 graph,parent,lengths,[1,4,16],coarse_restarts=2,
                 coarse_sweeps=5,flip_sweeps=5,
                 seed=SEED+gn*100+s,graph_number=gn,metric_index=2))
+            if on_iteration is not None:
+                for ordinal,row in enumerate(options,start=1):
+                    partition=np.asarray(row["best_coarse_labels"],dtype=np.int8)
+                    on_iteration({"stage":"MSTMultiCut","candidate":ordinal,
+                        "current_cut":_score(edges,partition)},partition.copy())
             pick=max(options,key=lambda x:x["best_coarse_cut"])
             candidate=pick["best_coarse_labels"]
         else:raise ValueError(method)
