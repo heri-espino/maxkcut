@@ -1,0 +1,34 @@
+name: "Experiment025 - best-seen iteration logging tests"
+on:
+  push:
+    branches: [experiment025-gw16-bestcut-quality]
+    paths:
+      - ".github/workflows/experiment025-quality-tests.yml"
+      - "src/maxkcut/experiment025_*.py"
+      - "src/maxkcut/eva_soft_em_bernoulli.py"
+      - "src/maxkcut/eva_cutaware_kmeans.py"
+      - "src/maxkcut/eva_direct_rounding.py"
+      - "src/maxkcut/eva_multigroup_kmeans.py"
+      - "src/maxkcut/experiment024_paired_gw16.py"
+      - "src/maxkcut/eva_elite_search.py"
+      - "src/maxkcut/local_search.py"
+      - "tests/test_experiment025_bestcut.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  synthetic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install existing numerical test extras
+        run: python -m pip install -e ".[test,eva-fast]"
+      - name: Verify syntax and all retained experiment tests
+        run: |
+          python -m compileall -q src/maxkcut tests/test_experiment025_bestcut.py
+          python -m pytest tests/test_experiment025_bestcut.py tests/test_experiment024_paired_gw16.py tests/test_experiment024_integration.py -q
