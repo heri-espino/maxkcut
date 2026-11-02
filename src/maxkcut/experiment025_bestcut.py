@@ -102,7 +102,7 @@ def _status(graph,method,phase,identity,completed,details,started):
        deterministic_mst_hybrid=method in MST)
 
 
-def run_method(graph,method,phase,*,root=ROOT):
+def run_method(graph,method,phase,*,root=ROOT,max_new_seeds=None):
     if graph not in GRAPH_IDS or method not in METHODS or phase not in SETTINGS:
         raise ValueError("Invalid graph/method/phase")
     cfg=SETTINGS[phase].copy()
@@ -121,7 +121,12 @@ def run_method(graph,method,phase,*,root=ROOT):
     status_file=target/"status.json"
     _check_status(status_file,identity)
     details=[]
+    newly_completed=0
+    if max_new_seeds is not None and max_new_seeds<1:
+        raise ValueError('max_new_seeds must be positive')
     for index,(normal,gw) in enumerate(zip(normals,gw_labels)):
+        if max_new_seeds is not None and newly_completed>=max_new_seeds:
+            break
         saved=result_for_seed(folder,method,index,g,edges,identity)
         if saved is None:
             start=time.monotonic()
@@ -162,6 +167,7 @@ def run_method(graph,method,phase,*,root=ROOT):
             write_case(folder,method,index,final,stages,metadata,partitions)
             saved=result_for_seed(folder,method,index,g,edges,identity)
             if saved is None:raise AssertionError("Seed checkpoint not persisted")
+            newly_completed+=1
         # Recheck saved seed stage scores against the immutable graph and factor.
         if saved.get("graph_sha256")!=graph_sha or saved.get("factor_sha256")!=factor_sha:
             raise ValueError("Saved seed belongs to another graph or factor")
@@ -171,8 +177,12 @@ def run_method(graph,method,phase,*,root=ROOT):
             raise AssertionError("Saved best-seen cut lower than a stage checkpoint")
         details.append(saved)
         # Every success is resumable on the self-hosted runner; no fixed time limit.
-        atomic_json(status_file,_status(graph,method,phase,identity,details,started))
-    status=_status(graph,method,phase,identity,details,started)
+        partial=_status(graph,method,phase,identity,len(details),details,started)
+        atomic_json(status_file,partial)
+        atomic_json(folder/"statuses"/(method+".json"),partial)
+    status=_status(graph,method,phase,identity,len(details),details,started)
+    if len(details)<16:
+        return status
     refs,_=load_references()
     best=float(status["best_final"])
     status.update(reference_cut=refs[graph]["reference_cut"],
@@ -185,6 +195,7 @@ def run_method(graph,method,phase,*,root=ROOT):
         winning_progress_log=f"{method}/progress/{int(status['selected_seed_index']):04d}/events.jsonl",
         winning_best_meta=f"{method}/progress/{int(status['selected_seed_index']):04d}/best.json")
     atomic_json(status_file,status)
+    atomic_json(folder/"statuses"/(method+".json"),status)
     return status
 
 
@@ -275,8 +286,10 @@ def main():
     p.add_argument("--method",choices=METHODS,default="gw-rr")
     p.add_argument("--phase",choices=tuple(SETTINGS),default="pilot")
     p.add_argument("--root",type=Path,default=ROOT)
+    p.add_argument("--max-new-seeds",type=int,default=None)
     a=p.parse_args()
-    if a.action=="single":r=run_method(a.graph,a.method,a.phase,root=a.root)
+    if a.action=="single":r=run_method(a.graph,a.method,a.phase,root=a.root,
+                                       max_new_seeds=a.max_new_seeds)
     elif a.action=="batch":r=batch(a.graph,a.phase,root=a.root)
     else:r=summarize(root=a.root,phase=a.phase)
     print(json.dumps(r,indent=2,default=str))
