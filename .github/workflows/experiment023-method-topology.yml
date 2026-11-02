@@ -54,8 +54,10 @@ jobs:
         run: powershell -ExecutionPolicy Bypass -File .\scripts\experiment023-windows.ps1 -Phase full -Graph ${{ matrix.graph }}
 
   coverage:
-    needs: full
-    if: always() && github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment023-all-method-topology'
+    needs: [pilot, full]
+    # If the pilot fails, do not run a misleading second failed job.
+    # If the full matrix has failures, still publish incomplete coverage.
+    if: always() && needs.pilot.result == 'success' && github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment023-all-method-topology'
     runs-on: [self-hosted, Windows, X64]
     timeout-minutes: 20
     defaults:
