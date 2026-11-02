@@ -52,5 +52,5 @@ def test_new_vm_runner_is_cleanly_resumable_and_manual_only():
     assert "experiment025-gw16-bestcut-quality" not in workflow.split("jobs:")[0]
     assert "workflow_dispatch:" in workflow
     assert "push:" not in workflow.split("jobs:")[0]
-    assert "ref: main" in workflow
+    assert "ref: ${{ github.sha }}" in workflow  # stronger: exact dispatch revision
     assert "-Method $env:EXPERIMENT_METHOD" in workflow
