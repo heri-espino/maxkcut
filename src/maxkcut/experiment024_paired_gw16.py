@@ -106,7 +106,7 @@ def directions_archive(folder, y, graph, graphsha, factorsha):
     return normals,partitions,expected
 
 
-def seeded_lloyd(y,edges,r,*,max_iter=60):
+def seeded_lloyd(y,edges,r,*,max_iter=60,on_iteration=None):
     """Antipodal spherical K-means starting from +/- the exact GW normal."""
     unit=np.asarray(r,dtype=np.float64)
     centers=np.stack((-unit,unit))
@@ -118,6 +118,9 @@ def seeded_lloyd(y,edges,r,*,max_iter=60):
     for it in range(max_iter):
         labels=np.argmax(y@centers.T,axis=1).astype(np.int8)
         score=_score(edges,labels)
+        if on_iteration is not None:
+            on_iteration({"stage":"KMeansNM","iteration":it+1,
+                "current_cut":score},labels.copy())
         if score>best_score+1e-8:
             best,best_score=labels.copy(),score
         iters=it+1
@@ -132,16 +135,21 @@ def seeded_lloyd(y,edges,r,*,max_iter=60):
     return best,dict(lloyd_iterations=iters,retained_original_gw=True)
 
 
-def generate_candidate(graph,y,edges,method,r,gw,s,cfg,folder,graphsha,factorsha):
+def generate_candidate(graph,y,edges,method,r,gw,s,cfg,folder,graphsha,factorsha,
+                       on_iteration=None):
     """All methods receive exactly the SAME GW direction/partition for s."""
     gn=int(folder.name[1:])
     mid=METHODS.index(method)
     rng=np.random.default_rng(np.random.SeedSequence([SEED,gn,2402,s,mid]))
     info=dict(gw_seed_index=s,shared_gw_direction=True,source="GW_RR_direction")
+    if on_iteration is not None:
+        on_iteration({"stage":"GW","iteration":0,
+            "current_cut":_score(edges,gw)},gw.copy())
     if method=="gw-rr":
         candidate=gw.copy()
     elif method in ("control-paired","control-tabu"):
-        candidate,d=seeded_lloyd(y,edges,r,max_iter=cfg["kmeans_iters"])
+        candidate,d=seeded_lloyd(y,edges,r,max_iter=cfg["kmeans_iters"],
+                                 on_iteration=on_iteration)
         info["lloyd_iterations"]=d["lloyd_iterations"]
     elif method=="gw-threshold":
         candidate,d=optimal_threshold(graph,y@r)
@@ -150,32 +158,38 @@ def generate_candidate(graph,y,edges,method,r,gw,s,cfg,folder,graphsha,factorsha
         candidate,d=improve_kmeans_direction(
             y,graph,rng,initial_direction=r,
             direction_trials=cfg["direction_trials"],
-            kmeans_iters=cfg["kmeans_iters"],perturb_scales=(.05,.2))
+            kmeans_iters=cfg["kmeans_iters"],perturb_scales=(.05,.2),
+            on_iteration=on_iteration)
         info["additional_proposals"]="cutaware trajectory and threshold searches"
     elif method=="hyperplane-sweep":
         _,candidate,d=optimize_hyperplane(
-            graph,y,rng,initial=r,directions=cfg["line_directions"])
+            graph,y,rng,initial=r,directions=cfg["line_directions"],
+            on_iteration=on_iteration)
         info["line_search_directions"]=cfg["line_directions"]
     elif method.startswith("multigroup-"):
         k=int(method.rsplit("k",1)[1])
         options,d=optimize_multigroup_kmeans(
             y,graph,rng,k=k,init="paired",initial_direction=r,
-            max_iter=cfg["kmeans_iters"],top_merges=1)
+            max_iter=cfg["kmeans_iters"],top_merges=1,
+            on_iteration=on_iteration)
         candidate=np.asarray(options[0]["labels"],dtype=np.int8)
         info["extra_group_merge_evaluations"]="see method trace"
     elif method.startswith("em-"):
         # Anchor is ONLY the current GW seed, never an archived best-known
         # solution. Elite here means GW-seeded probability mass, not prior elite.
         probs,hard,d=soft_em(graph,y,rng,mode="elite",anchor=gw,
-                 stages=cfg["em_stages"],em_iters=cfg["em_iters"])
+                 stages=cfg["em_stages"],em_iters=cfg["em_iters"],
+                 on_iteration=on_iteration)
         candidate=hard
         info["em_anchor"]="current shared GW partition; no historical elite"
         if method=="em-cem":
             _,candidate,d2=cem(graph,probs,rng,anchor=gw,
-                  generations=cfg["cem_generations"],population=cfg["cem_population"])
+                  generations=cfg["cem_generations"],population=cfg["cem_population"],
+                  on_iteration=on_iteration)
             info["cem_generations"]=cfg["cem_generations"]
         elif method=="em-gibbs":
-            candidate,d2=gibbs_anneal(graph,hard,rng,sweeps=cfg["gibbs_sweeps"])
+            candidate,d2=gibbs_anneal(graph,hard,rng,sweeps=cfg["gibbs_sweeps"],
+                                       on_iteration=on_iteration)
             info["gibbs_sweeps"]=cfg["gibbs_sweeps"]
     elif method in MST:
         metric=method.split("-")[1]
@@ -209,6 +223,9 @@ def generate_candidate(graph,y,edges,method,r,gw,s,cfg,folder,graphsha,factorsha
         raise ValueError(f"Nonbinary candidate for {method}")
     base=_score(edges,gw)
     raw=_score(edges,candidate)
+    if on_iteration is not None:
+        on_iteration({"stage":"MethodOutput","iteration":1,
+            "current_cut":raw},candidate.copy())
     # Retention is an explicit GW-seeded hybrid (applies to ALL methods).
     # Count the chance to keep the starting partition equally for everyone.
     if base > raw+1e-8:
@@ -217,6 +234,9 @@ def generate_candidate(graph,y,edges,method,r,gw,s,cfg,folder,graphsha,factorsha
         info["retained_gw_incumbent"]=True
     else:
         info["retained_gw_incumbent"]=False
+    if on_iteration is not None:
+        on_iteration({"stage":"RawBest","iteration":1,
+            "current_cut":raw},candidate.copy())
     return candidate,raw,info
 
 
