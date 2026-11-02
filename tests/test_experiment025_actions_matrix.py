@@ -59,7 +59,8 @@ def test_workflow_is_manual_only_and_explicitly_targets_named_runner():
     workflow=(root/".github/workflows/experiment025-quality-first.yml").read_text(encoding="utf8")
     assert "workflow_dispatch:" in workflow
     assert "\n  push:" not in workflow
-    assert "runs-on: [self-hosted, Windows, X64, PCAG103A-13]" in workflow
+    assert "runs-on: [self-hosted, Windows, X64]" in workflow
+    assert "runs-on: [self-hosted, Windows, X64, PCAG103A-13]" not in workflow
     assert "RUNNER_NAME -ne 'PCAG103A-13'" in workflow
     assert "max-parallel: 1" in workflow
     assert "ExpectedSourceSha256" in workflow
