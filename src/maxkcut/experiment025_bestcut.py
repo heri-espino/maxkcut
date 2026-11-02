@@ -4,7 +4,8 @@ This is a quality-first follow-up to Experiment024. Each graph shares the exact
 same 16 saved GW Gaussian unit normals across ALL eighteen method protocols.
 Every one of the 16 method-specific raw candidates is independently refined:
     raw -> 20 positive-flip sweeps -> 30 KL passes -> 80 ILS-KL cycles.
-The winner is selected by BEST VERIFIED FINAL CUT, never the best raw cut.
+The winner is selected by BEST VERIFIED CUT FOUND AT ANY ITERATION,
+not the last iterate or best raw cut.
 There is NO METHOD-LEVEL wall-time budget, timeout, or early-quality cutoff.
 
 Input EVA factors and historical outputs are immutable. All seed-level
@@ -32,13 +33,14 @@ from .experiment024_paired_gw16 import (
     generate_candidate,
 )
 from .experiment023_methods import (
-    select_factor, refinement, write_case, verify_case,
+    select_factor, write_case, verify_case,
     atomic_json, sha, _score,
 )
 from .eva_rounding_cli import _factor_and_case
 from .io import edge_arrays
 from .experiment023_references import load_references, compare_cut
 from .graph_structure_methods import labels as graph_family
+from .experiment025_journal import IterationJournal, refine_with_journal
 
 ROOT=Path("results/gset/experiment025-gw16-bestcut-quality")
 
@@ -54,7 +56,7 @@ SETTINGS={
         cem_generations=30,cem_population=96,gibbs_sweeps=150,
         kl_passes=30,ils_cycles=80,ils_kl_passes=8),
 }
-PROTOCOL="experiment025-gw16-all16-final-quality-v1"
+PROTOCOL="experiment025-gw16-all16-anytime-quality-v2"
 
 
 def fingerprint(graph_sha,factor_sha,direction_sha,method,phase,settings):
@@ -79,7 +81,7 @@ def result_for_seed(folder, method, index, graph, edges, identity):
 
 
 def _status(graph,method,phase,identity,completed,details,started):
-    ends=[float(x["stages"]["Final"]) for x in details]
+    ends=[float(x["best_seen_cut"]) for x in details]
     raws=[float(x["stages"]["Round"]) for x in details]
     best=int(np.argmax(ends)) if len(details)==16 else None
     return dict(graph=graph,method=method,phase=phase,fingerprint=identity,
@@ -88,11 +90,13 @@ def _status(graph,method,phase,identity,completed,details,started):
        all_starts_independently_refined=len(details)==16,
        selected_seed_index=best,
        best_final=max(ends) if ends else None,
+       best_seen=max(ends) if ends else None,
        best_initial=max(raws) if raws else None,
        mean_final=float(np.mean(ends)) if ends else None,
+       mean_best_seen=float(np.mean(ends)) if ends else None,
        mean_initial=float(np.mean(raws)) if raws else None,
        wall_seconds_this_invocation=time.monotonic()-started,
-       selection_metric="max_final_cut_over_16_full_refinements",
+       selection_metric="max_best_seen_cut_over_all_iterations_and_16_refinements",
        method_level_time_cutoff=None,
        deterministic_mst_hybrid=method in MST)
 
@@ -120,21 +124,38 @@ def run_method(graph,method,phase,*,root=ROOT):
         saved=result_for_seed(folder,method,index,g,edges,identity)
         if saved is None:
             start=time.monotonic()
+            journal=IterationJournal(target/"progress"/f"{index:04d}",edges,
+                                     g.shape[0],identity)
             raw,raw_score,extra=generate_candidate(
-                g,y,edges,method,normal,gw,index,cfg,folder,graph_sha,factor_sha)
-            final,stages,ref_info,partitions=refinement(
-                g,edges,raw,method,index,int(graph[1:]),cfg)
+                g,y,edges,method,normal,gw,index,cfg,folder,graph_sha,factor_sha,
+                on_iteration=journal.observe)
+            # Some iterative methods (notably soft EM) can have an intermediate
+            # hard cut better than their final membership classification.
+            # Use that *best seen* original signed cut as the refinement seed.
+            initial_best, initial_cut=journal.assert_best()
+            if initial_cut>raw_score+1e-8:
+                raw,raw_score=initial_best,initial_cut
+                extra["better_intermediate_initializer_used"]=True
+            else:
+                extra["better_intermediate_initializer_used"]=False
+            final,stages,ref_info,partitions=refine_with_journal(
+                g,edges,raw,method,index,int(graph[1:]),cfg,journal)
             if not np.isclose(stages["Round"],raw_score,atol=1e-8,rtol=0):
-                raise AssertionError("Raw/final refinement input mismatch")
+                raise AssertionError("Selected best initializer/raw cut mismatch")
             metadata=dict(graph=graph,method=method,phase=phase,
                 index=index,fingerprint=identity,
                 graph_sha256=graph_sha,factor_sha256=factor_sha,
                 shared_direction_sha256=meta["direction_rows_sha256"],
                 common_gw_start_cut=_score(edges,gw),
                 raw_cut=raw_score,final_cut=stages["Final"],
+                best_seen_cut=journal.best_cut,
+                best_seen_event=journal.best_event,
+                progress_events=journal.events,
+                progress_improvements=journal.improvements,
+                progress_dir=str(journal.path),
                 method_details=extra,refinement_details=ref_info,
                 seed_seconds=time.monotonic()-start,
-                scheme="GW16; full Flip/KL/ILS per seed; best final")
+                scheme="GW16; all iterations audited; best seen across 16 starts")
             write_case(folder,method,index,final,stages,metadata,partitions)
             saved=result_for_seed(folder,method,index,g,edges,identity)
             if saved is None:raise AssertionError("Seed checkpoint not persisted")
@@ -143,6 +164,8 @@ def run_method(graph,method,phase,*,root=ROOT):
             raise ValueError("Saved seed belongs to another graph or factor")
         if saved.get("index")!=index:
             raise ValueError("Saved seed index mismatch")
+        if float(saved["best_seen_cut"])+1e-8 < max(saved["stages"].values()):
+            raise AssertionError("Saved best-seen cut lower than a stage checkpoint")
         details.append(saved)
         # Every success is resumable on the self-hosted runner; no fixed time limit.
         atomic_json(status_file,_status(graph,method,phase,identity,details,started))
@@ -155,7 +178,9 @@ def run_method(graph,method,phase,*,root=ROOT):
         shared_directions_sha256=meta["direction_rows_sha256"],
         evaluated_independent_refinements=16,
         original_signed_cut_rescored=True,
-        best_final_partition_path=f"{int(status['selected_seed_index']):04d}.npz")
+        best_final_partition_path=f"{int(status['selected_seed_index']):04d}.npz",
+        winning_progress_log=f"{method}/progress/{int(status['selected_seed_index']):04d}/events.jsonl",
+        winning_best_meta=f"{method}/progress/{int(status['selected_seed_index']):04d}/best.json")
     atomic_json(status_file,status)
     return status
 
