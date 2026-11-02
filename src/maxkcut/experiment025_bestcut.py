@@ -85,13 +85,14 @@ def _status(graph,method,phase,identity,completed,details,started):
     raws=[float(x["stages"]["Round"]) for x in details]
     best=int(np.argmax(ends)) if len(details)==16 else None
     return dict(graph=graph,method=method,phase=phase,fingerprint=identity,
-       status="complete_16_final" if len(details)==16 else "partially_refined",
+       status="complete_16_best_seen" if len(details)==16 else "partially_refined",
        starts_completed=len(details),starts_requested=16,
        all_starts_independently_refined=len(details)==16,
        selected_seed_index=best,
        best_final=max(ends) if ends else None,
        best_seen=max(ends) if ends else None,
        best_initial=max(raws) if raws else None,
+       best_last_ils_candidate=max([x.get("last_iteration_cut",x["stages"]["Final"]) for x in details]) if details else None,
        mean_final=float(np.mean(ends)) if ends else None,
        mean_best_seen=float(np.mean(ends)) if ends else None,
        mean_initial=float(np.mean(raws)) if raws else None,
@@ -149,6 +150,8 @@ def run_method(graph,method,phase,*,root=ROOT):
                 common_gw_start_cut=_score(edges,gw),
                 raw_cut=raw_score,final_cut=stages["Final"],
                 best_seen_cut=journal.best_cut,
+                last_iteration_cut=(ref_info["ils_trace"][-1]["candidate_cut"]
+                                    if ref_info["ils_trace"] else stages["KL"]),
                 best_seen_event=journal.best_event,
                 progress_events=journal.events,
                 progress_improvements=journal.improvements,
@@ -230,18 +233,19 @@ def summarize(*,root=ROOT,phase="full"):
             r=json.loads(p.read_text(encoding="utf8")) if p.exists() else {}
             by_method[method]=r
         baseline=by_method["gw-rr"]
-        base=(float(baseline["best_final"]) if baseline.get("status")=="complete_16_final"
+        base=(float(baseline["best_seen"]) if baseline.get("status")=="complete_16_best_seen"
             and baseline.get("starts_completed")==16 else None)
-        eligible=[float(r["best_final"]) for r in by_method.values()
-                  if r.get("status")=="complete_16_final" and r.get("starts_completed")==16]
+        eligible=[float(r["best_seen"]) for r in by_method.values()
+                  if r.get("status")=="complete_16_best_seen" and r.get("starts_completed")==16]
         peak=max(eligible) if eligible else None
         for method in METHODS:
             r=by_method[method]
-            valid=r.get("status")=="complete_16_final" and r.get("starts_completed")==16
-            val=float(r["best_final"]) if valid else None
+            valid=r.get("status")=="complete_16_best_seen" and r.get("starts_completed")==16
+            val=float(r["best_seen"]) if valid else None
             rows.append(dict(graph=graph,family=fam,weight_type=sign,method=method,
                 status=r.get("status","not_run"),refined_starts=r.get("starts_completed",0),
-                best_final=val if valid else "",mean_final=r.get("mean_final","") if valid else "",
+                best_seen_cut=val if valid else "",mean_best_seen=r.get("mean_best_seen","") if valid else "",
+                best_last_ils_candidate=r.get("best_last_ils_candidate","") if valid else "",
                 reference_cut=refs[graph]["reference_cut"],
                 gap_to_reference=refs[graph]["reference_cut"]-val if valid else "",
                 gw_rr_full16=base if base is not None else "",
@@ -253,12 +257,12 @@ def summarize(*,root=ROOT,phase="full"):
         wr=csv.DictWriter(f,fieldnames=list(rows[0]))
         wr.writeheader()
         wr.writerows(rows)
-    complete=sum(r["status"]=="complete_16_final" and r["refined_starts"]==16 for r in rows)
+    complete=sum(r["status"]=="complete_16_best_seen" and r["refined_starts"]==16 for r in rows)
     report=dict(phase=phase,graphs=71,methods=len(METHODS),starts_per_method=16,
         planned_cells=len(GRAPH_IDS)*len(METHODS),completed_cells=complete,
         planned_independent_full_refinements=len(GRAPH_IDS)*len(METHODS)*16,
         all_complete=complete==len(rows),
-        primary_objective="best verified final cut, not compute time",
+        primary_objective="best verified cut ever visited across all initializer and refinement iterations",
         note="No method-level runtime cutoff; incomplete/failed cells do not enter rankings")
     atomic_json(folder/(phase+"_coverage.json"),report)
     return report
