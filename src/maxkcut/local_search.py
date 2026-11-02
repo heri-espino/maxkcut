@@ -16,7 +16,8 @@ from .objective import cut_weight
 
 def improve_by_flips(adjacency: sparse.spmatrix, labels: np.ndarray,
                      rng: np.random.Generator, *,
-                     max_sweeps: int = 20, deadline: float | None = None):
+                     max_sweeps: int = 20, deadline: float | None = None,
+                     on_iteration=None):
     """Improve a binary partition monotonically using random-order flips.
 
     For spins s_i in {-1,+1}, flipping vertex i increases the weighted
@@ -74,6 +75,12 @@ def improve_by_flips(adjacency: sparse.spmatrix, labels: np.ndarray,
             accepted += 1
 
         sweeps += 1
+        if on_iteration is not None:
+            current = (spins < 0).astype(np.int8)
+            current_cut = float(cut_weight(edges, current))
+            on_iteration({"stage":"Flip","sweep":sweeps,
+                "accepted_flips":accepted,"cumulative_flips":flips,
+                "current_cut":current_cut,"best_cut":current_cut}, current.copy())
         if status == "time_budget":
             break
         if accepted == 0:
