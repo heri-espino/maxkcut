@@ -88,7 +88,7 @@ print('Pilot passed:',sys.argv[1],len(rows),'method protocols')
 } elseif ($Phase -eq 'full') {
     & $python -m maxkcut.experiment023_methods batch --graph $Graph --phase full --budget-seconds 240 --timeout-seconds 510
     if ($LASTEXITCODE -ne 0) { throw "Benchmark failed unexpectedly for $Graph" }
-    Publish-Results "experiment023: checkpoint full $Graph across 17 methods"
+    Publish-Results "experiment023: checkpoint full $Graph across 18 methods"
 } else {
     & $python -m maxkcut.experiment023_methods aggregate --phase full
     if ($LASTEXITCODE -ne 0) { throw 'Final coverage analysis failed' }
@@ -104,5 +104,5 @@ if r['complete_graph_method_rows']!=71*18:
     print('INCOMPLETE: some graph-methods timed out, failed, or have not run',file=sys.stderr)
     sys.exit(2)
 '@ | & $python -
-    if ($LASTEXITCODE -ne 0) { throw 'Coverage is incomplete; consult saved explicit status table; do not claim 71x17 success' }
+    if ($LASTEXITCODE -ne 0) { throw 'Coverage is incomplete; consult saved explicit status table; do not claim 71x18 success' }
 }
