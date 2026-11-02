@@ -20,6 +20,8 @@ contents and LFS objects. The execution script automatically activates Conda,
 configures native DLL paths, verifies reference table and source-code hash,
 and commits results to the dedicated experiment025-results branch.
 
+**Windows shell compatibility:** The university Windows 11 runner does not have `pwsh` (PowerShell 7) on its Actions PATH. All Windows jobs now explicitly use `shell: powershell` (inbox Windows PowerShell 5.1). A preflight script checks the installed `maxkcut` Conda Python with its `Library/bin` paths before starting a seed-first matrix. An optional repository Actions variable `MAXKCUT_CONDA_PREFIX` can identify an institutional Conda installation outside typical paths. No elevated privileges or additional PowerShell installs are required.
+
 ## Four workflow launch modes
 
 Open [Experiment025 GitHub Actions](https://github.com/heri-espino/maxkcut/actions/workflows/experiment025-quality-first.yml).
