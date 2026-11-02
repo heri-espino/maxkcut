@@ -13,6 +13,7 @@ param(
     [ValidateSet('pilot','full','coverage')][string]$Phase = 'pilot',
     [string]$Graph = 'G11',
     [string]$Method = '',
+    [switch]$OnlyGraph,
     [switch]$AllGraphs,
     [ValidateRange(1,16)][int]$ChunkSize = 16,
     [string]$ResultsBranch = 'experiment025-results',
@@ -198,7 +199,8 @@ if ($Phase -eq 'coverage') {
     $report=Get-Content 'results/gset/experiment025-gw16-bestcut-quality/analysis/full_coverage.json' -Raw | ConvertFrom-Json
     if (-not $report.all_complete) { throw "Experiment incomplete: $($report.completed_cells)/$($report.planned_cells) graph-method cells" }
 } else {
-    $graphs=if ($Phase -eq 'pilot') { @('G1','G14','G11') }
+    $graphs=if ($Phase -eq 'pilot' -and $OnlyGraph) { @($Graph) }
+            elseif ($Phase -eq 'pilot') { @('G1','G14','G11') }
             elseif ($AllGraphs) { @((1..67 | ForEach-Object { "G$_" })) + @('G70','G72','G77','G81') }
             else { @($Graph) }
     # AllGraphs phase full explicitly expands the canonical 71 graphs.
