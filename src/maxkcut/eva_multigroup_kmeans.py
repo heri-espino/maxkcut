@@ -97,7 +97,7 @@ def enumerate_group_merges(edges, groups, k, *, top=4):
 
 def optimize_multigroup_kmeans(
     vectors, graph, rng, *, k=4, init="paired",
-    max_iter=100, top_merges=4,
+    max_iter=100, top_merges=4, initial_direction=None,
 ):
     """Keep best original signed graph binary merges over Lloyd iterations.
 
@@ -129,6 +129,14 @@ def optimize_multigroup_kmeans(
             for group in range(0,k,2):
                 centers[group+1]=-centers[group]
         centers/=np.linalg.norm(centers,axis=1)[:,None]
+    if initial_direction is not None:
+        direction = np.asarray(initial_direction, dtype=np.float64)
+        if direction.shape != (p,) or not np.isfinite(direction).all() or np.linalg.norm(direction) < 1e-12:
+            raise ValueError("Invalid shared GW direction")
+        direction = direction / np.linalg.norm(direction)
+        # Seed the first antipodal center pair from the SAME GW normal.
+        # Additional pairs are independently sampled secondary centers.
+        centers[0], centers[1] = -direction, direction
     previous=None
     trace=[]
     found={}

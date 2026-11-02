@@ -1,0 +1,70 @@
+name: "Experiment024 - 16 common GW starts for all methods"
+
+# One-time start: adding this workflow on its experiment branch.
+# Generated results only change results/, so do not retrigger the workflow.
+on:
+  push:
+    branches: [experiment024-paired-gw16]
+    paths: [.github/workflows/experiment024-paired-gw16.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Do not consume the single Windows runner while Experiment023 is active.
+concurrency:
+  group: experiment023-complete-topology
+  cancel-in-progress: false
+
+jobs:
+  pilot:
+    if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment024-paired-gw16'
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 300
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Unit tests then G1 G14 G11 with all 16 paired GW directions
+        run: powershell -ExecutionPolicy Bypass -File .\\scripts\\experiment024-windows.ps1 -Phase pilot
+
+  full:
+    needs: pilot
+    if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment024-paired-gw16'
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        graph: [G1, G2, G3, G4, G5, G6, G7, G8, G9, G10, G11, G12, G13, G14, G15, G16, G17, G18, G19, G20, G21, G22, G23, G24, G25, G26, G27, G28, G29, G30, G31, G32, G33, G34, G35, G36, G37, G38, G39, G40, G41, G42, G43, G44, G45, G46, G47, G48, G49, G50, G51, G52, G53, G54, G55, G56, G57, G58, G59, G60, G61, G62, G63, G64, G65, G66, G67, G70, G72, G77, G81]
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 180
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: 16 matched GW seeds per method, save scores and partitions
+        run: powershell -ExecutionPolicy Bypass -File .\\scripts\\experiment024-windows.ps1 -Phase full -Graph ${{ matrix.graph }}
+
+  coverage:
+    needs: [pilot, full]
+    if: always() && needs.pilot.result == 'success' && github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment024-paired-gw16'
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment024-paired-gw16
+          fetch-depth: 0
+      - name: Recompute topology comparisons and fail if any 16-of-16 cell missing
+        run: powershell -ExecutionPolicy Bypass -File .\\scripts\\experiment024-windows.ps1 -Phase coverage
