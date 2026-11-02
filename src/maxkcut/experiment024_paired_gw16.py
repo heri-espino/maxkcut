@@ -368,7 +368,8 @@ def coverage(*,root=BASE,phase="full"):
             rows.append(dict(graph=graph,family=fam,weight_class=weight_class,
                 method=method,status=o.get("status","not_run"),
                 starts_completed=o.get("starts_completed",0),
-                raw_best=o.get("raw_best"),refined_best=o.get("refined_best"),
+                raw_best=o.get("raw_best"),raw_mean=o.get("raw_mean"),
+                refined_best=o.get("refined_best"),
                 gw_best=o.get("gw_best"),
                 best_known_reference=refs[graph]["reference_cut"],
                 wall_seconds=o.get("wall_seconds")))
