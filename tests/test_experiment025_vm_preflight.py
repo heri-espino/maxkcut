@@ -54,3 +54,28 @@ def test_new_vm_runner_is_cleanly_resumable_and_manual_only():
     assert "push:" not in workflow.split("jobs:")[0]
     assert "ref: ${{ github.sha }}" in workflow  # stronger: exact dispatch revision
     assert "Method               = $env:EXP_METHOD" in workflow  # PowerShell splatted argument
+
+
+def test_optimizer_source_hash_is_same_on_windows_crlf_and_linux_lf(monkeypatch):
+    """Git autocrlf may convert the source files, but not the algorithm."""
+    from pathlib import Path
+    original_read_bytes=Path.read_bytes
+    baseline=algorithm_source_sha256()
+
+    def simulate_windows_checkout(self):
+        raw=original_read_bytes(self)
+        if self.suffix==".py":
+            raw=raw.replace(b"\r\n",b"\n").replace(b"\n",b"\r\n")
+        return raw
+
+    monkeypatch.setattr(Path,"read_bytes",simulate_windows_checkout)
+    assert algorithm_source_sha256()==baseline
+
+
+def test_actions_detached_head_does_not_raise_or_assume_branch_name():
+    """Checkout pins a SHA and often leaves HEAD detached."""
+    runner=(Path(__file__).resolve().parents[1]/
+            "scripts"/"experiment025-vm.ps1").read_text(encoding="utf-8")
+    assert runner.count("([string](& git branch --show-current)).Trim()")==2
+    assert "(& git branch --show-current).Trim()" not in runner
+    assert 'git switch -c $ResultsBranch "origin/main"' in runner

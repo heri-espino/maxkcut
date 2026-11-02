@@ -71,7 +71,11 @@ def algorithm_source_sha256():
     for file in sorted(src.glob("*.py")):
         digest.update(file.name.encode("utf8"))
         digest.update(b"\\0")
-        digest.update(hashlib.sha256(file.read_bytes()).digest())
+        # Git for Windows can use CRLF while hosted Linux uses LF. Git content
+        # and algorithms are otherwise identical: normalize line endings so a
+        # paired run has the SAME source identity on both operating systems.
+        canonical=file.read_bytes().replace(b"\r\n",b"\n")
+        digest.update(hashlib.sha256(canonical).digest())
     return digest.hexdigest()
 
 
