@@ -96,6 +96,12 @@ if ($LASTEXITCODE -ne 0 -or "$jsonlProbe" -notmatch 'filter: lfs$') {
 # Conda can be installed at a custom university path, not only under USERPROFILE.
 $conda = Get-Command conda -ErrorAction SilentlyContinue
 $discoveredPrefix = $null
+if ($env:MAXKCUT_CONDA_PREFIX) {
+    $configured = Join-Path $env:MAXKCUT_CONDA_PREFIX 'python.exe'
+    if (-not (Test-Path $configured)) { throw "Configured MAXKCUT_CONDA_PREFIX has no python.exe: $env:MAXKCUT_CONDA_PREFIX" }
+    if ((Split-Path $env:MAXKCUT_CONDA_PREFIX -Leaf) -ine 'maxkcut') { throw 'MAXKCUT_CONDA_PREFIX must identify the maxkcut environment' }
+    $discoveredPrefix = $env:MAXKCUT_CONDA_PREFIX
+}
 if ($null -ne $conda) {
     $rawCondaEnvs = (& conda env list --json | Out-String)
     if ($LASTEXITCODE -eq 0 -and $rawCondaEnvs) {
@@ -137,6 +143,9 @@ if (-not $python) {
         "$env:USERPROFILE\miniconda3\envs\maxkcut\python.exe",
         "$env:USERPROFILE\miniforge3\envs\maxkcut\python.exe",
         "$env:USERPROFILE\anaconda3\envs\maxkcut\python.exe",
+        "$env:USERPROFILE\.conda\envs\maxkcut\python.exe",
+        "$env:LOCALAPPDATA\Programs\miniconda3\envs\maxkcut\python.exe",
+        "C:\ProgramData\anaconda3\envs\maxkcut\python.exe",
         "$env:LOCALAPPDATA\miniconda3\envs\maxkcut\python.exe",
         "C:\ProgramData\miniconda3\envs\maxkcut\python.exe"
     )) {
