@@ -124,3 +124,64 @@ class IterationJournal:
                     best_partition_improvements=self.improvements,
                     progress_log=str(self.path/"events.jsonl"),
                     best_meta=str(self.path/"best.json"))
+
+
+def refine_with_journal(graph, edges, initial, method, restart, graph_number,
+                        cfg, journal):
+    """Use the actual common Flip/KL/ILS algorithms and persist each cycle.
+
+    The callback observes a verified score at every meaningful outer
+    iteration, and archives the highest-scoring binary partition. The
+    candidate ILS walk may deteriorate; only the maximum ever found wins.
+    """
+    from .local_search import improve_by_flips
+    from .eva_elite_search import optimize_kl_fast, optimize_elite
+    x=np.asarray(initial,dtype=np.int8).copy()
+    start_cut=journal._verify(x)
+    journal.observe(dict(stage="Round",iteration=0,
+                         current_cut=start_cut),x.copy())
+    def random(tag):
+        return np.random.default_rng(np.random.SeedSequence(
+            [2026,graph_number,restart,tag]))
+    flip, flip_d=improve_by_flips(
+        graph,x.copy(),random(1313),max_sweeps=20,
+        on_iteration=journal.observe)
+    journal.observe(dict(stage="FlipBest",iteration=flip_d["sweeps"],
+                         current_cut=journal._verify(flip)),flip.copy())
+    kl, kl_d=optimize_kl_fast(
+        graph,flip.copy(),random(101),passes=cfg["kl_passes"],
+        on_iteration=journal.observe)
+    if journal._verify(kl)<journal._verify(flip)-1e-8:
+        kl=flip.copy()
+    journal.observe(dict(stage="KLBest",
+                         iteration=kl_d["passes_improved"],
+                         current_cut=journal._verify(kl)),kl.copy())
+    refiner="Tabu-KL" if method=="control-tabu" else "ILS-KL"
+    final, search=optimize_elite(
+        graph,kl.copy(),[(kl,journal._verify(kl))],random(1401),
+        method=refiner,
+        cycles=cfg["ils_cycles"],kl_passes=cfg["ils_kl_passes"],
+        kick_sizes=(8,16,32,64),temperature=12.,
+        **(dict(tabu_steps=1000,tabu_stagnation=250)
+           if refiner=="Tabu-KL" else {}),
+        on_iteration=journal.observe)
+    journal.observe(dict(stage="ILSBest",iteration=search["cycles_completed"],
+                         current_cut=journal._verify(final)),final.copy())
+    best, best_score=journal.assert_best()
+    if best_score<journal._verify(final)-1e-8:
+        raise AssertionError("Journal lost a feasible ILS improvement")
+    # Existing archive verifier requires exactly Round, Flip, KL, Final.
+    # Here 'Final' means globally BEST SEEN, not the final walking state.
+    stages=dict(Round=start_cut,Flip=journal._verify(flip),
+                KL=journal._verify(kl),Final=best_score)
+    partitions=dict(Round=x,Flip=flip,KL=kl,Final=best)
+    if not (stages["Round"]<=stages["Flip"]+1e-8 and
+            stages["Flip"]<=stages["KL"]+1e-8 and
+            stages["KL"]<=stages["Final"]+1e-8):
+        raise AssertionError("Best-so-far stage ledger is non-monotone")
+    diagnostics=dict(refiner=refiner,flip=flip_d,kl=kl_d,
+                     ils_cycles_completed=search["cycles_completed"],
+                     ils_trace=search["trace"],
+                     ils_improvement_events=search["best_events"],
+                     **journal.summary())
+    return best,stages,diagnostics,partitions
