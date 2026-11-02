@@ -2,6 +2,10 @@
 
 **Snapshot:** 2026-10-29 · **Current research branch:** `experiment021-complete-71-gset` ([PR #51](https://github.com/heri-espino/maxkcut/pull/51), based on Experiment020 [PR #50](https://github.com/heri-espino/maxkcut/pull/50)). **Read [AGENTS.md](AGENTS.md) first** for binding numerical, archive, and workflow rules. This page is an **index**, not a replacement for experiment notes or machine-readable results. Do not assume either PR is merged into `main`.
 
+## Experiment023 benchmark update (GW-RR / reference targets)
+
+**Baseline:** original Goemans–Williamson randomized hyperplane, `gw-rr` / FJ_EVA, not K-MeansNM. The latter remains a secondary method. **Best-known cut:** use the independently audited 71-graph reference table derived by `src/maxkcut/experiment023_references.py`, combining Experiment021, historical G63=26917 and the published 17 toroidal entries with published upper bounds. `cut / best_known` is descriptive unless certified optimum and exact graph identity have been checked. Workflow and final coverage must be verified before claiming completed new experiments.
+
 ## Purpose and scientific distinctions
 
 Explore **Max-Cut / Max-`k`-Cut** using SDP-inspired embeddings, randomized rounding, and **clustering instead of a single random hyperplane**; then improve feasible cuts through signed-graph local search. Inspiration: Rodríguez Fernández (2021), *On the Study of Fitness Landscapes and the Max-Cut Problem* (Chs. 6–7); Rodríguez-Fernández et al. (2020), *Clustering Improves the Goemans–Williamson Approximation*; and Felzenszwalb–Klivans–Paul (2022), *Clustering with Semidefinite Programming and Fixed Point Iteration*. See [research background](notes/background/README.md), [theoretical notes](docs/research.md), and [architecture](docs/architecture.md).
