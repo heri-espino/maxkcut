@@ -56,13 +56,30 @@ SETTINGS={
         cem_generations=30,cem_population=96,gibbs_sweeps=150,
         kl_passes=30,ils_cycles=80,ils_kl_passes=8),
 }
-PROTOCOL="experiment025-gw16-all16-anytime-quality-v2"
+PROTOCOL="experiment025-gw16-all16-anytime-quality-v3"
+
+
+def algorithm_source_sha256():
+    """Pin all current optimizer source code, not the ever-changing results commit.
+
+    Git HEAD changes whenever a checkpoint is pushed, while the experiment
+    source tree must remain identical. Hashing only src/maxkcut/*.py keeps
+    results-only commits resumable and refuses silently mixed code revisions.
+    """
+    src=Path(__file__).resolve().parent
+    digest=hashlib.sha256()
+    for file in sorted(src.glob("*.py")):
+        digest.update(file.name.encode("utf8"))
+        digest.update(b"\\0")
+        digest.update(hashlib.sha256(file.read_bytes()).digest())
+    return digest.hexdigest()
 
 
 def fingerprint(graph_sha,factor_sha,direction_sha,method,phase,settings):
     raw=json.dumps(dict(protocol=PROTOCOL,graph_sha=graph_sha,
          factor_sha=factor_sha,direction_sha=direction_sha,
-         method=method,phase=phase,settings=settings),
+         method=method,phase=phase,settings=settings,
+         optimizer_source_sha256=algorithm_source_sha256()),
          sort_keys=True)
     return hashlib.sha256(raw.encode("utf8")).hexdigest()[:24]
 
@@ -98,6 +115,7 @@ def _status(graph,method,phase,identity,completed,details,started):
        mean_initial=float(np.mean(raws)) if raws else None,
        wall_seconds_this_invocation=time.monotonic()-started,
        selection_metric="max_best_seen_cut_over_all_iterations_and_16_refinements",
+       optimizer_source_sha256=algorithm_source_sha256(),
        method_level_time_cutoff=None,
        deterministic_mst_hybrid=method in MST)
 
