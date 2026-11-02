@@ -40,7 +40,7 @@ def summarize(root=BASE,phase="full"):
             by_graph.append(dict(graph=graph,family=family,weight_class=weight_type,
                 method=method,status=row["status"],graph_methods_complete=int(complete_graph),
                 raw_best=float(row["raw_best"]) if valid else "",
-                raw_mean_from_16=(row.get("raw_mean") or ""), # see archived status for raw mean
+                raw_mean_from_16=(float(row["raw_mean"]) if valid and row["raw_mean"] not in ("", "None") else ""),
                 best_refined_cut=value if valid else "",
                 reference_cut=reference,
                 reference_gap=reference-value if valid else "",
