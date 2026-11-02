@@ -29,7 +29,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: true
-      - name: Recovery preflight and diagnostics - 71 factors, GW-RR, references, three-family pilot
+      - name: Recover complete experiment checkpoints, then rerun G1/G14/G11 pilot
         run: powershell -ExecutionPolicy Bypass -File .\scripts\experiment023-windows.ps1 -Phase pilot
 
   full:
