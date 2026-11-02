@@ -116,3 +116,25 @@ jobs:
       source_sha: ${{ github.sha }}
       optimizer_hash: ${{ needs.validate.outputs.optimizer_hash }}
     secrets: inherit
+
+  report:
+    needs: [validate, batch5]
+    runs-on: [self-hosted, Windows, X64, PCAG103A-13]
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+          lfs: false
+      - name: Publish best-so-far curves across all completed seed prefixes
+        env:
+          EXP_PHASE: ${{ inputs.phase }}
+          EXP_HASH: ${{ needs.validate.outputs.optimizer_hash }}
+        run: |
+          if ($env:RUNNER_NAME -ne 'PCAG103A-13') { throw "Wrong runner: $env:RUNNER_NAME" }
+          ./scripts/experiment025-vm.ps1 -Phase seed-report -ReportPhase $env:EXP_PHASE -ExpectedSourceSha256 $env:EXP_HASH -SkipTests
