@@ -192,7 +192,7 @@ if ($Phase -eq 'coverage') {
     if (-not $report.all_complete) { throw "Experiment incomplete: $($report.completed_cells)/$($report.planned_cells) graph-method cells" }
 } else {
     $graphs=if ($Phase -eq 'pilot') { @('G1','G14','G11') }
-            elseif ($AllGraphs) { @(& $python -c 'from maxkcut.experiment025_bestcut import GRAPH_IDS; print(" ".join(GRAPH_IDS))') -split ' ' }
+            elseif ($AllGraphs) { @((1..67 | ForEach-Object { "G$_" })) + @('G70','G72','G77','G81') }
             else { @($Graph) }
     # AllGraphs phase full explicitly expands the canonical 71 graphs.
     $methods=if ($Method) { @($Method) } else {
