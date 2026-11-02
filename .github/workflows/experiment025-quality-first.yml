@@ -93,9 +93,9 @@ jobs:
       fail-fast: false
       max-parallel: 1
       matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
-    # GitHub does NOT label a runner automatically with its runner name.
-    # Add "PCAG103A-13" as a custom label to runner 21 in repository Settings.
-    runs-on: [self-hosted, Windows, X64, PCAG103A-13]
+    # No custom label required: this runner has only self-hosted, Windows, X64.
+    # The next step validates RUNNER_NAME before any scientific work.
+    runs-on: [self-hosted, Windows, X64]
     timeout-minutes: 360
     defaults:
       run:
