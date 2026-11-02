@@ -1,6 +1,8 @@
-name: "Experiment025 - PCAG103A-13 matched GW16"
+name: "Experiment025 - legacy batch, single-method retry and coverage"
 # Manual pilot first: 54 jobs. Then full-batch 0..5 (213 jobs each).
 # Each graph/method gets 16 full refinements and retains best-ever cut.
+### Preferred launch: experiment025-seed-round.yml (one GW seed across all graphs).
+### This older workflow remains for single graph-method retries and final coverage.
 on:
   workflow_dispatch:
     inputs:
