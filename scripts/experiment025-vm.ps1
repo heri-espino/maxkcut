@@ -21,10 +21,25 @@ param(
     [ValidateRange(1,16)][int]$ChunkSize = 16,
     [string]$ResultsBranch = 'experiment025-results',
     [ValidateRange(1,32)][int]$Workers = 1,
+    [ValidateSet('git','local')][string]$PublishMode = 'git',
     [switch]$SkipTests
 )
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
+function Assert-Experiment025LocalChanges {
+    # Local-only runs may resume over uncommitted numerical checkpoints.
+    # Fail closed on edits anywhere outside the dedicated experiment output tree.
+    $changes = @(& git status --porcelain -uall)
+    if ($LASTEXITCODE -ne 0) { throw 'Could not examine Git worktree' }
+    foreach ($line in $changes) {
+        if (-not $line) { continue }
+        $file = ([string]$line).Substring(3).Replace('\','/').Trim('"')
+        if (-not $file.StartsWith('results/gset/experiment025-gw16-bestcut-quality/',
+                                  [System.StringComparison]::Ordinal)) {
+            throw "Local-only mode refuses unrelated working-tree change: $file"
+        }
+    }
+}
 . (Join-Path $PSScriptRoot 'experiment025-git-branch.ps1')
 # Seed 1..16 is user-facing, but source GW seed indices are 0..15.
 # Seed 0 retains the legacy 16-seed-per-method behavior.
@@ -41,17 +56,26 @@ if ($LASTEXITCODE -ne 0 -or $origin -notmatch '(?i)heri-espino/maxkcut(?:\.git)?
     throw "Origin is not heri-espino/maxkcut: $origin"
 }
 if ($ResultsBranch -ne 'experiment025-results') { throw 'Only the registered Experiment025 results branch is permitted' }
-if ((@(& git status --porcelain)).Count -gt 0) {
-    throw 'Git worktree is not clean. Commit or stash unrelated changes before running.'
+if ($PublishMode -eq 'git') {
+    if ((@(& git status --porcelain)).Count -gt 0) {
+        throw 'Git worktree is not clean. Commit or stash unrelated changes before running.'
+    }
+} else {
+    Assert-Experiment025LocalChanges
 }
 & git lfs version
 if ($LASTEXITCODE -ne 0) { throw 'Git LFS is required. Install Git LFS before executing large iteration archives.' }
 & git lfs install --local
 if ($LASTEXITCODE -ne 0) { throw 'git lfs install failed' }
-& git fetch origin main
-if ($LASTEXITCODE -ne 0) { throw 'Could not fetch current main' }
+if ($PublishMode -eq 'git') {
+    & git fetch origin main
+    if ($LASTEXITCODE -ne 0) { throw 'Could not fetch current main' }
+}
 $branch = Get-Experiment025GitBranch
 if ($branch -ne $ResultsBranch) {
+    if ($PublishMode -eq 'local') {
+        throw 'Local-only mode requires experiment025-results already checked out; it will not switch or pull branches.'
+    }
     # Refuse switching away from another agent's active worktree.
     $existingLocal = @(& git branch --list $ResultsBranch)
     & git ls-remote --exit-code --heads origin $ResultsBranch *> $null
@@ -83,7 +107,11 @@ if ($branch -ne $ResultsBranch) {
 # seeds. The source-tree SHA256 pin will reject mixing changed optimizer code.
 $branch = Get-Experiment025GitBranch
 if ($branch -ne $ResultsBranch) { throw "Unexpected active branch $branch" }
-if ((@(& git status --porcelain)).Count -gt 0) { throw "Dirty worktree after checkout" }
+if ($PublishMode -eq 'git') {
+    if ((@(& git status --porcelain)).Count -gt 0) { throw 'Dirty worktree after checkout' }
+} else {
+    Assert-Experiment025LocalChanges
+}
 $lfsProbe=& git check-attr filter -- 'results/gset/experiment025-gw16-bestcut-quality/full/G11/gw-rr/0000.npz'
 if ($LASTEXITCODE -ne 0 -or "$lfsProbe" -notmatch 'filter: lfs$') {
     throw 'Git LFS attributes not active for Experiment025 partitions'
@@ -196,6 +224,10 @@ if ($LASTEXITCODE -ne 0) { throw 'Python preflight, references or missing factor
 
 function Publish-Checkpoint {
     param([string]$Message)
+    if ($PublishMode -eq 'local') {
+        Write-Host "LOCAL CHECKPOINT: $Message (no Git add, commit or push)"
+        return
+    }
     & git add -A -- 'results/gset/experiment025-gw16-bestcut-quality'
     if ($LASTEXITCODE -ne 0) { throw 'Unable to stage result archives' }
     & git diff --cached --quiet
@@ -265,14 +297,14 @@ if ($Workers -gt 1) {
     # commits and pushes checkpoints. This is NOT the Actions job matrix.
     $parallelArguments=@('scripts/experiment025-parallel.py',
         '--phase',$Phase,'--workers',"$Workers",
-        '--checkpoint-seeds',"$ChunkSize")
+        '--checkpoint-seeds',"$ChunkSize",'--publish-mode',$PublishMode)
     if ($AllGraphs) { $parallelArguments+= '--all-graphs' }
     elseif ($Phase -eq 'full') { $parallelArguments+= @('--graph',$Graph) }
     elseif ($OnlyGraph) { $parallelArguments+= @('--graph',$Graph,'--only-graph') }
     if ($Method) { $parallelArguments+= @('--method',$Method) }
     & $python @parallelArguments
     if ($LASTEXITCODE -ne 0) {
-        throw 'Graph-parallel execution failed. Published checkpoints remain on experiment025-results; inspect per-graph logs before resuming.'
+        throw 'Graph-parallel execution failed. Locally saved checkpoints remain available; inspect per-graph logs before resuming.'
     }
     & $python -m maxkcut.experiment025_bestcut summary --phase $Phase
     if ($LASTEXITCODE -ne 0) { throw 'Parallel coverage summary failed' }
@@ -309,4 +341,8 @@ if ($Workers -gt 1) {
         Publish-Checkpoint "experiment025: updated $Phase status and reference-cut comparisons"
     }
 }
-Write-Host "Experiment025 operation completed for phase $Phase. All tracked results are in $ResultsBranch."
+if ($PublishMode -eq 'local') {
+    Write-Host "Experiment025 $Phase completed locally. Raw checkpoints remain ONLY on this VM until backed up; none were uploaded."
+} else {
+    Write-Host "Experiment025 operation completed for phase $Phase. All tracked results are in $ResultsBranch."
+}
