@@ -1,5 +1,8 @@
 # maxkcut
 
+**Experiment025 latest audit (2026-11-03):** [Run #41570037856](https://github.com/heri-espino/maxkcut/actions/runs/41570037856) succeeded on the university Windows 11 Conda runner for **54 pilot graph-method jobs, GW seed 1 only**. The full 71-graph/16-seed benchmark is **not complete**. Results live on experiment025-results with original signed-cut, per-iteration journals and strict-best partition files. [Detailed successful-run audit and direct 32-worker VM instructions](notes/experiments/experiment025-successful-pilot-parallel-vm.md). Full execution reuses frozen Experiment021 EVA factors; no new SDP solve.
+
+
 Python research library for **Max-Cut** and **Max-$k$-Cut** using semidefinite relaxations, randomized rounding, and spherical $k$-means rounding.
 
 The project is motivated by Ángel Eduardo Rodríguez Fernández's 2021 dissertation (Chapters 6–7). It is experimental research software: **solver success does not imply an exact optimum or a new approximation guarantee**.
