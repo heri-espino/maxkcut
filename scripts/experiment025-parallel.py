@@ -121,13 +121,14 @@ def main() -> int:
     parser.add_argument("--phase", choices=("pilot", "full"), required=True)
     parser.add_argument("--graph", default="G11")
     parser.add_argument("--all-graphs", action="store_true")
+    parser.add_argument("--only-graph", action="store_true")
     parser.add_argument("--method", default="")
     parser.add_argument("--workers", type=int, default=8)
     parser.add_argument("--checkpoint-seeds", type=int, default=16)
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     if not 1 <= args.workers <= 32 or not 1 <= args.checkpoint_seeds <= 16:
-        parser.error("workers and checkpoint-seeds must each be 1..32 and 1..16 respectively")
+        parser.error("workers must be 1..32 and checkpoint-seeds must be 1..16")
     if args.phase == "pilot" and args.all_graphs:
         parser.error("pilot is restricted to G1, G14 and G11")
     # Import only the frozen Experiment025 numerical protocol. This scheduler
@@ -137,8 +138,8 @@ def main() -> int:
         parser.error("Unrecognized graph")
     if args.method and args.method not in METHODS:
         parser.error("Unrecognized method")
-    graphs = (PILOT if args.phase == "pilot" else
-              tuple(GRAPH_IDS) if args.all_graphs else (args.graph,))
+    graphs = ((args.graph,) if args.only_graph else PILOT) if args.phase == "pilot" else (
+        tuple(GRAPH_IDS) if args.all_graphs else (args.graph,))
     methods = (args.method,) if args.method else tuple(METHODS)
     plan = dict(phase=args.phase, graph_count=len(graphs),
                 method_count=len(methods), graph_method_cells=len(graphs)*len(methods),
