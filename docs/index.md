@@ -13,6 +13,7 @@ This documentation describes a Python package for reproducible experiments motiv
 installation
 quickstart
 windows-powershell
+university-vm-experiment025-operations
 experiments
 experiment-archives
 full-gset-sweep
