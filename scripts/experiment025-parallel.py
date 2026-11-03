@@ -75,6 +75,12 @@ def publish(graph: str, phase: str, method: str, completed: int) -> None:
     path = ROOT / phase / graph
     with PUBLISH_LOCK:
         git("add", "-A", "--", path.as_posix())
+        # Root .gitignore excludes *.log: explicitly archive THIS method's
+        # diagnostic transcript without exposing other ignored files or
+        # causing the VM wrapper's clean-worktree check to reject old logs.
+        logfile = path / "logs" / (method + "-parallel.log")
+        if logfile.is_file():
+            git("add", "-f", "--", logfile.as_posix())
         staged = git("diff", "--cached", "--quiet", allow_no_change=True)
         if staged.returncode == 0:
             return
