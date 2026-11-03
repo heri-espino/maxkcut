@@ -11,7 +11,7 @@ import argparse
 import csv
 import json
 from pathlib import Path
-from collections import Counter, defaultdict
+from collections import defaultdict
 
 ROOT = Path("results/gset/experiment025-gw16-bestcut-quality")
 
@@ -80,7 +80,7 @@ def generate_preview(root: Path = ROOT, phase: str = "full") -> str:
     ]
     for method in methods:
         items = by_method[method]
-        lines.append(f"| \`{method}\` | {sum(complete(r) for r in items)}"
+        lines.append(f"| `{method}` | {sum(complete(r) for r in items)}"
                      f" | {sum(int(r['refined_starts']) for r in items)} |")
 
     lines += ["", "## Example graph-level comparisons", ""]
@@ -101,7 +101,7 @@ def generate_preview(root: Path = ROOT, phase: str = "full") -> str:
             best = max(members, key=lambda r: float(r["best_seen_cut"]))
             delta = float(best["best_seen_cut"]) - float(gw["best_seen_cut"])
             lines.append(f"| {graph} | {float(gw['best_seen_cut']):g} | "
-                         f"\`{best['method']}\` | {float(best['best_seen_cut']):g} "
+                         f"`{best['method']}` | {float(best['best_seen_cut']):g} "
                          f"| {delta:+g} |")
 
     lines += [
@@ -119,8 +119,8 @@ def generate_preview(root: Path = ROOT, phase: str = "full") -> str:
         "Methods have unequal computational budgets. Any final method comparison "
         "requires paired-seed analysis and an independent original-graph rescore.",
         "",
-        "Source: \`analysis/" + phase + "_best_final_by_graph.csv\` "
-        "and \`analysis/" + phase + "_coverage.json\`.",
+        "Source: `analysis/" + phase + "_best_final_by_graph.csv` "
+        "and `analysis/" + phase + "_coverage.json`.",
         "",
     ]
     output = analysis / f"{phase}_preview.md"
