@@ -1,3 +1,23 @@
+# Diagnosis confirmed from all three VM tracebacks (2026-11-03)
+
+The user supplied each missing Python traceback. **All three** confirm the SAME checkpoint-write exception, not three unrelated optimizer failures:
+
+| Graph / method | Failed internal seed | Current stage at failure | Journal file |
+| --- | ---: | --- | --- |
+| G56 / mst-l2-longest | 5 | ILS | `full/G56/mst-l2-longest/progress/0005/best.json` |
+| G54 / mst-l2-multicut | 8 | ILS | `full/G54/mst-l2-multicut/progress/0008/best.json` |
+| G67 / cutaware-kmeans | 2 | CutAware initializer | `full/G67/cutaware-kmeans/progress/0002/best.json` |
+
+All three errors propagated from `experiment023_methods.py:79 atomic_json -> os.replace(temp,path)`, with `PermissionError: [WinError 5] Access is denied` replacing `best.json.tmp` with `best.json`. Earlier G44/multigroup-k8 seed 0 failed in the same writer during KL. Crucially **all four failing logs** show invocation via the *unguarded* `python -m maxkcut.experiment025_bestcut single` command.
+
+**Identified software integration defect:** The VM was running the local-only branch's scheduler, which bypassed the narrow Windows I/O wrapper present in the original remote results branch. The local-only implementation [PR #70](https://github.com/heri-espino/maxkcut/pull/70) has now been patched to (a) include `scripts/experiment025-windows-io-guard.py` and (b) dispatch parallel chunks through the guarded launcher. No `src/maxkcut` scientific code, EVA factors or method protocol were changed. Added no-compute simulated transient-lock regression tests. PR merger/deployment and VM restart are **not** implied by this note.
+
+**Operational action when VM idle:** On the active `experiment025-results` branch, fetch PR #70's named head and restore ONLY `scripts/experiment025-parallel.py` and `scripts/experiment025-windows-io-guard.py`; retain existing `scripts/experiment025-vm.ps1` with `-PublishMode local` and every raw checkpoint. Check the changed launcher string and commit only those two scripts locally (PowerShell local-mode preflight forbids unrelated dirty scripts). **Do not push the live results branch or merge into it.** When resumed, the NEW header in each appended parallel log must show the guarded `python scripts/experiment025-windows-io-guard.py single` command.
+
+**Uncertainty:** The OS-level reason for intermittent Windows access denial remains unknown. The guard retries WinError 5/32 with bounded backoff and preserves atomic replacement. Further persistent errors after this change require their own diagnostics. A failed seed may have a partial journal and strict-best checkpoints without a completed seed-level status.
+
+---
+
 # Follow-up interruption — G56, G54, G67 (2026-11-03, user-observed)
 
 **Evidence scope:** The user shared the final console output of a subsequent full local-only VM run. The command exited after the scheduler reported **three** graph-method subprocess failures, with preserved local checkpoints. **Actual Python traceback bodies for these three failures were not supplied**, so the root causes are unknown. Do not assert they were WinError 5 or that the algorithms failed mathematically.
