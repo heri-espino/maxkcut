@@ -133,11 +133,11 @@ def test_unreachable_branch_archived_before_deletion(monkeypatch):
         if args[:2] == ("ls-remote", "--tags"):
             tag = args[-1]
             value = tags.get(tag, "")
-            return SimpleNamespace(stdout=(f"{value}\\t{tag}\\n" if value else ""))
+            return SimpleNamespace(stdout=(f"{value}\t{tag}\n" if value else ""))
         if args[:2] == ("ls-remote", "--heads"):
             b = args[-1].removeprefix("refs/heads/")
             v = refs.get(b)
-            return SimpleNamespace(stdout=(f"{v}\\trefs/heads/{b}\\n" if v else ""))
+            return SimpleNamespace(stdout=(f"{v}\trefs/heads/{b}\n" if v else ""))
         if args[:2] == ("push", "origin"):
             if args[2] == "--delete":
                 name = args[3].removeprefix("refs/heads/")
