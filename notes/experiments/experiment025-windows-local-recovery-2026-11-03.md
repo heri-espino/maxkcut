@@ -1,3 +1,18 @@
+# Safety correction: patch the launcher in place; do NOT restore the whole scheduler
+
+On the Windows VM, the existing local-only parallel driver may include operational changes absent from either remote branch. A full `git restore --source=<other-branch> -- scripts/experiment025-parallel.py` can regress those changes. **Prefer an exact one-line replacement after an out-of-repository backup**, only when the local scheduler and child processes have stopped. Preserve `-PublishMode local` on the existing PowerShell wrapper and all raw checkpoints.
+
+Inside the existing VM repository, the one necessary change is:
+
+    BEFORE: command = [sys.executable, "-m", "maxkcut.experiment025_bestcut",
+    AFTER:  command = [sys.executable, "scripts/experiment025-windows-io-guard.py",
+
+The guard already exists on the VM (a previous isolated G44 PowerShell recovery successfully invoked it). Confirm its presence before editing. The patch does not modify `src/maxkcut/`, optimizer source hash, EVA factors, random seeds or results. Stage and **commit only the modified scheduler locally** before restarting the `-PublishMode local` VM wrapper; never push the uncommitted raw results branch. For the exact minimal command, see the accompanying agent response or current operational handoff.
+
+**This correction supersedes any paragraph below that suggests copying an entire parallel scheduler from PR #70 or another Git branch.** PR #70 now contains an updated guarded local-only launcher and its own regression tests, but remote source and the VM worktree must not be assumed identical.
+
+---
+
 # Diagnosis confirmed from all three VM tracebacks (2026-11-03)
 
 The user supplied each missing Python traceback. **All three** confirm the SAME checkpoint-write exception, not three unrelated optimizer failures:
