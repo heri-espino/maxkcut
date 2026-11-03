@@ -1,3 +1,21 @@
+# Follow-up interruption — G56, G54, G67 (2026-11-03, user-observed)
+
+**Evidence scope:** The user shared the final console output of a subsequent full local-only VM run. The command exited after the scheduler reported **three** graph-method subprocess failures, with preserved local checkpoints. **Actual Python traceback bodies for these three failures were not supplied**, so the root causes are unknown. Do not assert they were WinError 5 or that the algorithms failed mathematically.
+
+| Graph | Failed method | Log path (relative to repo) |
+|---|---|---|
+| G56 | `mst-l2-longest` | `results/gset/experiment025-gw16-bestcut-quality/full/G56/logs/mst-l2-longest-parallel.log` |
+| G54 | `mst-l2-multicut` | `results/gset/experiment025-gw16-bestcut-quality/full/G54/logs/mst-l2-multicut-parallel.log` |
+| G67 | `cutaware-kmeans` | `results/gset/experiment025-gw16-bestcut-quality/full/G67/logs/cutaware-kmeans-parallel.log` |
+
+Each failed with process exit code 1. The parallel scheduler raised `Graph-parallel execution failed. Locally saved checkpoints remain available; inspect per-graph logs before resuming.` at `scripts/experiment025-vm.ps1:307`. Other workers had already saved successful chunks to the VM, e.g., G63/multigroup-k4 16/16, G64/hyperplane-sweep 16/16, and G57/em-gibbs 16/16, before returning `stopped`. **These messages are not evidence that complete earlier seed archives were discarded.**
+
+**Next safe action:** The process has exited, but first verify no Python child or additional writer remains. Read the exact first invocation line and last 70–120 lines of each of the **three** log files; determine whether the code invoked `scripts/experiment025-windows-io-guard.py` or direct `-m maxkcut.experiment025_bestcut`. Check `status.json` and saved seed indices for each failed method, then recover only missing seeds **after diagnosing the exceptions**, and only when the respective graph has no owner. Recalculate local coverage after stopping writers. No new live VM access, output audit, or failure root-cause confirmation was possible in this GitHub documentation-only update.
+
+**Branch caveat:** GitHub `experiment025-results` currently contains the guarded launcher but not the confirmed VM's `-PublishMode local` changes. [PR #70](https://github.com/heri-espino/maxkcut/pull/70) is still open at the time of review. Never pull or overwrite the VM's working local scripts or raw results to resolve this mismatch during computation.
+
+---
+
 # Experiment025 — Windows VM local-only interruption and recovery (2026-11-03)
 
 ## Provenance and status
