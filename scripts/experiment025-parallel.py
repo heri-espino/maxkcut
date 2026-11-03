@@ -69,7 +69,7 @@ def run_graph(graph: str, phase: str, methods: tuple[str, ...], chunk: int,
             if status_file.exists():
                 before = int(json.loads(status_file.read_text(encoding="utf-8"))
                              .get("starts_completed", 0))
-            command = [sys.executable, "-m", "maxkcut.experiment025_bestcut",
+            command = [sys.executable, "scripts/experiment025-windows-io-guard.py",
                        "single", "--graph", graph, "--method", method,
                        "--phase", phase, "--max-new-seeds", str(chunk)]
             print(f"START {phase} {graph} {method}: {before}/16", flush=True)
