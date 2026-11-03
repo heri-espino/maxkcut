@@ -20,6 +20,7 @@ param(
     [switch]$AllGraphs,
     [ValidateRange(1,16)][int]$ChunkSize = 16,
     [string]$ResultsBranch = 'experiment025-results',
+    [ValidateRange(1,32)][int]$Workers = 1,
     [switch]$SkipTests
 )
 $ErrorActionPreference = 'Stop'
@@ -256,7 +257,27 @@ if (-not $SkipTests) {
     & $python -m pytest tests/test_experiment025_bestcut.py tests/test_experiment024_paired_gw16.py tests/test_experiment024_integration.py -q
     if ($LASTEXITCODE -ne 0) { throw 'Numerical integration tests failed: no optimization executed' }
 }
-if ($Phase -eq 'seed-report') {
+if ($Workers -gt 1 -and ($Phase -notin @('pilot','full') -or $Seed -gt 0)) {
+    throw 'Parallel workers are supported only for pilot/full multi-graph runs without -Seed'
+}
+if ($Workers -gt 1) {
+    # Separate graph folders are the parallelization unit; only ONE process
+    # commits and pushes checkpoints. This is NOT the Actions job matrix.
+    $parallelArguments=@('scripts/experiment025-parallel.py',
+        '--phase',$Phase,'--workers',"$Workers",
+        '--checkpoint-seeds',"$ChunkSize")
+    if ($AllGraphs) { $parallelArguments+= '--all-graphs' }
+    elseif ($Phase -eq 'full') { $parallelArguments+= @('--graph',$Graph) }
+    elseif ($OnlyGraph) { $parallelArguments+= @('--graph',$Graph,'--only-graph') }
+    if ($Method) { $parallelArguments+= @('--method',$Method) }
+    & $python @parallelArguments
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Graph-parallel execution failed. Published checkpoints remain on experiment025-results; inspect per-graph logs before resuming.'
+    }
+    & $python -m maxkcut.experiment025_bestcut summary --phase $Phase
+    if ($LASTEXITCODE -ne 0) { throw 'Parallel coverage summary failed' }
+    Publish-Checkpoint "experiment025: updated $Phase parallel coverage report"
+} elseif ($Phase -eq 'seed-report') {
     & $python -m maxkcut.experiment025_seed_progress --phase $ReportPhase
     if ($LASTEXITCODE -ne 0) { throw 'Seed-round cumulative best-so-far report failed' }
     Publish-Checkpoint "experiment025: record $ReportPhase cumulative seed-quality progress"
