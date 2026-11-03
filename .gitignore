@@ -10,3 +10,7 @@ docs/_build/
 reports/
 *.log
 .DS_Store
+
+# Experiment025 VM subprocess tracebacks are essential crash evidence.
+# Preserve only scoped worker logs; leave all unrelated *.log files ignored.
+!results/gset/experiment025-gw16-bestcut-quality/**/logs/*-parallel.log
