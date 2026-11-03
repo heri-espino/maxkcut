@@ -97,3 +97,24 @@ def test_driver_pins_one_git_branch_and_avoids_eva_solver():
     assert "maxkcut.eva_cli" not in source
     assert "ThreadPoolExecutor" in source
     assert "PUBLISH_LOCK" in source
+
+
+def test_worker_log_is_force_staged_only_for_active_method(tmp_path, monkeypatch):
+    driver = load_driver()
+    driver.ROOT = tmp_path / "result"
+    logpath = driver.ROOT / "full" / "G21" / "logs" / "control-paired-parallel.log"
+    logpath.parent.mkdir(parents=True, exist_ok=True)
+    logpath.write_text("PermissionError: [WinError 5] Access is denied")
+    calls = []
+
+    def fake_git(*args, **kwargs):
+        calls.append(args)
+        return SimpleNamespace(returncode=1 if args[:3] == (
+            "diff", "--cached", "--quiet") else 0,
+            stdout="abc123\\n" if args[:2] == ("rev-parse", "HEAD") else "")
+
+    monkeypatch.setattr(driver, "git", fake_git)
+    driver.publish("G21", "full", "control-paired", 2)
+    assert ("add", "-f", "--", logpath.as_posix()) in calls
+    assert ("add", "-A", "--", (driver.ROOT / "full" / "G21").as_posix()) in calls
+    assert calls[-1] == ("push", "origin", "HEAD:experiment025-results")
