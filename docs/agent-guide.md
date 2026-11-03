@@ -1,3 +1,5 @@
+**Latest Experiment025 status (2026-11-03):** Full local computation confirmed by the university VM: all 71×18×16 refinements recorded completed, `all_complete=true`. Independent numerical audit and off-VM backup remain pending. New AI agents should read [the completion/provenance note](../notes/experiments/experiment025-full-local-computation-2026-11-03.md) and [VM runbook](university-vm-experiment025-operations.md), and must not rerun the completed numerical experiment.
+
 # AI coding agent guide
 
 **Experiment025 university VM:** The user reported an active/restarted local-only full experiment on Windows self-hosted PCAG103A-13. Read [operations/paths and Actions-vs-terminal decision guide](university-vm-experiment025-operations.md) and [dated G44 recovery evidence](../notes/experiments/experiment025-windows-local-recovery-2026-11-03.md) before issuing a run command. GitHub remote is not the live local-only result store; do not modify a running checkout. Use a separate PR for documentation or compact results.
