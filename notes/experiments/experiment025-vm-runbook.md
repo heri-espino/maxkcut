@@ -1,5 +1,8 @@
 # Experiment025 — VM execution, storage and recovery (2026-11-02)
 
+**UPDATE 2026-11-03:** This original runbook documents the Git-publishing mode. The user has since demonstrated a **local-only** VM run via `-PublishMode local` and compact preview, with the live/unmerged script-versus-remote distinction documented in [the canonical university VM operations guide](../../docs/university-vm-experiment025-operations.md). The last user-observed local coverage was 755/1,278 completed graph-method cells (59.08%) before a new full launch; see [G44 WinError recovery record](experiment025-windows-local-recovery-2026-11-03.md). Avoid conflicting Actions jobs and do not pull/reset/clean while an experiment is running. Prior Git/LFS-push advice below applies ONLY to explicit Git publication mode, not local-only execution.
+
+
 This is an execution runbook for the original signed Max-Cut quality-first objective. Frozen prior EVA factors (Experiments021, 003, 002) are loaded read-only. Each of 18 methods receives 16 shared GW starts and each start is independently refined by Flip, KL and ILS. The winner is the maximum VERIFIED cut visited at ANY meaningful iteration, even if a subsequent iteration is worse. Runtime is metadata, not a ranking criterion.
 
 ## Four execution issues and their resolution
