@@ -1,5 +1,8 @@
 # maxkcut
 
+**Experiment025 computational sweep COMPLETE locally (2026-11-03):** The university Windows VM completed and rechecked **71 graphs × 18 methods × 16 paired GW starts = 20,448/20,448 seed results**, with **1,278/1,278 complete graph-method cells** and `all_complete=true`. Full iteration archives were saved **only on the VM**, not GitHub. **Independent cut rescore, off-VM backup, paired statistical analysis, and compact Git publication are still pending.** Do NOT repeat the EVA/SDP solve or the finished refinements. [See dated completion/provenance note](notes/experiments/experiment025-full-local-computation-2026-11-03.md) and [VM operations guide](docs/university-vm-experiment025-operations.md). Previous incomplete-progress notes in this README are historical.
+
+
 **Experiment025 university VM handoff (2026-11-03):** Before issuing Windows commands or triggering self-hosted Actions, read [the current operations / exact paths / workflow decision runbook](docs/university-vm-experiment025-operations.md) and [the G44 local-only failure-and-recovery log](notes/experiments/experiment025-windows-local-recovery-2026-11-03.md). The user reported a restarted **local-only** 71-graph study; GitHub does not contain its live progress. Do not touch the active VM checkout, launch competing Actions numerical jobs, recompute EVA, or mistake the last user-observed 755/1,278 complete cells for a live measurement. Proposed storage-mode code: [PR #70](https://github.com/heri-espino/maxkcut/pull/70); backup complete raw archives separately before publishing compact summaries.
 
 
