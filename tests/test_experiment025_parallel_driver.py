@@ -93,7 +93,7 @@ def test_driver_pins_one_git_branch_and_avoids_eva_solver():
               "scripts" / "experiment025-parallel.py").read_text()
     assert "experiment025-results" in source
     assert "scripts/experiment025-windows-io-guard.py" in source
-    assert "maxkcut.experiment025_bestcut" not in source
+    assert "from maxkcut.experiment025_bestcut import GRAPH_IDS, METHODS" in source
     assert "maxkcut.eva_cli" not in source
     assert "ThreadPoolExecutor" in source
     assert "PUBLISH_LOCK" in source
