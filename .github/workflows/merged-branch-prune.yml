@@ -41,6 +41,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Test SHA-pinned cleanup and protected-branch safeguards
+        run: |
+          python -m pip install "pytest>=8"
+          python -m pytest tests/test_prune_merged_branches.py -q
       - name: Inspect SHA-pinned merged branches (read-only)
         run: |
           python scripts/maintenance/prune_merged_branches.py \
