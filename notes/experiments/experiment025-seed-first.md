@@ -107,3 +107,8 @@ overhead but substantially easier to recover than 16 seeds together.
 Results remain on experiment025-results while the study is incomplete.
 After verification, create and merge a separate numerical-results PR
 into main; never overwrite prior EVA factors or Experiments021-024.
+
+
+## Verified successful pilot, 2026-11-03 (supersedes preceding failure incidents)
+
+[Run #41570037856](https://github.com/heri-espino/maxkcut/actions/runs/41570037856) **succeeded**: 54/54 numerical jobs for G1/G14/G11, all 18 method protocols, user-facing seed 1 only. Each seeded result was pushed with signed stage partitions, original-cut iteration journals and strict-best NPZ snapshots to experiment025-results (original pilot final head 9dafbf02). Every method remains partially_refined with starts_completed=1, not complete_16_best_seen. No full-quality 71-graph run was completed. Total Actions wall time was 48m34s, due largely to sequential job checkout/Conda/Git LFS overhead; G1/GW-RR's numerical work was ~1.25s of its ~41s job. The recommended next path is **direct Windows PowerShell with graph-level parallel workers**, see [the run audit and execution handoff](experiment025-successful-pilot-parallel-vm.md), rather than hundreds of serial GitHub jobs. Frozen EVA factors are reused with no new SDP solve.

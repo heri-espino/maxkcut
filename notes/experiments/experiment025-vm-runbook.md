@@ -55,3 +55,19 @@ Optional: -Method gw-rr to select one of the 18 methods; -ChunkSize 4 for more f
 ## Optional GitHub Actions
 
 The manual-only Experiment025 workflow runs one chosen method/graph with a selected 1–16 seed checkpoint size, pinned to a checkout of current main. It uses the same driver and experiment025-results branch. Its individual job remains subject to GitHub's 360-minute platform cap. Prefer the direct VM commands above for prolonged or interrupted graph-method runs.
+
+
+## Audited execution update — 2026-11-03
+
+The first successful [seed-first pilot run #41570037856](https://github.com/heri-espino/maxkcut/actions/runs/41570037856) completed G1/G14/G11 × 18 methods × **only seed 1**, 54/54 numerical jobs, with all stage partitions, intermediate scores, and strict-best binary snapshots pushed to experiment025-results. Every pilot method remains partially_refined (1/16); **the 71-graph full run has not occurred**. See [the detailed audit and handoff](experiment025-successful-pilot-parallel-vm.md).
+
+For the preferred direct university Windows 11 + existing maxkcut Conda mode, ensure both operational scripts are present **on experiment025-results** and invoke:
+
+    git fetch origin experiment025-results
+    git switch experiment025-results
+    git pull --ff-only origin experiment025-results
+    powershell.exe -NoProfile -File .\scripts\experiment025-vm.ps1 -Phase full -AllGraphs -Workers 32
+
+For lower RAM usage use -Workers 4 or 8; add -ChunkSize 4 to push after every four new seeds per method rather than the default 16. The driver runs independent graph subprocesses, never EVA solves; Git commits and LFS pushes are serialized in one parent process. The existing -Workers 1 serial path is preserved. Pilot has only three graphs and hence at most three simultaneous workers. Never let another VM/Actions writer publish into experiment025-results concurrently. Unsynchronized newest per-iteration events can be local-only until the next Git checkpoint.
+
+**Branch caveat:** If [PR #66](https://github.com/heri-espino/maxkcut/pull/66) is not merged, DO NOT launch the stale version from main: PowerShell loads its parameters before switching to the results branch. The operational scripts have been installed directly on experiment025-results without changing src/maxkcut numerical source files or EVA factors. No 32-worker full numerical performance measurement has yet been made.
