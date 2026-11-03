@@ -1,7 +1,11 @@
 # Branch cleanup and scientific provenance — 2026-11-03
 
 This repository historically kept a branch for every experiment, CI repair, or
-research note. The 2026-11-03 inventory found 70 remote branches and 68 pull
+research note. **The 2026-11-03 cleanup completed successfully:** 62/62
+merged branches removed, 31 permanent archive tags verified, zero skips,
+and nine branches remaining. See the [verified execution
+report](branch-cleanup-verified-2026-11-03.md) and
+[Actions run #41660307392](https://github.com/heri-espino/maxkcut/actions/runs/41660307392). The 2026-11-03 inventory found 70 remote branches and 68 pull
 requests, of which 62 distinct *merged* PR heads remained as branches. Both
 primary branches were also present:
 
