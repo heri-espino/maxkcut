@@ -635,8 +635,6 @@ Source: Experiment021 note; `paired_vs_original_kmeansnm.csv`.
 
 ---
 
----
-
 <!-- _class: chapter -->
 
 # 6. Does graph topology explain the best initializer?
