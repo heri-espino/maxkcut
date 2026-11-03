@@ -75,3 +75,9 @@ After confirming no competing writer, preserve the three small diagnostic logs i
 Relevant files: `AGENTS.md`, `RESEARCH_HANDOFF.md`, `notes/experiments/experiment025-successful-pilot-parallel-vm.md`, `notes/experiments/experiment025-vm-runbook.md`, `scripts/experiment025-parallel.py`, `scripts/experiment025-vm.ps1`, `src/maxkcut/experiment025_bestcut.py`, `src/maxkcut/experiment025_journal.py`, and `tests/test_experiment025_parallel_driver.py`.
 
 This note records evidence and an investigation plan. It is **not** a claim that the Python failures have been repaired or the full sweep has been restarted.
+
+## Traceback follow-up, 2026-11-03 (supersedes the initial uncertainty)
+
+The operator supplied all three Windows subprocess logs. Each failed during atomic replacement of the progress pointer `best.json.tmp` → `best.json` in `src/maxkcut/experiment023_methods.py:79`, called from `experiment025_journal.py:98`. Python raised `PermissionError: [WinError 5] Access is denied`: G21/control-paired during KMeansNM seed 3; G10/control-paired during KMeansNM seed 8; G20/gw-threshold during Flip seed 7 (human 1-based numbers). The immediate failure is a Windows filesystem replacement denial, **not** a demonstrated defect of Max-Cut arithmetic or a missing EVA factor. The specific external file-locking process remains unidentified.
+
+Operational mitigation, mock regression tests, unchanged source-fingerprint design, and safe one-seed resume procedure are in [PR #68](https://github.com/heri-espino/maxkcut/pull/68), documented in `notes/experiments/experiment025-winerror5-checkpoint-recovery.md` on that branch. PR #68 is not a claim of a successful Windows live retry. This first-pass note is preserved as chronological evidence.
