@@ -58,9 +58,6 @@ Experiments 001–025 · 3 November 2026
 
 ---
 
-
----
-
 <!-- _class: compact -->
 
 ## New result — Experiment025 has finished its numerical sweep
@@ -78,6 +75,8 @@ Experiments 001–025 · 3 November 2026
 **Status boundary:** computation is complete; independent full-archive verification, off-VM backup and paired individual-seed inference are still pending.
 
 Source: Experiment025 local completion note and uploaded full 1,278-row aggregate CSV. No EVA/SDP was recomputed.
+
+---
 
 ## Historical milestone — Experiment021
 
