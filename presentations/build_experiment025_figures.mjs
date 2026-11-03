@@ -166,10 +166,9 @@ function makeFigures(outcomeCSV,featureCSV,rankingCSV){
         x+=w;
       }
     });
-    let lx=45;
     for(let i=0;i<[...leaders,"Other"].length;i++){
-      const m=[...leaders,"Other"][i],wid=i>=4?220:205;
-      b.push(rect(lx,490,14,14,cols[m],3),t(lx+20,503,label(m),13,INK,600));lx+=wid;
+      const m=[...leaders,"Other"][i],lx=45+(i%4)*280,ly=481+Math.floor(i/4)*30;
+      b.push(rect(lx,ly,14,14,cols[m],3),t(lx+20,ly+13,label(m),13,INK,600));
     }
     b.push(t(45,556,"Each graph contributes exactly one winner credit, divided equally among tied methods.",14,MUTED));
     files["experiment025_family_fractional_winners.svg"]=box(1200,577,"Which methods win within each generator family?","Fractional in-sample winner credit among all 18 methods; ties split 1/k",b);
