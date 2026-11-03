@@ -6,7 +6,7 @@
     "main",
     "experiment025-results"
   ],
-  "policy": "Only verified merged and unchanged branch tips may be deleted. Unmerged heads are preserved; no force-push, no hard reset, no result modifications. Confirm tip ancestry in main or experiment025-results before delete.",
+  "policy": "Delete only unchanged branch tips with a confirmed merged PR. If tip not reachable from main/results, first archive its exact commit under refs/tags/archive/merged/<branch> and confirm remote tag SHA. Never delete main, experiment025-results, or the six unmerged research heads. No force push, reset, or artifact rewriting.",
   "merged_candidates": [
     {
       "branch": "docs/chapter7-maxkcut-background-20261024",
