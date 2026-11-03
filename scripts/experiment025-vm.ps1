@@ -33,7 +33,7 @@ function Assert-Experiment025LocalChanges {
     if ($LASTEXITCODE -ne 0) { throw 'Could not examine Git worktree' }
     foreach ($line in $changes) {
         if (-not $line) { continue }
-        $file = ([string]$line).Substring(3).Replace('\\','/').Trim('"')
+        $file = ([string]$line).Substring(3).Replace('\','/').Trim('"')
         if (-not $file.StartsWith('results/gset/experiment025-gw16-bestcut-quality/',
                                   [System.StringComparison]::Ordinal)) {
             throw "Local-only mode refuses unrelated working-tree change: $file"
@@ -304,7 +304,7 @@ if ($Workers -gt 1) {
     if ($Method) { $parallelArguments+= @('--method',$Method) }
     & $python @parallelArguments
     if ($LASTEXITCODE -ne 0) {
-        throw 'Graph-parallel execution failed. Published checkpoints remain on experiment025-results; inspect per-graph logs before resuming.'
+        throw 'Graph-parallel execution failed. Locally saved checkpoints remain available; inspect per-graph logs before resuming.'
     }
     & $python -m maxkcut.experiment025_bestcut summary --phase $Phase
     if ($LASTEXITCODE -ne 0) { throw 'Parallel coverage summary failed' }
