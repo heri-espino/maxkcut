@@ -34,11 +34,53 @@ def git(*args: str, allow_no_change: bool = False) -> subprocess.CompletedProces
     return result
 
 
+def push_with_confirmation() -> None:
+    """Treat an ambiguous push as success only if GitHub has our exact SHA.
+
+    No force pushes, automatic rebases or retries for non-fast-forward errors.
+    A transient transport failure is retried at most twice, with receipt checks.
+    """
+    import re
+
+    local_sha = git("rev-parse", "HEAD").stdout.strip()
+    transport = re.compile(
+        r"RPC failed|curl [0-9]+|Connection was aborted|"
+        r"unexpected disconnect|remote end hung up|connection reset",
+        re.IGNORECASE)
+    for attempt in range(3):
+        try:
+            git("push", "origin", f"HEAD:{RESULTS_BRANCH}")
+            return
+        except RuntimeError as error:
+            # A Git client may exit 1 after GitHub actually updated its ref.
+            try:
+                result = git("ls-remote", "origin", f"refs/heads/{RESULTS_BRANCH}")
+                remote_sha = result.stdout.split()[0] if result.stdout.strip() else ""
+            except RuntimeError:
+                remote_sha = ""
+            if remote_sha == local_sha:
+                print("CONFIRMED remote SHA after ambiguous Git push failure",
+                      flush=True)
+                return
+            if attempt == 2 or not transport.search(str(error)):
+                raise
+            delay = 2 * (attempt + 1)
+            print(f"Transient push failure (attempt {attempt + 1}/3); "
+                  f"retry in {delay}s; remote SHA != local SHA", flush=True)
+            time.sleep(delay)
+
+
 def publish(graph: str, phase: str, method: str, completed: int) -> None:
     """Publish only a finished graph's files; no other process mutates Git."""
     path = ROOT / phase / graph
     with PUBLISH_LOCK:
         git("add", "-A", "--", path.as_posix())
+        # Root .gitignore excludes *.log: explicitly archive THIS method's
+        # diagnostic transcript without exposing other ignored files or
+        # causing the VM wrapper's clean-worktree check to reject old logs.
+        logfile = path / "logs" / (method + "-parallel.log")
+        if logfile.is_file():
+            git("add", "-f", "--", logfile.as_posix())
         staged = git("diff", "--cached", "--quiet", allow_no_change=True)
         if staged.returncode == 0:
             return
@@ -47,7 +89,7 @@ def publish(graph: str, phase: str, method: str, completed: int) -> None:
             "commit", "-m", f"experiment025: {phase} {graph} {method} {completed}/16 parallel checkpoint")
         # Do not rebase/reset/force-push while other graphs write to disk.
         # A competing writer causes a rejected push and a fail-closed stop.
-        git("push", "origin", f"HEAD:{RESULTS_BRANCH}")
+        push_with_confirmation()
         print(f"PUBLISHED {phase} {graph} {method}: {completed}/16", flush=True)
 
 
@@ -68,7 +110,8 @@ def run_graph(graph: str, phase: str, methods: tuple[str, ...], chunk: int) -> d
             if status_file.exists():
                 before = int(json.loads(status_file.read_text(encoding="utf-8"))
                              .get("starts_completed", 0))
-            command = [sys.executable, "-m", "maxkcut.experiment025_bestcut",
+            # Operational I/O retry wrapper only; numerical source stays frozen.
+            command = [sys.executable, "scripts/experiment025-windows-io-guard.py",
                        "single", "--graph", graph, "--method", method,
                        "--phase", phase, "--max-new-seeds", str(chunk)]
             print(f"START {phase} {graph} {method}: {before}/16", flush=True)

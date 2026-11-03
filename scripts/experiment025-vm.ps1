@@ -227,7 +227,7 @@ function Execute-One {
     $logfile=Join-Path $logdir "$M-vm.log"
     if ($Seed -gt 0) {
         $seedIndex=$Seed-1
-        & $python -m maxkcut.experiment025_bestcut single --graph $G --method $M --phase $Part --seed-index $seedIndex 2>&1 | Tee-Object -FilePath $logfile -Append
+        & $python scripts/experiment025-windows-io-guard.py single --graph $G --method $M --phase $Part --seed-index $seedIndex 2>&1 | Tee-Object -FilePath $logfile -Append
         $exit=$LASTEXITCODE
         Publish-Checkpoint "experiment025: $Part $G $M matched GW seed $Seed"
         if ($exit -ne 0) { throw "Experiment025 seed $Seed on $G/$M failed; inspect journal" }
@@ -240,7 +240,7 @@ function Execute-One {
     $tryCount=[int][math]::Ceiling(16.0/$ChunkSize)
     for($chunk=1; $chunk -le $tryCount; $chunk++) {
         # Neither Python nor PowerShell imposes a method-level time budget.
-        & $python -m maxkcut.experiment025_bestcut single --graph $G --method $M --phase $Part --max-new-seeds $ChunkSize 2>&1 | Tee-Object -FilePath $logfile -Append
+        & $python scripts/experiment025-windows-io-guard.py single --graph $G --method $M --phase $Part --max-new-seeds $ChunkSize 2>&1 | Tee-Object -FilePath $logfile -Append
         $exit=$LASTEXITCODE
         # Retain all locally finished iterations AND upload completed seeds.
         Publish-Checkpoint "experiment025: $Part $G $M progress block $chunk"
