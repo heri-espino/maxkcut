@@ -48,8 +48,9 @@ The original source-preserving direct script is scripts/experiment025-vm.ps1. Th
 
 Start in your **interactive Windows PowerShell 5.1 console** in the local cloned repository. Ensure no other Actions workflows, agents, PCs, or processes are currently writing experiment025-results. Work from a clean checkout; Git credentials and Git LFS must be configured. The PowerShell wrapper discovers the existing Conda maxkcut environment, sets its Library/bin DLL search PATH, uses its precise python.exe, sets OPENBLAS_NUM_THREADS=MKL_NUM_THREADS=OMP_NUM_THREADS=NUMBA_NUM_THREADS=1 for every worker, validates source SHA and data, and switches safely to experiment025-results.
 
-    git switch main
-    git pull --ff-only origin main
+    git fetch origin experiment025-results
+    git switch experiment025-results
+    git pull --ff-only origin experiment025-results
     git lfs install
 
     # Pilot only: G1, G14, G11, so at most 3 parallel graph workers.
