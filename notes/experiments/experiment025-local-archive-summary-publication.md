@@ -49,3 +49,20 @@ python -m pytest tests/test_experiment025_parallel_driver.py tests/test_experime
 ```
 
 No numerical seed, EVA factor, or SDP is recomputed by these tests.
+
+
+## Second Windows access-denied interruption, root cause and protected parallel launcher (2026-11-03)
+
+Four observed failures — G44/multigroup-k8 seed index 0, G56/mst-l2-longest index 5, G54/mst-l2-multicut index 8, and G67/cutaware-kmeans index 2 — all raised `PermissionError: [WinError 5]` during the atomic `os.replace(best.json.tmp, best.json)` checkpoint write. Every failed parallel log's first line launched `python -m maxkcut.experiment025_bestcut single`, **bypassing the guarded Windows I/O launcher**. These were checkpoint I/O failures, not proven mathematical defects. Exact Windows lock owner remains unknown.
+
+**Fix in this PR:** The local-only parallel driver now dispatches `python scripts/experiment025-windows-io-guard.py single ...`, and that guard is included in this branch (copied from the existing experiment025-results branch). The guard retries WinError 5/32 on approved atomic JSON/NPZ replacement targets using bounded backoff. No optimizer or EVA source under `src/maxkcut/` changes; seed identity, algorithms and fingerprint are unchanged. Added no-compute tests require guarded invocation and verify retries only for expected Windows failures.
+
+**VM deployment only when all scheduler and child processes have stopped:**
+
+1. Stay on `experiment025-results` with all raw local-only checkpoints intact; do not reset, clean or change branches.
+2. `git fetch origin experiment025-local-summary-only`, then restore **only** `scripts/experiment025-parallel.py` and `scripts/experiment025-windows-io-guard.py` from that fetched ref. Do not restore numerical source or results and do not overwrite the working local-only PowerShell wrapper.
+3. Inspect the modified script to confirm it retains `--publish-mode local` and launches the guarded module; **commit only those two scripts locally**, not the raw-result tree, because local-mode PowerShell preflight rejects unrelated dirty scripts. Do not push `experiment025-results`: older unpushed LFS commits may be sent.
+4. Run no-compute source/tests where installed and verify the scientific fingerprint is still the frozen Experiment025 SHA. On resume, every **new** parallel log invocation should begin with `python.exe scripts/experiment025-windows-io-guard.py single ...`.
+5. Continue using the prior command `powershell.exe -NoProfile -File .\scripts\experiment025-vm.ps1 -Phase full -AllGraphs -Workers 16 -ChunkSize 16 -PublishMode local`. Completed seed archives are reused after fingerprint validation. Existing older unguarded log entries remain in append-only logs, but future guarded invocations show the new command. The guard reduces transient Windows lock failures; it does not identify or eliminate the underlying OS lock owner.
+
+See [the canonical university VM operations guide](../../docs/university-vm-experiment025-operations.md) and its linked November 3 incident addendum. Re-evaluate any repeated error even after guarded retries.
