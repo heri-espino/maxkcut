@@ -1,3 +1,5 @@
+> **STATUS UPDATE — COMPLETED COMPUTATIONAL SWEEP (2026-11-03):** The user-provided scheduler output and a separately rerun aggregate both confirm **1,278/1,278 graph-method cells complete, 20,448/20,448 recorded seed checkpoints, 71/71 fully covered graphs; `all_complete=true`**. This *supersedes* the 755/1,278 snapshot and "restarted/live" statements later in this runbook, which remain dated historical context. All raw iterations remain VM-local; independently verified original graph rescoring, off-VM backup, paired-seed statistics and compact GitHub publication are **not yet done**. Do not rerun the entire numerical campaign. See [latest evidence and next-agent plan](../notes/experiments/experiment025-full-local-computation-2026-11-03.md).
+
 # University Windows VM: Experiment025 operations and agent handoff
 
 **Observed on November 3, 2026.** The user reported restarting the full local-only experiment on the university Windows VM. Live process state is **unknown from GitHub**. An agent must never pull, switch branches, run another experiment, reset, clean, change scripts or merge into the active results worktree.
