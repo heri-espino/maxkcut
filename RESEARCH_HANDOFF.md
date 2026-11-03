@@ -1,5 +1,14 @@
 # Research handoff — maxkcut
 
+## LATEST VERIFIED STATUS — Experiment025 (2026-11-03)
+
+[Successful run #41570037856](https://github.com/heri-espino/maxkcut/actions/runs/41570037856) completed 54/54 graph-method numerical PILOT jobs (G1/G14/G11 × 18 protocols; GW seed 1 only) on the Windows university PCAG103A-13. The 63 successful workflow jobs took 48m34s overall, largely due to GitHub Actions serial per-cell checkout, Conda preflight, commit and Git LFS push. The G1 GW-RR numerical search itself took ~1.25s of its ~41s Actions job. The durable pilot snapshots are committed to **experiment025-results** (head 9dafbf02), with per-iteration JSONL and strict-best partition NPZ. No full/ archive exists; each of the 54 pilot statuses has starts_completed=1/16, status=partially_refined. Never call this the full run or rank full methods using these short-setting pilot scores.
+
+**Preferred next execution:** Direct Windows PowerShell 5.1 using existing maxkcut Conda, frozen Experiment021 EVA factors and source-pinned Experiment025 algorithms. The new graph-parallel driver supports 1..32 Python workers with a SINGLE Git publisher; 32 logical processors do not imply 32 safe simultaneous memory-heavy factors. Full command after syncing the operational scripts onto experiment025-results: powershell.exe -NoProfile -File .\scripts\experiment025-vm.ps1 -Phase full -AllGraphs -Workers 32 (or -Workers 8 -ChunkSize 4). Reuse completed seeds and save all meaningful iteration cuts, binary strict-best improvements, signed graph/factor/source SHA and logs. **Do not recompute SDP/EVA.** Full design is 71 graphs × 18 methods × 16 GW seeds = 20,448 independent full refinements. Do not publish full scientific results until 1278/1278 cells are complete_16_best_seen and verified.
+
+**Read the complete audit and recovery instructions:** [notes/experiments/experiment025-successful-pilot-parallel-vm.md](notes/experiments/experiment025-successful-pilot-parallel-vm.md). Earlier incident sections below describe failures **before** the successful run and must be read chronologically, not as the present status.
+
+
 **Snapshot:** 2026-10-29 · **Current research branch:** `experiment021-complete-71-gset` ([PR #51](https://github.com/heri-espino/maxkcut/pull/51), based on Experiment020 [PR #50](https://github.com/heri-espino/maxkcut/pull/50)). **Read [AGENTS.md](AGENTS.md) first** for binding numerical, archive, and workflow rules. This page is an **index**, not a replacement for experiment notes or machine-readable results. Do not assume either PR is merged into `main`.
 
 ## Experiment025 live Windows pilot verification and second detached-HEAD incident (2026-11-02)
