@@ -1,0 +1,97 @@
+
+=== 2026-11-03T05:47:21Z C:\Users\175199\AppData\Local\miniconda3\envs\maxkcut\python.exe -m maxkcut.experiment025_bestcut single --graph G9 --method gw-rr --phase full --max-new-seeds 16 ===
+{
+  "graph": "G9",
+  "method": "gw-rr",
+  "phase": "full",
+  "fingerprint": "fe12f402a142bfd5380191b9",
+  "status": "complete_16_best_seen",
+  "starts_completed": 16,
+  "starts_requested": 16,
+  "completed_seed_indices": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15
+  ],
+  "current_best_seed_index": 1,
+  "all_starts_independently_refined": true,
+  "selected_seed_index": 1,
+  "best_final": 2037.0,
+  "best_seen": 2037.0,
+  "best_initial": 1807.0,
+  "best_last_ils_candidate": 2037.0,
+  "mean_final": 1997.75,
+  "mean_best_seen": 1997.75,
+  "mean_initial": 1719.0625,
+  "wall_seconds_this_invocation": 14.531000000424683,
+  "selection_metric": "max_best_seen_cut_over_all_iterations_and_16_refinements",
+  "optimizer_source_sha256": "99c0b15ea1309f1a0931e3baba6735f79a1eb6622567d8f27e66be13a898f8ad",
+  "method_level_time_cutoff": null,
+  "deterministic_mst_hybrid": false,
+  "reference_cut": 2050.0,
+  "reference_comparison": {
+    "reference_gap": 13.0,
+    "fraction_of_reference": 0.9936585365853658,
+    "reference_assessment": "BELOW_REFERENCE"
+  },
+  "graph_sha256": "55d03dfd049a2340be31a7004e019ac1c299426b8f4dae7f16b99f977835641c",
+  "factor_sha256": "0441319cd3aa3e54b4fee36f2c21d2aa5a4c46f31c2bc4d13a7c5e84323e4cfe",
+  "shared_directions_sha256": "668e959a20ecb9e460cfcdacae962ed8b3badd60ab00ff6cbf320aaee4c84280",
+  "evaluated_independent_refinements": 16,
+  "original_signed_cut_rescored": true,
+  "best_final_partition_path": "0001.npz",
+  "winning_progress_log": "gw-rr/progress/0001/events.jsonl",
+  "winning_best_meta": "gw-rr/progress/0001/best.json"
+}
+
+EXIT_CODE=0
+
+=== 2026-11-03T17:21:10Z C:\Users\175199\AppData\Local\miniconda3\envs\maxkcut\python.exe scripts/experiment025-windows-io-guard.py single --graph G9 --method gw-rr --phase full --max-new-seeds 4 ===
+Traceback (most recent call last):
+  File "C:\Users\175199\maxkcut\scripts\experiment025-windows-io-guard.py", line 95, in <module>
+    main()
+  File "C:\Users\175199\maxkcut\scripts\experiment025-windows-io-guard.py", line 88, in main
+    runpy.run_module("maxkcut.experiment025_bestcut",
+  File "<frozen runpy>", line 222, in run_module
+  File "<frozen runpy>", line 112, in _get_module_details
+  File "C:\Users\175199\maxkcut\src\maxkcut\__init__.py", line 5, in <module>
+    from .io import load_graph, edge_arrays
+  File "C:\Users\175199\maxkcut\src\maxkcut\io.py", line 6, in <module>
+    from scipy import sparse
+  File "<frozen importlib._bootstrap>", line 1412, in _handle_fromlist
+  File "C:\Users\175199\AppData\Local\miniconda3\envs\maxkcut\Lib\site-packages\scipy\__init__.py", line 137, in __getattr__
+    return _importlib.import_module(f'scipy.{name}')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\175199\AppData\Local\miniconda3\envs\maxkcut\Lib\importlib\__init__.py", line 90, in import_module
+  File "C:\Users\175199\AppData\Local\miniconda3\envs\maxkcut\Lib\site-packages\scipy\sparse\__init__.py", line 251, in <module>
+    from ._csr import *
+  File "C:\Users\175199\AppData\Local\miniconda3\envs\maxkcut\Lib\site-packages\scipy\sparse\_csr.py", line 15, in <module>
+    from ._compressed import _cs_matrix
+  File "C:\Users\175199\AppData\Local\miniconda3\envs\maxkcut\Lib\site-packages\scipy\sparse\_compressed.py", line 8, in <module>
+    from scipy._lib._util import _prune_array, copy_if_needed
+  File "C:\Users\175199\AppData\Local\miniconda3\envs\maxkcut\Lib\site-packages\scipy\_lib\_util.py", line 16, in <module>
+    from scipy._lib._array_api import (Array, array_namespace, is_lazy_array, is_numpy,
+  File "C:\Users\175199\AppData\Local\miniconda3\envs\maxkcut\Lib\site-packages\scipy\_lib\_array_api.py", line 24, in <module>
+    from scipy._external.array_api_compat import (
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 1091, in get_code
+  File "<frozen importlib._bootstrap_external>", line 1191, in get_data
+KeyboardInterrupt
+
+EXIT_CODE=3221225786
