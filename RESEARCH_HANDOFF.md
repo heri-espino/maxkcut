@@ -1,5 +1,9 @@
 # Research handoff — maxkcut
 
+## FULL PARALLEL VM INTERRUPTION — 2026-11-03
+
+The first 32-worker **Experiment025 full-phase** direct-VM execution partially succeeded and then stopped. Numerous validated 16/16 graph-method checkpoints are on `experiment025-results`. Three numerical subprocesses exited nonzero (G21/control-paired, G10/control-paired, G20/gw-threshold) with **2, 7, and 6** finished seed archives respectively; G24/control-paired's reported Git `curl 55` push error is contradicted by its remotely confirmed 16/16 checkpoint. The root cause of the numerical errors remains **unknown** because `*.log` is ignored by Git. **Do not erase the local logs, reset results, recompute EVA, or blindly restart 32 workers.** Read [the incident audit and recovery runbook](notes/experiments/experiment025-full-windows-parallel-interruption.md) and inspect the actual local tracebacks, Git ref divergence, and saved seed hashes first. This incident supersedes the previous status describing only a successful pilot.
+
 ## LATEST VERIFIED STATUS — Experiment025 (2026-11-03)
 
 [Successful run #41570037856](https://github.com/heri-espino/maxkcut/actions/runs/41570037856) completed 54/54 graph-method numerical PILOT jobs (G1/G14/G11 × 18 protocols; GW seed 1 only) on the Windows university PCAG103A-13. The 63 successful workflow jobs took 48m34s overall, largely due to GitHub Actions serial per-cell checkout, Conda preflight, commit and Git LFS push. The G1 GW-RR numerical search itself took ~1.25s of its ~41s Actions job. The durable pilot snapshots are committed to **experiment025-results** (head 9dafbf02), with per-iteration JSONL and strict-best partition NPZ. No full/ archive exists; each of the 54 pilot statuses has starts_completed=1/16, status=partially_refined. Never call this the full run or rank full methods using these short-setting pilot scores.
