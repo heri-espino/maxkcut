@@ -30,9 +30,15 @@ python scripts/maintenance/prune_merged_branches.py
 python scripts/maintenance/prune_merged_branches.py --execute
 ```
 
-Before deleting a branch, the script verifies its current remote SHA exactly
-matches the recorded SHA and that its tip is an ancestor of `main` or
-`experiment025-results`. It checks again immediately before each deletion.
+Before deleting a branch, the script verifies that its current remote SHA
+exactly matches the recorded SHA. The hosted non-mutating preflight determined
+that **31/62 candidate tips were reachable** from `main` or
+`experiment025-results`. For the other **31 merged-but-unreachable tips**,
+the script first publishes `refs/tags/archive/merged/<original-branch-name>`
+at the **exact original SHA**, confirms the remote tag receipt, and only
+then permits deletion. These tags preserve unique commits even if a PR was
+squash-merged or its feature head later advanced. All tips are checked again
+immediately before deletion; no archive tag is overwritten.
 It refuses an unexpected origin, missing primary branches or missing unmerged
 research branches. It never uses force-push, rebase, or history rewriting.
 
@@ -40,7 +46,8 @@ The one-time GitHub Actions workflow `.github/workflows/merged-branch-prune.yml`
 has a non-mutating PR audit and a deletion step invoked **only when the
 reviewed inventory first lands on main** (or deliberately dispatched with the
 explicit delete input). It uses a hosted runner and a GitHub-generated short-
-lived token, never the university's active Windows worktree. Its JSON audit
+lived token, never the university's active Windows worktree. The archived
+Git tags are not new experiments or validated cuts; they preserve history. Its JSON audit
 is uploaded as a GitHub Actions artifact. If a branch advances, it is skipped
 rather than deleted.
 
