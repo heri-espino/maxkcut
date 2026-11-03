@@ -198,3 +198,77 @@ This is **59.08% complete graph-method cells**, at least 12,080 full seed trajec
 **Final completion requires** 1,278/1,278 complete 16-seed cells; 20,448 independently verified seed partitions; all_complete=true; independent rescoring of original signed cuts and hashes; paired GW comparisons, topology and uncertainty; documented unequal method effort and best-known-versus-proven-optimum limits; verified off-VM backup; compact reviewed results PR.
 
 **Successor agent handoff after every incident:** date/time and timezone, runner host, branch and optimizer source hash, exact command/flags, live versus stopped process, log path, graph/method/seed, failure type/root-cause confidence, recovery outcome, *VM-local* and *GitHub-confirmed* coverage separately, backup state, PR, and next safe command. Do not infer VM status from a stale remote commit.
+
+
+## 9. How to access the VM / self-hosted runner (without conflating them)
+
+The user must **log into the managed Windows 11 university machine** using the university's authorized method. No RDP address, university account password, scheduled-task name, Windows service installation, or Actions runner installation folder was verified; **do not invent them**.
+
+- For **direct research computation**, open Windows PowerShell 5.1, enter the repository (Set-Location "$env:USERPROFILE\maxkcut"), use the existing maxkcut Conda interpreter, and run the scripts in section 4. **The GitHub runner does not need to be online** for direct terminal computation. The script normally discovers Conda; if needed, activate with conda activate maxkcut in the existing Conda-enabled shell.
+- For **GitHub Actions self-hosted jobs**, the runner listener must be **online**. Check https://github.com/heri-espino/maxkcut/settings/actions/runners/21 or Settings → Actions → Runners (requires authorization). The prior setup preferred an **interactive, logged-on-only runner**, but the exact auto-start task and runner folder have **not** been verified by this handoff. Check with:
+
+      Get-CimInstance Win32_Process | Where-Object { $_.Name -match 'Runner\.(Listener|Worker)' } | Select-Object Name, ProcessId, ExecutablePath, CommandLine
+      Get-ScheduledTask | Where-Object { $_.TaskName -match 'runner|GitHub' } | Select-Object TaskName, State
+
+  These are **inspection commands only**. If none are found, do not assume the runner is installed incorrectly: it may be idle/offline, installed elsewhere, or the task named differently. Do not install a second runner, enable a Windows service, update runner credentials, or modify university login/startup policy without authorization.
+- The current physical PC is shared university infrastructure. Minimize unexpected load, respect the logged-on-only preference, and do not use Actions to bypass institutional access controls.
+
+## 10. Concrete backup and compact-publication procedure (only after writers stop)
+
+**Step 1: choose an approved backup location.** The example below deliberately requires the operator to supply the destination; no actual off-VM share address has been verified:
+
+    Set-Location "$env:USERPROFILE\maxkcut"
+    $source = (Resolve-Path ".\results\gset\experiment025-gw16-bestcut-quality").Path
+    $destination = Read-Host "Enter the approved OFF-VM persistent backup path"
+    if ([string]::IsNullOrWhiteSpace($destination)) { throw "Backup destination required" }
+    robocopy $source $destination /E /Z /COPY:DAT /DCOPY:DAT /R:2 /W:2 /XJ
+    if ($LASTEXITCODE -ge 8) { throw "Robocopy reported failure ($LASTEXITCODE)" }
+
+**Step 2: verify actual backup contents.** Count files and create a SHA256 source manifest on the backed-up snapshot (hashing *all* files can take time; do this only after computation quiescence):
+
+    $sourceFiles = @(Get-ChildItem -LiteralPath $source -Recurse -File)
+    $destinationFiles = @(Get-ChildItem -LiteralPath $destination -Recurse -File)
+    "Source files: $($sourceFiles.Count)"
+    "Backup files: $($destinationFiles.Count)"
+    if ($sourceFiles.Count -ne $destinationFiles.Count) { throw "File count mismatch" }
+    $sourceManifest = foreach ($file in $sourceFiles) {
+        [pscustomobject]@{
+            RelativePath = $file.FullName.Substring($source.Length).TrimStart('\')
+            Bytes = $file.Length
+            SHA256 = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash
+        }
+    }
+    $sourceManifest | Export-Csv -NoTypeInformation -Encoding UTF8 "$env:USERPROFILE\experiment025-source-manifest.csv"
+
+For strong verification, independently hash destination files too and compare matching relative paths, sizes and hashes before treating the backup as valid. A **file-count comparison alone is not sufficient**. Store the verified manifest, snapshot date, optimizer hash, graph count, backup media/retention policy and authorized retrieval instructions in the research handoff; never commit an internal share address or credentials publicly.
+
+**Step 3: publish only compact files via a separate branch/worktree.** This example does not merge the raw experiment results branch or push its uncommitted bulk history:
+
+    Set-Location "$env:USERPROFILE\maxkcut"
+    git fetch origin main
+    git worktree add -b experiment025-compact-report "$env:USERPROFILE\maxkcut-compact-report" origin/main
+    $src = Join-Path (Get-Location).Path "results\gset\experiment025-gw16-bestcut-quality\analysis"
+    $dst = "$env:USERPROFILE\maxkcut-compact-report\results\gset\experiment025-gw16-bestcut-quality\analysis"
+    New-Item -ItemType Directory -Force $dst | Out-Null
+    Copy-Item "$src\full_coverage.json" $dst
+    Copy-Item "$src\full_best_final_by_graph.csv" $dst
+    Copy-Item "$src\full_preview.md" $dst
+    Set-Location "$env:USERPROFILE\maxkcut-compact-report"
+    git add -- results/gset/experiment025-gw16-bestcut-quality/analysis/full_coverage.json results/gset/experiment025-gw16-bestcut-quality/analysis/full_best_final_by_graph.csv results/gset/experiment025-gw16-bestcut-quality/analysis/full_preview.md
+    git diff --cached --stat
+    git commit -m "experiment025: publish compact audited results snapshot"
+    git push -u origin experiment025-compact-report
+
+Open a PR into main from **experiment025-compact-report** and include the local snapshot timestamp, complete/incomplete coverage and provenance. Use another name if the example branch or worktree already exists. Confirm files are valid and the backup complete before final publication. **Do not merge incomplete numerical results into main.** Documentation-only changes can be maintained separately from numerical results.
+
+## 11. Branch ownership and source-of-truth precedence
+
+For new agents, in descending operational authority:
+
+1. **Currently running actual VM process and local files** for that run (read-only inspection; ask user for evidence).
+2. **Frozen optimizer and verified per-seed identities** for mathematical validity and reproducibility.
+3. **Current GitHub main documentation and associated reviewed PRs** for procedures.
+4. **Remote experiment025-results** for *published* coverage only (not unuploaded VM progress).
+5. Prior chat summaries and stale commits (historical context only).
+
+When these conflict, **do not overwrite or reconcile the active VM automatically**. Document the discrepancy, preserve artifacts, verify the exact code/hash, and propose a safe post-run migration. This is especially important for PR #70 and the Windows I/O guard, which differed between VM launcher revisions.
