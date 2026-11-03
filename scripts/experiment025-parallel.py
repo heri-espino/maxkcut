@@ -51,7 +51,8 @@ def publish(graph: str, phase: str, method: str, completed: int) -> None:
         print(f"PUBLISHED {phase} {graph} {method}: {completed}/16", flush=True)
 
 
-def run_graph(graph: str, phase: str, methods: tuple[str, ...], chunk: int) -> dict:
+def run_graph(graph: str, phase: str, methods: tuple[str, ...], chunk: int,
+              publish_mode: str = "git") -> dict:
     completed_methods = 0
     for method in methods:
         if STOP.is_set():
@@ -86,7 +87,11 @@ def run_graph(graph: str, phase: str, methods: tuple[str, ...], chunk: int) -> d
             if status_file.exists():
                 current = int(json.loads(status_file.read_text(encoding="utf-8"))
                               .get("starts_completed", 0))
-            publish(graph, phase, method, current)
+            if publish_mode == "git":
+                publish(graph, phase, method, current)
+            else:
+                print(f"LOCAL CHECKPOINT {phase} {graph} {method}: {current}/16 "
+                      "(not uploaded)", flush=True)
             if process.returncode:
                 raise RuntimeError(f"{graph}/{method} failed ({process.returncode}); "
                                    f"see {logfile}")
@@ -125,6 +130,8 @@ def main() -> int:
     parser.add_argument("--method", default="")
     parser.add_argument("--workers", type=int, default=8)
     parser.add_argument("--checkpoint-seeds", type=int, default=16)
+    parser.add_argument("--publish-mode", choices=("git", "local"), default="git",
+                        help="local preserves files on the VM but never commits or pushes")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     if not 1 <= args.workers <= 32 or not 1 <= args.checkpoint_seeds <= 16:
@@ -146,6 +153,7 @@ def main() -> int:
                 requested_workers=args.workers,
                 usable_parallel_graphs=min(args.workers, len(graphs)),
                 checkpoint_seeds=args.checkpoint_seeds,
+                publish_mode=args.publish_mode,
                 graph_ids=list(graphs), methods=list(methods), new_eva_solves=0)
     print(json.dumps(plan, indent=2), flush=True)
     if args.dry_run:
@@ -162,7 +170,7 @@ def main() -> int:
     try:
         with ThreadPoolExecutor(max_workers=args.workers) as pool:
             futures = {pool.submit(run_graph, graph, args.phase, methods,
-                                   args.checkpoint_seeds): graph for graph in graphs}
+                                   args.checkpoint_seeds, args.publish_mode): graph for graph in graphs}
             for future in as_completed(futures):
                 graph = futures[future]
                 try:
