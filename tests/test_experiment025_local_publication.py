@@ -83,3 +83,91 @@ def test_powershell_local_mode_does_not_modify_algorithm_source():
     assert "--publish-mode" in ps and "--publish-mode" in parallel
     assert "if ($PublishMode -eq 'local')" in ps
     assert "publish_mode == \"git\"" in parallel
+
+
+def test_local_parallel_driver_invokes_guarded_launcher(tmp_path, monkeypatch):
+    """Bug regression: local-only scheduler must not bypass Windows I/O retries."""
+    driver = load_script("experiment025-parallel.py")
+    driver.STOP.clear()
+    monkeypatch.setattr(driver, "ROOT", tmp_path)
+    invoked = []
+
+    def fake_run(command, **kwargs):
+        invoked.append(command)
+        target = tmp_path / "full" / "G56" / "mst-l2-longest"
+        target.mkdir(parents=True, exist_ok=True)
+        (target / "status.json").write_text(json.dumps(dict(
+            starts_completed=16, status="complete_16_best_seen",
+            completed_seed_indices=list(range(16))
+        )))
+        return SimpleNamespace(returncode=0)
+
+    monkeypatch.setattr(driver.subprocess, "run", fake_run)
+    monkeypatch.setattr(
+        driver, "publish",
+        lambda *args: (_ for _ in ()).throw(AssertionError("Unexpected Git publication"))
+    )
+    result = driver.run_graph("G56", "full", ("mst-l2-longest",), 16, "local")
+    assert result["status"] == "complete"
+    assert len(invoked) == 1
+    assert invoked[0][1] == "scripts/experiment025-windows-io-guard.py"
+    assert "-m" not in invoked[0]
+
+
+def test_scoped_guard_retries_transient_windows_access_denied():
+    """No disk writes or scientific computations; simulate WinError 5."""
+    guard = load_script("experiment025-windows-io-guard.py")
+    src = r"results\gset\experiment025-gw16-bestcut-quality\full\G56\mst-l2-longest\progress\0005\best.json.tmp"
+    dst = src.removesuffix(".tmp")
+    attempts, delays = [], []
+
+    def simulate_replace(source, target):
+        attempts.append((source, target))
+        if len(attempts) < 3:
+            error = PermissionError("simulated Windows file lock")
+            error.winerror = 5
+            raise error
+
+    guard.retry_checkpoint_replace(
+        src, dst, replace_func=simulate_replace,
+        sleep_func=delays.append, attempts=4,
+    )
+    assert len(attempts) == 3
+    assert len(delays) == 2
+    assert all(x == (src, dst) for x in attempts)
+
+
+def test_guard_does_not_retry_unrelated_file_or_non_windows_permission_error():
+    guard = load_script("experiment025-windows-io-guard.py")
+    source = "outside-archive.json.tmp"
+    target = "outside-archive.json"
+    attempted = []
+
+    def always_denied(*args):
+        attempted.append(args)
+        error = PermissionError("simulated Windows file lock")
+        error.winerror = 5
+        raise error
+
+    import pytest
+    with pytest.raises(PermissionError):
+        guard.retry_checkpoint_replace(
+            source, target, replace_func=always_denied,
+            sleep_func=lambda seconds: None,
+        )
+    assert len(attempted) == 1
+
+    source = r"results\gset\experiment025-gw16-bestcut-quality\full\G56\progress\0005\best.json.tmp"
+    target = source.removesuffix(".tmp")
+    attempted.clear()
+
+    def not_a_windows_error(*args):
+        attempted.append(args)
+        raise PermissionError("unknown permission error")
+
+    with pytest.raises(PermissionError):
+        guard.retry_checkpoint_replace(
+            source, target, replace_func=not_a_windows_error,
+            sleep_func=lambda seconds: None,
+        )
+    assert len(attempted) == 1
