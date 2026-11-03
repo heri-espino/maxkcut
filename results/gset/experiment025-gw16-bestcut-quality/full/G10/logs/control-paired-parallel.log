@@ -1,0 +1,68 @@
+
+=== 2026-11-03T05:53:03Z C:\Users\175199\AppData\Local\miniconda3\envs\maxkcut\python.exe -m maxkcut.experiment025_bestcut single --graph G10 --method control-paired --phase full --max-new-seeds 16 ===
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\175199\maxkcut\src\maxkcut\experiment025_bestcut.py", line 348, in <module>
+    if __name__=="__main__": main()
+                             ^^^^^^
+  File "C:\Users\175199\maxkcut\src\maxkcut\experiment025_bestcut.py", line 341, in main
+    if a.action=="single":r=run_method(a.graph,a.method,a.phase,root=a.root,
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\175199\maxkcut\src\maxkcut\experiment025_bestcut.py", line 171, in run_method
+    raw,raw_score,extra=generate_candidate(
+                        ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\175199\maxkcut\src\maxkcut\experiment024_paired_gw16.py", line 151, in generate_candidate
+    candidate,d=seeded_lloyd(y,edges,r,max_iter=cfg["kmeans_iters"],
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\175199\maxkcut\src\maxkcut\experiment024_paired_gw16.py", line 122, in seeded_lloyd
+    on_iteration({"stage":"KMeansNM","iteration":it+1,
+  File "C:\Users\175199\maxkcut\src\maxkcut\experiment025_journal.py", line 98, in observe
+    atomic_json(self.path/"best.json",dict(
+  File "C:\Users\175199\maxkcut\src\maxkcut\experiment023_methods.py", line 79, in atomic_json
+    os.replace(temp, path)
+PermissionError: [WinError 5] Access is denied: 'results\\gset\\experiment025-gw16-bestcut-quality\\full\\G10\\control-paired\\progress\\0007\\best.json.tmp' -> 'results\\gset\\experiment025-gw16-bestcut-quality\\full\\G10\\control-paired\\progress\\0007\\best.json'
+
+EXIT_CODE=1
+
+=== 2026-11-03T17:22:38Z C:\Users\175199\AppData\Local\miniconda3\envs\maxkcut\python.exe scripts/experiment025-windows-io-guard.py single --graph G10 --method control-paired --phase full --max-new-seeds 4 ===
+{
+  "graph": "G10",
+  "method": "control-paired",
+  "phase": "full",
+  "fingerprint": "c3fcdc6fb87b579ebdcfa723",
+  "status": "partially_refined",
+  "starts_completed": 12,
+  "starts_requested": 16,
+  "completed_seed_indices": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ],
+  "current_best_seed_index": 11,
+  "all_starts_independently_refined": false,
+  "selected_seed_index": null,
+  "best_final": 1996.0,
+  "best_seen": 1996.0,
+  "best_initial": 1855.0,
+  "best_last_ils_candidate": 1996.0,
+  "mean_final": 1973.6666666666667,
+  "mean_best_seen": 1973.6666666666667,
+  "mean_initial": 1808.1666666666667,
+  "wall_seconds_this_invocation": 2.7340000001713634,
+  "selection_metric": "max_best_seen_cut_over_all_iterations_and_16_refinements",
+  "optimizer_source_sha256": "99c0b15ea1309f1a0931e3baba6735f79a1eb6622567d8f27e66be13a898f8ad",
+  "method_level_time_cutoff": null,
+  "deterministic_mst_hybrid": false
+}
+
+EXIT_CODE=0
