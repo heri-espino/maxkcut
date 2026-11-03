@@ -1,5 +1,34 @@
 # maxkcut
 
+## Optional read-only geometry visualization
+
+The previously isolated Experiment004 Streamlit dashboard is integrated as an
+**optional** `maxkcut_viz` package. It reads saved EVA factors, archived
+partitions, numerical traces, and locally existing convex Gram caches without
+solving SDP/EVA or modifying experiment results. It is outside
+`src/maxkcut/` to keep the Experiment025 optimizer SHA256 unchanged.
+
+```powershell
+python -m pip install -e ".[viz]"
+powershell.exe -NoProfile -File .\scripts\launch_geometry_dashboard.ps1
+```
+
+Optionally install `.[viz,viz-umap]` for UMAP. See the
+[geometry dashboard guide](docs/geometry-dashboard.md). If the VM is actively
+writing Experiment025 results, open the visualization from a **separate main
+worktree**, never by switching that running directory's branch.
+
+## Branch maintenance
+
+The active numerical archive is `experiment025-results`; `main` contains
+integrated source, docs, and utilities. Historical merged PR branches are
+removed only after exact-SHA verification and either ancestry verification or
+publication of a SHA-verified archival Git tag, using the
+[branch cleanup inventory](notes/maintenance/branch-cleanup-inventory.json)
+and [audited cleanup script](scripts/maintenance/prune_merged_branches.py).
+Closed **unmerged** experimental branches remain preserved; deleting a branch
+is not permission to discard source, numeric archives, figures, or provenance.
+
 **Experiment025 latest audit (2026-11-03):** [Run #41570037856](https://github.com/heri-espino/maxkcut/actions/runs/41570037856) succeeded on the university Windows 11 Conda runner for **54 pilot graph-method jobs, GW seed 1 only**. The full 71-graph/16-seed benchmark is **not complete**. Results live on experiment025-results with original signed-cut, per-iteration journals and strict-best partition files. [Detailed successful-run audit and direct 32-worker VM instructions](notes/experiments/experiment025-successful-pilot-parallel-vm.md). Full execution reuses frozen Experiment021 EVA factors; no new SDP solve.
 
 

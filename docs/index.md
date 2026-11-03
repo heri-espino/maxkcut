@@ -25,6 +25,7 @@ full-sdp-comparison
 full-sdp-batch
 full-sdp-publication
 eva-reproduction
+geometry-dashboard
 g11-precision-gpu-psd-sdpa
 g11-adaptive-rho-gpu-admm
 g77-full-convex-gpu-preflight-windows
