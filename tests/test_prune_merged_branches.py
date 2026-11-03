@@ -58,7 +58,8 @@ def test_unreachable_branch_never_deleted(monkeypatch):
                                 expected_sha="a" * 40,
                                 merged_prs=[10])],
                           {"feature/unmerged": "a" * 40})
-    assert rows[0]["status"] == "UNREACHABLE_FROM_MAIN_OR_RESULTS_SKIP"
+    assert rows[0]["status"] == "REQUIRES_ARCHIVE_TAG"
+    assert rows[0]["archive_tag"] == "archive/merged/feature/unmerged"
 
 
 def test_default_execution_dry_run_and_never_push(monkeypatch, capsys):
@@ -108,3 +109,55 @@ def test_protected_branch_absent_aborts_all_deletions(monkeypatch):
     monkeypatch.setattr(module, "remote_refs", lambda: refs)
     with pytest.raises(RuntimeError, match="protected or unmerged"):
         module.main(["--execute"])
+
+
+def test_unreachable_branch_archived_before_deletion(monkeypatch):
+    """An otherwise orphaned tip cannot disappear without a verified tag."""
+    module = script_module()
+    import json
+    inventory = json.loads(module.INVENTORY.read_text(encoding="utf-8"))
+    merged = inventory["merged_candidates"]
+    kept = inventory["unmerged_preserve"]
+    refs = {x["branch"]: x["expected_sha"] for x in merged + kept}
+    refs["main"] = "f" * 40
+    refs["experiment025-results"] = "e" * 40
+    tags = {}
+    trace = []
+
+    def fake_git(*args, **kwargs):
+        trace.append(args)
+        if args[:2] == ("remote", "get-url"):
+            return SimpleNamespace(stdout="https://github.com/heri-espino/maxkcut")
+        if args[0] == "fetch":
+            return SimpleNamespace(stdout="", returncode=0)
+        if args[:2] == ("ls-remote", "--tags"):
+            tag = args[-1]
+            value = tags.get(tag, "")
+            return SimpleNamespace(stdout=(f"{value}\\t{tag}\\n" if value else ""))
+        if args[:2] == ("ls-remote", "--heads"):
+            b = args[-1].removeprefix("refs/heads/")
+            v = refs.get(b)
+            return SimpleNamespace(stdout=(f"{v}\\trefs/heads/{b}\\n" if v else ""))
+        if args[:2] == ("push", "origin"):
+            if args[2] == "--delete":
+                name = args[3].removeprefix("refs/heads/")
+                assert any(x[0:2] == ("ls-remote", "--tags") for x in trace), (
+                    "no deletion until archival receipt exists")
+                refs.pop(name, None)
+                return SimpleNamespace(stdout="", stderr="", returncode=0)
+            sha, tag = args[2].split(":", 1)
+            assert tag not in tags
+            tags[tag] = sha
+            return SimpleNamespace(stdout="", stderr="", returncode=0)
+        raise AssertionError(args)
+
+    monkeypatch.setattr(module, "git", fake_git)
+    monkeypatch.setattr(module, "remote_refs", lambda: dict(refs))
+    monkeypatch.setattr(module, "is_ancestor", lambda *a: False)
+    assert module.main(["--execute"]) == 0
+    assert len(tags) == 62
+    assert all(t.startswith("refs/tags/archive/merged/") for t in tags)
+    assert len(refs) == 8
+    assert refs["main"] == "f" * 40
+    assert refs["experiment025-results"] == "e" * 40
+    assert {x["branch"] for x in kept}.issubset(refs)
