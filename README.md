@@ -1,5 +1,8 @@
 # maxkcut
 
+**Experiment025 university VM handoff (2026-11-03):** Before issuing Windows commands or triggering self-hosted Actions, read [the current operations / exact paths / workflow decision runbook](docs/university-vm-experiment025-operations.md) and [the G44 local-only failure-and-recovery log](notes/experiments/experiment025-windows-local-recovery-2026-11-03.md). The user reported a restarted **local-only** 71-graph study; GitHub does not contain its live progress. Do not touch the active VM checkout, launch competing Actions numerical jobs, recompute EVA, or mistake the last user-observed 755/1,278 complete cells for a live measurement. Proposed storage-mode code: [PR #70](https://github.com/heri-espino/maxkcut/pull/70); backup complete raw archives separately before publishing compact summaries.
+
+
 ## Optional read-only geometry visualization
 
 The previously isolated Experiment004 Streamlit dashboard is integrated as an
