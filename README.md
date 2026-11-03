@@ -22,7 +22,8 @@ worktree**, never by switching that running directory's branch.
 
 The active numerical archive is `experiment025-results`; `main` contains
 integrated source, docs, and utilities. Historical merged PR branches are
-removed only after exact-SHA and ancestry verification using the
+removed only after exact-SHA verification and either ancestry verification or
+publication of a SHA-verified archival Git tag, using the
 [branch cleanup inventory](notes/maintenance/branch-cleanup-inventory.json)
 and [audited cleanup script](scripts/maintenance/prune_merged_branches.py).
 Closed **unmerged** experimental branches remain preserved; deleting a branch
