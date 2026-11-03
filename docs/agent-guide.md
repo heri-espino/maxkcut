@@ -1,5 +1,8 @@
 # AI coding agent guide
 
+**Experiment025 university VM:** The user reported an active/restarted local-only full experiment on Windows self-hosted PCAG103A-13. Read [operations/paths and Actions-vs-terminal decision guide](university-vm-experiment025-operations.md) and [dated G44 recovery evidence](../notes/experiments/experiment025-windows-local-recovery-2026-11-03.md) before issuing a run command. GitHub remote is not the live local-only result store; do not modify a running checkout. Use a separate PR for documentation or compact results.
+
+
 This is a companion explanation to the **authoritative [AGENTS.md](https://github.com/heri-espino/maxkcut/blob/main/AGENTS.md)**. If instructions differ, follow `AGENTS.md` and the user's latest explicit request.
 
 ## Three agent roles
