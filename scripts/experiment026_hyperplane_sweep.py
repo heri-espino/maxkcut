@@ -115,8 +115,10 @@ def run_graph(name, params, ref, refhash):
 
 
 def _run_locked(name, params, ref, refhash, folder):
-    source = select_factor(name)
-    graph, y, _, graphsha, factorsha = _factor_and_case(Path("data") / (name + ".txt"), source)
+    source = (select_factor(name, dirs=(Path(params["factor_dir"]),))
+              if params["factor_dir"] else select_factor(name))
+    graph, y, _, graphsha, factorsha = _factor_and_case(
+        Path(params["data_dir"]) / (name + ".txt"), source)
     edges = edge_arrays(graph)
     if (graph.shape[0] != int(ref["n_vertices"]) or len(edges[0]) != int(ref["n_edges"])):
         raise ValueError("G-set file topology does not match external literature row: " + name)
@@ -241,6 +243,10 @@ def main(argv=None):
     ap.add_argument("--seed", type=int, default=2026)
     ap.add_argument("--max-batches", type=int, default=None,
                     help="Safe short pilot or extension; limited per graph per invocation")
+    ap.add_argument("--factor-dir", type=Path, default=None,
+                    help="Read-only archived EVA directory containing cases/ and factors/")
+    ap.add_argument("--data-dir", type=Path, default=Path("data"),
+                    help="Read-only canonical signed G-set graph directory")
     ap.add_argument("--references", type=Path, default=REFERENCES)
     ap.add_argument("--output", type=Path, default=OUTPUT)
     ap.add_argument("--dry-run", action="store_true")
@@ -257,6 +263,8 @@ def main(argv=None):
     if any(g not in references for g in args.graphs):
         ap.error("One or more selected graphs are not in the 71-graph literature table")
     params = dict(output=str(args.output), hours=args.hours, seed=args.seed,
+                  factor_dir=str(args.factor_dir) if args.factor_dir else None,
+                  data_dir=str(args.data_dir),
                   directions=args.directions, batches_per_restart=args.batches_per_restart,
                   refine_every=args.refine_every, max_batches=args.max_batches)
     plan = dict(protocol=PROTOCOL, graphs=args.graphs, references_sha256=refsha,

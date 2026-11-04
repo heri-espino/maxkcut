@@ -1,0 +1,37 @@
+name: Experiment026 Hyperplane Sweep code and reference tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment026-hyperplane-longrun
+    paths:
+      - "scripts/experiment026_hyperplane_sweep.py"
+      - "references/gset-literature-2026-11.csv"
+      - "tests/test_experiment026_hyperplane_sweep.py"
+      - ".github/workflows/experiment026-tests.yml"
+  pull_request:
+    paths:
+      - "scripts/experiment026_hyperplane_sweep.py"
+      - "references/gset-literature-2026-11.csv"
+      - "tests/test_experiment026_hyperplane_sweep.py"
+      - ".github/workflows/experiment026-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install test and Numba dependencies
+        run: python -m pip install -e ".[test,eva-fast]"
+      - name: Validate reference table and resumable toy experiment
+        run: python -m pytest -q tests/test_experiment026_hyperplane_sweep.py
