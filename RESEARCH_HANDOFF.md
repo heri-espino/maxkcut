@@ -1,3 +1,9 @@
+# Experiment026 proposed prospective Hyperplane Sweep long run (2026-11-03)
+
+See [Experiment026 runbook](notes/experiments/experiment026-hyperplane-longrun.md) and [literature reference provenance](references/README.md). A separate branch includes a source-attributed 71-graph literature target dataset and a resumable long-duration hyperplane search. The existing EVA factors and Experiment025 data and algorithms remain immutable; no new numerical production computation has started. Use a separate idle VM worktree and off-VM backup.
+
+---
+
 # LATEST EXPERIMENT025 STATUS — FULL LOCAL COMPUTATION FINISHED (2026-11-03)
 
 **User-confirmed terminal evidence:** The full Windows/Conda local-only scheduler completed G81 and exited normally; its final report and an independently re-invoked summary both showed **71/71 G-set graphs, 18/18 methods, 16/16 matched seeds, 1,278/1,278 complete graph-method cells, 20,448/20,448 recorded seed checkpoints; `all_complete=true`**. Compact `analysis/full_preview.md` also reports 71/71 graphs fully covered and 1,136 saved seeds per method. No Git/LFS upload was performed by this run, and there is no verified off-VM archive. **Numerical execution is complete, but objective rescoring, checksum/audit, matched GW inferential analysis, archive backup and compact Git publication are not yet verified. Do not repeat the 20,448 refinements or solve EVA again.** Read [the reproducible dated completion note](notes/experiments/experiment025-full-local-computation-2026-11-03.md) and [VM operations/runbook](docs/university-vm-experiment025-operations.md). Old partial snapshots (including 755/1,278) and pilot notes below are historical, not current. Current GitHub remote `experiment025-results` is NOT a proxy for the newer local-only VM data; preserve it. 10 graph-level example winners are in the completion note, but they do not establish one statistically superior global method.
