@@ -9,10 +9,17 @@ const deck = fs.readFileSync(deckPath,"utf8");
 const directory = path.dirname(deckPath);
 const manifest = JSON.parse(fs.readFileSync(path.join(directory,"experiment025-figure-manifest.json"),"utf8"));
 if (!deck.startsWith("---\nmarp: true\n")) throw Error("Marp YAML header is missing");
+if (!/^math: mathjax$/m.test(deck)) throw Error("MathJax must be declared");
+if (/\\[()\[\]]/.test(deck)) throw Error("Old TeX math delimiters remain");
+const displayMarkers = [...deck.matchAll(/^\$\$/gm)].length;
+if (displayMarkers !== 18) throw Error("Expected exactly 9 display math environments");
 const sections = deck.split(/^---\s*$/m);
 const bodies = sections.slice(2);
 if(bodies.length < 85) throw Error("Experiment025 extension is absent: "+bodies.length+" slides");
 for(const [index,slide] of bodies.entries()){
+  const nonDisplay = slide.replace(/^\$\$/gm, "");
+  if ([...nonDisplay.matchAll(/(?<!\\)\$/g)].length % 2) throw Error("Unbalanced inline math on slide " + (index+1));
+
   const prose=slide.replace(/<!--[\s\S]*?-->/g,"").trim();
   if(!prose)throw Error("Blank slide at index "+(index+1));
 }

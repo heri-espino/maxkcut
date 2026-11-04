@@ -73,7 +73,7 @@ jobs:
             echo "No system Chrome found; Marp will try its browser auto-discovery."
           fi
 
-      - name: Export Marp as PDF, PowerPoint, and HTML
+      - name: Export Marp as PDF and HTML
         shell: bash
         run: |
           set -euo pipefail
@@ -83,37 +83,30 @@ jobs:
           browser=()
           if [[ -n "${BROWSER_PATH:-}" ]]; then browser=(--browser-path "$BROWSER_PATH"); fi
           ./node_modules/.bin/marp "$source" --allow-local-files "${browser[@]}" --pdf -o "${root}.pdf"
-          ./node_modules/.bin/marp "$source" --allow-local-files "${browser[@]}" --pptx -o "${root}.pptx"
           ./node_modules/.bin/marp "$source" --allow-local-files --html -o "${root}.html"
 
-      - name: Validate exported slides and artwork
+      - name: Embed SVG figures in standalone HTML
+        run: node presentations/embed_experiment025_html_assets.mjs
+
+      - name: Validate PDF and self-contained HTML
         shell: bash
         run: |
           set -euo pipefail
-          for ext in pdf pptx html; do test -s "presentations/build/maxkcut_full_research_001_025.${ext}"; done
-          python - <<'PY'
-          from pathlib import Path
-          from zipfile import ZipFile
-          p = Path("presentations/build/maxkcut_full_research_001_025.pptx")
-          with ZipFile(p) as z:
-              slides = [x for x in z.namelist()
-                        if x.startswith("ppt/slides/slide") and x.endswith(".xml")]
-          assert len(slides) >= 85, f"Missing slides in PPTX: {len(slides)}"
-          print("Verified exported PPTX slides:", len(slides))
-          PY
-          if command -v pdfinfo >/dev/null; then pdfinfo presentations/build/maxkcut_full_research_001_025.pdf | grep '^Pages:'; fi
-          du -h presentations/build/*
+          root="presentations/build/maxkcut_full_research_001_025"
+          for ext in pdf html; do test -s "${root}.${ext}"; done
+          if command -v pdfinfo >/dev/null; then
+            pages="$(pdfinfo "${root}.pdf" | awk '/^Pages:/ {print $2}')"
+            test "$pages" -eq 94 || { echo "Expected 94 PDF pages, got $pages"; exit 1; }
+            echo "Verified PDF pages: $pages"
+          fi
+          du -h "${root}.pdf" "${root}.html"
 
-      - name: Upload presentation and regenerated figure artifacts
+      - name: Upload PDF and standalone HTML
         uses: actions/upload-artifact@v4
         with:
           name: maxkcut-experiment025-structure-marp
           path: |
             presentations/build/maxkcut_full_research_001_025.pdf
-            presentations/build/maxkcut_full_research_001_025.pptx
             presentations/build/maxkcut_full_research_001_025.html
-            presentations/maxkcut_full_research_001_025.marp.md
-            presentations/assets/*.svg
-            presentations/experiment025-figure-manifest.json
           if-no-files-found: error
           retention-days: 30
