@@ -1,5 +1,7 @@
 # maxkcut
 
+**Experiment027 post-run analysis:** User reports successful numerical execution (scope not independently verified). New `scripts/experiment027_analyze.py` audits all archived new and historical 16-seed partitions and signed cuts, compares the three angular-guided methods against Experiment025 GW and Hyperplane Sweep, and saves a reproducible leaderboard/paired analysis. Run `--graphs G1 G11 G14` for pilot or `--graphs ALL` for the complete study; see [VM handoff and exact paths](docs/experiment027-vm-handoff.md). This read-only step performs no EVA or optimization.
+
 **Current Experiment027 status (Nov 5, 2026):** User reports the corrected three-graph full pilot (G1/G11/G14; three new angular methods, 16 original GW starts per method) succeeded on the university VM. Independent verification of 9/9 completed cells, numerical results and off-VM backup is still pending. For the **two worktrees, immutable Experiment025 baseline, per-graph EVA-factor source resolution, new results/journal paths, SHA checks, and resumable Windows commands**, read **[Experiment027 VM handoff](docs/experiment027-vm-handoff.md)** and [Experiment027 scientific protocol](notes/experiments/experiment027-angular-greedy.md). Do not rerun EVA, any Experiment025 method or overwrite historical raw output. Correct launcher: `scripts/experiment027_from_archives.py`. The original factor directory assumption was invalid for G14.
 
 
