@@ -27,7 +27,7 @@ jobs:
           sudo apt-get update -qq
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends \
             latexmk texlive-latex-base texlive-latex-recommended texlive-latex-extra \
-            texlive-science texlive-pictures texlive-fonts-recommended poppler-utils
+            texlive-science texlive-pictures texlive-fonts-recommended lmodern poppler-utils
       - name: Compile LaTeX and bibliography
         working-directory: papers/hyperplane-sweep
         run: |
