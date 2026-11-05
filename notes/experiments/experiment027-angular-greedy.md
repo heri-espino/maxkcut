@@ -1,5 +1,28 @@
 # Experiment027 — angular-margin and pair-targeted greedy hyperplane sweeps
 
+## November 5 Windows pilot failure: missing G14 factor in assumed single archive — FIXED IN WRAPPER
+
+The first user-run `full` G1/G11/G14 pilot passed seven numerical regression tests but raised `FileNotFoundError` for `experiment021-complete-71-gset/eva-numba/cases/G14.json`. The prior command erroneously supplied **one factor directory** for all graphs. Experiment025 instead selects saved factors **per graph**, from Experiment021, then Experiment003, then Experiment002, depending on which archives exist. **No EVA failure is implied.** The old command's G1/G11 child processes may have completed or partially saved results; these must be preserved. The original `scripts/experiment027_angular.py` has not been changed, because its content hash is part of every new saved-seed fingerprint.
+
+A separate `scripts/experiment027_from_archives.py` launcher now searches the original VM worktree for each graph independently and **requires an exact SHA256 match to Experiment025's complete 16-start GW baseline** before launching any numerical work. It also verifies the original signed graph file checksum, preflights *every requested graph*, and routes Python imports to this Experiment027 worktree's `src` rather than the previously observed editable `maxkcut-exp026` installation. It never solves EVA or reruns a historical method. All three algorithms still run with 16 matched GW starts and preserve prior completed seed checkpoints. If an exact factor is missing, stop and audit the archive rather than substituting another factor.
+
+With the original worktree at `$env:USERPROFILE\maxkcut` and current directory `$env:USERPROFILE\maxkcut-exp027`, run the read-only source preflight and then the new-method-only three-graph pilot:
+
+```powershell
+Set-Location "$env:USERPROFILE\maxkcut-exp027"
+git pull --ff-only origin experiment027-angular-greedy
+conda activate maxkcut
+python -m pytest -q tests/test_experiment027_factor_sources.py tests/test_experiment027_angular.py
+python scripts/experiment027_from_archives.py --graphs G1 G11 G14 --workers 3 --dry-run
+python scripts/experiment027_from_archives.py --graphs G1 G11 G14 --workers 3
+```
+
+The wrapper checks all 16 starts for each new algorithm by default and reuses fully verified old Experiment027 seed archives. After independently verifying the pilot, the all-graph command is `python scripts/experiment027_from_archives.py --graphs ALL --workers 8`; it may be long-running. `--seed 0` is an optional single-start diagnostic. Results remain under the separate Experiment027 result root, with per-graph launcher diagnostics under `launcher-logs/`. Do not run multiple numerical launchers simultaneously or on top of active VM jobs. Before pulling, ensure no numerical process uses the new Experiment027 worktree and preserve its generated results; never pull or clean the old Experiment025 worktree.
+
+---
+
+
+
 **Status (2026-11-05):** New algorithms, tests and launcher prepared on a separate branch. **No production numerical run on the university VM has been initiated or claimed.** This is a prospective, append-only extension of Experiment025, not a repeat of its 20,448 completed runs. Experiment026 is separately reserved for the existing long-run sweep PR #77.
 
 ## Objective and experimental hypotheses
