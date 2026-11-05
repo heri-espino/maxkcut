@@ -52,10 +52,12 @@ jobs:
           MPLBACKEND=Agg python presentations/make_extra_graphics.py
           node presentations/build_experiment025_figures.mjs
           node presentations/build_experiment025_figures.mjs --check
+          node presentations/build_experiment025_reference_ratio_figures.mjs
+          node presentations/build_experiment025_reference_ratio_figures.mjs --check
 
       - name: Verify committed Experiment025 figures are deterministic
         run: |
-          git diff --exit-code -- presentations/assets/experiment025_*.svg presentations/experiment025-figure-manifest.json
+          git diff --exit-code -- presentations/assets/experiment025_*.svg presentations/experiment025-figure-manifest.json presentations/experiment025-reference-ratio-manifest.json presentations/data/experiment025_best_of16_method_ratios.csv
           node presentations/verify_experiment025_presentation.mjs
 
       - name: Install pinned Marp CLI
@@ -96,7 +98,7 @@ jobs:
           for ext in pdf html; do test -s "${root}.${ext}"; done
           if command -v pdfinfo >/dev/null; then
             pages="$(pdfinfo "${root}.pdf" | awk '/^Pages:/ {print $2}')"
-            test "$pages" -eq 94 || { echo "Expected 94 PDF pages, got $pages"; exit 1; }
+            test "$pages" -eq 97 || { echo "Expected 97 PDF pages, got $pages"; exit 1; }
             echo "Verified PDF pages: $pages"
           fi
           du -h "${root}.pdf" "${root}.html"

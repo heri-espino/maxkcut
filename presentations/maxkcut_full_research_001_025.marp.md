@@ -1291,6 +1291,36 @@ G1, G9, G28, G36, G40, G42, G44 and G53 exceed **archived feasible references** 
 
 ---
 
+<!-- _class: small -->
+
+## E025 — Reference ratio: random graphs
+
+![w:970](assets/experiment025_benchmark_ratio_random.svg)
+
+For each graph, **best-of-16 cut / strongest listed external feasible reference**. Gray = refined GW; colored = graphwise best of 18; multi-colored = ties. Not a certified approximation ratio.
+
+---
+
+<!-- _class: small -->
+
+## E025 — Reference ratio: planar-family graphs
+
+![w:970](assets/experiment025_benchmark_ratio_planar.svg)
+
+For each graph, **best-of-16 cut / strongest listed external feasible reference**. Gray = refined GW; colored = graphwise best of 18; multi-colored = ties. Not a certified approximation ratio.
+
+---
+
+<!-- _class: small -->
+
+## E025 — Reference ratio: toroidal graphs
+
+![w:970](assets/experiment025_benchmark_ratio_toroidal.svg)
+
+For each graph, **best-of-16 cut / strongest listed external feasible reference**. Gray = refined GW; colored = graphwise best of 18; multi-colored = ties. Not a certified approximation ratio.
+
+---
+
 <!-- _class: compact -->
 
 ## E025 — How decisive is the Hyperplane Sweep lead?

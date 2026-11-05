@@ -48,3 +48,5 @@ The script uses Python's standard library. The older scientific SVGs remain unde
 - Never treat repeated restarts or 1,207 planned method cells as independent graphs, or claim equal-compute superiority without an equal-budget result.
 
 The original 44-slide talk has not been edited.
+
+Experiment025 (2026-11-05): The 97-slide deck adds external-reference-normalized winner/GW bar charts for random (30), planar-family (24) and toroidal (17) G-set graphs. Source snapshots, all 1,278 method ratios and reproducible SVG source are committed; see `EXPERIMENT025_PRESENTATION.md`. Output artifacts remain PDF and HTML only.

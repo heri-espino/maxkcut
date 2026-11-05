@@ -15,7 +15,7 @@ const displayMarkers = [...deck.matchAll(/^\$\$/gm)].length;
 if (displayMarkers !== 18) throw Error("Expected exactly 9 display math environments");
 const sections = deck.split(/^---\s*$/m);
 const bodies = sections.slice(2);
-if(bodies.length < 85) throw Error("Experiment025 extension is absent: "+bodies.length+" slides");
+if(bodies.length !== 97) throw Error("Experiment025 extension is absent: "+bodies.length+" slides");
 for(const [index,slide] of bodies.entries()){
   const nonDisplay = slide.replace(/^\$\$/gm, "");
   if ([...nonDisplay.matchAll(/(?<!\\)\$/g)].length % 2) throw Error("Unbalanced inline math on slide " + (index+1));
@@ -26,11 +26,15 @@ for(const [index,slide] of bodies.entries()){
 const references=[...deck.matchAll(/!\[[^\]]*]\(([^)]+)\)/g)].map(x=>x[1]);
 const missing=references.filter(ref=>!fs.existsSync(path.resolve(directory,ref)));
 if(missing.length)throw Error("Broken slide figure paths: "+missing.join(", "));
-const e025=references.filter(x=>x.startsWith("assets/experiment025_"));
+const extra=JSON.parse(fs.readFileSync(path.join(directory,"experiment025-reference-ratio-manifest.json"),"utf8"));
+const ratioRefs=references.filter(x=>x.startsWith("assets/experiment025_benchmark_ratio_"));
+if(ratioRefs.length!==3||new Set(ratioRefs).size!==3||extra.nGraphs!==71||extra.nMethods!==18||extra.quicoptGraded!==52)throw Error("External reference ratio graphs missing");
+for(const name of extra.files)if(!ratioRefs.includes("assets/"+name))throw Error("Missing generated external benchmark bar chart: "+name);
+const e025=references.filter(x=>x.startsWith("assets/experiment025_")&&!x.startsWith("assets/experiment025_benchmark_ratio_"));
 const expected=manifest.files.map(name=>"assets/"+name);
 if(e025.length!==expected.length || new Set(e025).size!==expected.length) throw Error("Expected exactly "+expected.length+" unique Experiment025 image references");
 for(const ref of expected)if(!e025.includes(ref))throw Error("Missing Experiment025 chart: "+ref);
 if(manifest.nCells!==1278 || manifest.nGraphs!==71 || manifest.nMethods!==18)throw Error("Invalid full coverage metadata");
 if(manifest.csvSha256!=="8a9d84cfc35f1d424519b862676facc288a6366bc1820e52975a2bf76678de6c")throw Error("Unexpected aggregate source hash");
 if(!deck.includes("independent") || !deck.includes("off-VM") || !deck.includes("generator"))throw Error("Scientific caveats missing");
-console.log(JSON.stringify({slides:bodies.length,referencedImages:references.length,experiment025Charts:e025.length,manifestComplete:true},null,2));
+console.log(JSON.stringify({slides:bodies.length,referencedImages:references.length,experiment025Charts:e025.length,externalCharts:ratioRefs.length,manifestComplete:true},null,2));
