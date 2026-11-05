@@ -2,3 +2,7 @@
 # Scope LFS to new outputs only; preserve frozen earlier EVA/result files unchanged.
 results/gset/experiment025-gw16-bestcut-quality/**/*.npz filter=lfs diff=lfs merge=lfs -text
 results/gset/experiment025-gw16-bestcut-quality/**/*.jsonl filter=lfs diff=lfs merge=lfs -text
+
+# Experiment027 raw iteration + best-cut per-graph ZIP archives.
+# Small analysis CSV/JSON and checksum manifests remain ordinary Git text.
+published/experiment027/archives/*.zip filter=lfs diff=lfs merge=lfs -text
