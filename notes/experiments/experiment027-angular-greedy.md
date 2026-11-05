@@ -1,5 +1,8 @@
 # Experiment027 — angular-margin and pair-targeted greedy hyperplane sweeps
 
+> **CURRENT VM STATUS (Nov 5, 2026):** The user reports that the repaired full-phase G1/G11/G14 numerical pilot succeeded. The status records, all 16 archived starts per method, verified signed-cut scores and off-VM backup have **not** been independently inspected. For precise Windows paths, source-factor directories, Experiment025 archives, where new results/journals are stored, commands to verify 9 method–graph cells, and safe resume, see **[Experiment027 VM handoff and file map](../../docs/experiment027-vm-handoff.md)**. The earlier FileNotFoundError for G14 in the assumed single Experiment021 factor folder was corrected by `scripts/experiment027_from_archives.py`, with successful hosted 12-test regression. This file retains the historical failure narrative for provenance.
+
+
 ## November 5 Windows pilot failure: missing G14 factor in assumed single archive — FIXED IN WRAPPER
 
 The first user-run `full` G1/G11/G14 pilot passed seven numerical regression tests but raised `FileNotFoundError` for `experiment021-complete-71-gset/eva-numba/cases/G14.json`. The prior command erroneously supplied **one factor directory** for all graphs. Experiment025 instead selects saved factors **per graph**, from Experiment021, then Experiment003, then Experiment002, depending on which archives exist. **No EVA failure is implied.** The old command's G1/G11 child processes may have completed or partially saved results; these must be preserved. The original `scripts/experiment027_angular.py` has not been changed, because its content hash is part of every new saved-seed fingerprint.
