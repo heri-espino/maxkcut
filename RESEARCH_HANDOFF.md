@@ -1,3 +1,9 @@
+# Experiment027 direct repository publication via Git LFS (2026-11-05)
+
+The user explicitly wants numerical results pushed directly from the university VM so future agents can analyze them without pasting files into chat. A new `scripts/experiment027_publish.py` automatically reruns the **read-only** independent signed-cut audit, packages each existing `full/Gxx/` raw result tree into a content-addressed per-graph ZIP (all 16 starts, attempted sweep JSONL, accepted normals, strict-best partition NPZs and stage archives), verifies SHA256, stages exactly `published/experiment027/` and commits/pushes via Git LFS to the draft PR #80 branch. See the **[full PowerShell commands and remote verification](docs/experiment027-publication.md)**. This does **not** rerun EVA or the old/new numerical optimizations. No VM data have been observed to be pushed yet. The Experiment025 all-method raw archive is still a separate outstanding backup. Never force-push, overwrite old raw trees, or infer complete coverage until the published index/manifest exists.
+
+---
+
 # Experiment027 next action — verified numerical audit (Nov 5, 2026)
 
 The user reports the experiment completed successfully, but no local completion record was provided to independently distinguish the three-graph pilot from a full 71-graph run. A **read-only** `scripts/experiment027_analyze.py` now independently audits complete 16-seed archives, original signed graph scores, accepted normals, hashes, per-seed paired comparisons and produces `analysis/audited_comparison.json` and CSV outputs. Run `--graphs G1 G11 G14` or `--graphs ALL` according to actual execution scope and publish only results confirmed by the audit. Source/factor path details: [Experiment027 VM handoff](docs/experiment027-vm-handoff.md). No new optimization/EVA has been launched by this update; old archives unchanged.
