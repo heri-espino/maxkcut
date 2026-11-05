@@ -140,7 +140,7 @@ Monotonicity follows by acceptance. Every strict improvement corresponds to a ne
 This is \emph{not} a guarantee of global best hyperplane or even adjacency-based local optimality. The objective \(F(r)\) is piecewise constant on the sphere, making ordinary gradient stationarity uninformative. In dimension \(p=2\), one complete semicircle enumerates all homogeneous linear cut partitions up to complementation; in higher dimensions, a finite collection of arcs generally does not.
 
 \section{Inherited approximation guarantee}
-Define \(W_-=\sum_{\{i,j\}\in E}\min(w_{ij},0)\le0\). For a genuinely feasible SDP Gram matrix with unit diagonal, uniform GW initialization and pathwise retention of the original cut, the following signed extension holds.
+Define \(W_-=\sum_{\{i,j\}\in E}\min(w_{ij},0)\le0\). For an optimal solution (X^star) of the SDP with unit diagonal, uniform GW initialization, and pathwise retention of the original cut, the following signed extension holds. Mere primal feasibility of an arbitrary factor is insufficient to compare its objective with (mathrm{OPT}).
 \begin{proposition}[Shifted signed-GW bound]
 If the returned cut is never worse than the uniformly rounded starting cut, then
 \begin{equation}\label{eq:shift}
@@ -149,9 +149,9 @@ If the returned cut is never worse than the uniformly rounded starting cut, then
 \end{equation}
 \end{proposition}
 \begin{proof}
-For an edge angle \(\phi=\arccos(X_{ij})\), put \(q=(1-\cos\phi)/2\) and \(p=\phi/\pi\), the SDP cut fraction and GW separation probability. For all \(\phi\in[0,\pi]\), \(p\ge\alpha_{\rm GW}q\); applying this to \(\pi-\phi\) gives \(1-p\ge\alpha_{\rm GW}(1-q)\). The shifted objective is the sum of positive-weight contributions of \emph{cut} edges and absolute negative-weight contributions of \emph{uncut} edges. Taking expectations and applying both inequalities yields \(\mathbb E[\Ccut(x_{\rm GW})-W_-]\ge\alpha_{\rm GW}(\mathrm{SDP}(X)-W_-)\ge\alpha_{\rm GW}(\mathrm{OPT}-W_-)\). Pathwise retention transfers the bound to the returned cut.
+For an edge angle \(\phi=\arccos(X_{ij})\), put \(q=(1-\cos\phi)/2\) and \(p=\phi/\pi\), the SDP cut fraction and GW separation probability. For all \(\phi\in[0,\pi]\), \(p\ge\alpha_{\rm GW}q\); applying this to \(\pi-\phi\) gives \(1-p\ge\alpha_{\rm GW}(1-q)\). The shifted objective is the sum of positive-weight contributions of \emph{cut} edges and absolute negative-weight contributions of \emph{uncut} edges. Taking expectations and applying both inequalities yields \(\mathbb E[\Ccut(x_{\rm GW})-W_-]\ge\alpha_{\rm GW}(\mathrm{SDP}(X^\star)-W_-)\ge\alpha_{\rm GW}(\mathrm{OPT}-W_-)\). Pathwise retention transfers the bound to the returned cut.
 \end{proof}
-An approximate low-rank EVA factor without certified SDP feasibility does not automatically justify a formal bound. Adaptive tangent directions need not be uniform, and monotone improvement does not strengthen \(\alpha_{\rm GW}\).
+An approximate low-rank EVA factor without a certified SDP-optimality relation does not automatically justify a formal approximation bound against (mathrm{OPT}). Adaptive tangent directions need not be uniform, and monotone improvement does not strengthen \(\alpha_{\rm GW}\).
 
 \section{Experiment025: preliminary results and limits}
 The repository reports completion of 71 G-set graphs, 18 initializer methods and 16 paired GW starting directions per graph-method cell: 20,448 saved seed checkpoints \citep{maxkcutrepo}. Each seed underwent the common full refinement of up to 20 positive-flip sweeps, 30 KL passes and 80 ILS cycles. The best \emph{ever observed} signed cut across those iterations and 16 starts is the method's value. No original EVA factor or SDP was recomputed for this paper. The available analysis is based on a compact 1,278-row graph-method summary; the full saved partitions have not been independently audited or verified backed up outside the university VM.
