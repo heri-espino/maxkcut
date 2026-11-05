@@ -1,3 +1,5 @@
+> **DIRECT REPOSITORY PUBLICATION (2026-11-05):** The user cannot transfer VM raw files through ChatGPT. Follow [Experiment027 LFS publication instructions](experiment027-publication.md). The new `scripts/experiment027_publish.py` audits, archives and pushes directly from the idle VM. Graph ZIPs go into `published/experiment027/archives/` (Git LFS) and analyses/manifests into normal Git. This is prepared tooling, **not evidence that the user's numerical files have been pushed**. Preserve Experiment025 raw outputs and verify remote Git LFS payloads before claiming backup.
+
 # Experiment027 — Windows VM file map, successful-pilot handoff and safe resume
 
 ## Read-only post-run audit and paired comparison (2026-11-05)
