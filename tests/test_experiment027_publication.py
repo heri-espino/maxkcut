@@ -117,6 +117,7 @@ def test_audit_matches_exact_requested_graphs(tmp_path):
 
 def test_dry_run_never_invokes_git_or_creates_archives(tmp_path, monkeypatch, capsys):
     _complete_seed_tree(tmp_path)
+    monkeypatch.setattr(pub, "PROJECT", tmp_path)
     monkeypatch.setattr(pub, "SOURCE", tmp_path / "raw")
     monkeypatch.setattr(pub, "PUBLISH", tmp_path / "published")
     monkeypatch.setattr(pub, "command", lambda *a, **k: pytest.fail("Git/audit called"))
