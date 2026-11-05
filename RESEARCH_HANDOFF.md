@@ -130,3 +130,11 @@ The [full method-topology experiment](notes/experiments/experiment023-all-method
 - **Next independent computational experiment:** `experiment023`, if pursued, should compare an initializer portfolio against additional original K-MeansNM restarts at **equal total wall time / cut-evaluation budget**, with graph-normalized paired effects, multiple-comparison controls and separate preprocessing accounting. Other alternatives (e.g. recombining complementary elite partitions) require a newly specified and archived experiment.
 
 **Repository-first rule:** inspect `README.md`, `AGENTS.md`, this handoff, experiment notes, code, tests and exact SHA-checked outputs before changes; keep every new source, config, result, figure and decision in GitHub. Do not overwrite a completed experiment, rerun expensive optimizations merely for reporting, or merge stacked PRs without explicit authorization.
+
+
+## Hyperplane Sweep algorithmic manuscript (2026-11-05)
+
+- Source, related-work bibliography, build instructions and PDF workflow: [papers/hyperplane-sweep](papers/hyperplane-sweep/README.md).
+- This is a **provisional research draft**. The 71 × 18 × 16 aggregate is from still-draft PR #75; the original signed-cut partitions have not been independently audited, matched-seed trajectories are not available in the compact dataset, and full raw VM archives have not been independently backed up. Do not claim certified records, superior approximation factors, or equal-compute comparisons.
+- The manuscript proves conditional fixed-arc exactness and retained-GW guarantees only. The code gain-guided mode selects negative single-flip gains, although its comment describes improving flips. Boundary-guided selects small absolute gains, not geometric margins. Test this separately under a newly numbered experiment; keep Experiment025 frozen.
+- Hosted Ubuntu compiles the manuscript. It does not run on or modify the university Windows VM, EVA factors, or optimization checkpoints.

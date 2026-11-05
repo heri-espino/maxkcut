@@ -1,0 +1,47 @@
+name: Hyperplane Sweep manuscript (PDF)
+
+on:
+  push:
+    branches: ["paper/hyperplane-sweep-event-search"]
+    paths:
+      - "papers/hyperplane-sweep/**"
+      - ".github/workflows/hyperplane-sweep-paper.yml"
+  pull_request:
+    paths:
+      - "papers/hyperplane-sweep/**"
+      - ".github/workflows/hyperplane-sweep-paper.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compile-paper:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out manuscript
+        uses: actions/checkout@v4
+      - name: Install LaTeX dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends \
+            latexmk texlive-latex-base texlive-latex-recommended texlive-latex-extra \
+            texlive-science texlive-pictures texlive-fonts-recommended poppler-utils
+      - name: Compile LaTeX and bibliography
+        working-directory: papers/hyperplane-sweep
+        run: |
+          set -euo pipefail
+          latexmk -pdf -interaction=nonstopmode -halt-on-error -file-line-error main.tex
+          test -s main.pdf
+          test -s main.bbl
+          pdfinfo main.pdf | grep '^Pages:'
+          if grep -E 'LaTeX Warning: (There were undefined references|Citation .* undefined)' main.log; then
+            echo "Undefined references remain"; exit 1
+          fi
+      - name: Upload compiled PDF
+        uses: actions/upload-artifact@v4
+        with:
+          name: hyperplane-sweep-paper-pdf
+          path: papers/hyperplane-sweep/main.pdf
+          if-no-files-found: error
