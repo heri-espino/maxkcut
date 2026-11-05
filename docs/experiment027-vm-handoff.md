@@ -127,8 +127,9 @@ python scripts/experiment027_angular.py summary --phase full
 ```powershell
 $NewRoot = "$env:USERPROFILE\maxkcut-exp027\results\gset\experiment027-angular-greedy"
 $methods = 'angular-margin-greedy','angular-gain-greedy','angular-pair-greedy'
-foreach ($g in 'G1','G11','G14') {
-    foreach ($m in $methods) {
+& {
+    foreach ($g in 'G1','G11','G14') {
+        foreach ($m in $methods) {
         $p = Join-Path $NewRoot "full\$g\$m\status.json"
         if (Test-Path $p) {
             $r = Get-Content $p -Raw | ConvertFrom-Json
@@ -136,11 +137,12 @@ foreach ($g in 'G1','G11','G14') {
         } else {
             [pscustomobject]@{ Graph=$g; Method=$m; Status='MISSING'; Starts=0; Best=$null; Paths=$null }
         }
+        }
     }
 } | Format-Table -AutoSize
 ```
 
-**PowerShell 5.1 note:** Depending on how the shell parses the pipeline after a `foreach` statement, surround the `foreach` block in `& { ... }` before piping to `Format-Table`, or simply remove the final pipe and inspect the nine objects. Do not present missing cells as zero-valued Max-Cut scores.
+Do not present missing cells as zero-valued Max-Cut scores.
 
 Target for the three-graph full pilot: **9 graph-method cells × 16 seeds = 144 completed new seed archives**. Require `status == 'complete_16'`, `starts_completed == 16` and independently verify stage/partition rescoring before calling it audited.
 
