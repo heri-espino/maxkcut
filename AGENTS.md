@@ -947,3 +947,11 @@ Read instructions → inspect the current branch/files → state the mathematica
 - The research code is **not a certified full convex SDP solver**. The EVA Numba factors are nonconvex rank-restricted vector-relaxation approximations, and all scores are verified feasible signed cuts, not certified optima.
 - Workflow: `.github/workflows/experiment021-complete-gset.yml`. New tests: `tests/test_eva_full_gset_completion.py`. Reproduce and verify with `python -m maxkcut.eva_full_gset_completion_cli aggregate` from a checkout containing all Experiment019–021 tracked outputs.
 - PR **#51** is based on Experiment020 (#50). Do not merge without authorization. Preserve per-graph hashes and original archives; do not regenerate the 31,950 runs merely for statistics or formatting.
+
+
+## Hyperplane Sweep algorithmic manuscript (2026-11-05)
+
+- Source, related-work bibliography, build instructions and PDF workflow: [papers/hyperplane-sweep](papers/hyperplane-sweep/README.md).
+- This is a **provisional research draft**. The 71 × 18 × 16 aggregate is from still-draft PR #75; the original signed-cut partitions have not been independently audited, matched-seed trajectories are not available in the compact dataset, and full raw VM archives have not been independently backed up. Do not claim certified records, superior approximation factors, or equal-compute comparisons.
+- The manuscript proves conditional fixed-arc exactness and retained-GW guarantees only. The code gain-guided mode selects negative single-flip gains, although its comment describes improving flips. Boundary-guided selects small absolute gains, not geometric margins. Test this separately under a newly numbered experiment; keep Experiment025 frozen.
+- Hosted Ubuntu compiles the manuscript. It does not run on or modify the university Windows VM, EVA factors, or optimization checkpoints.
