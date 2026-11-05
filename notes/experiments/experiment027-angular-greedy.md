@@ -1,5 +1,27 @@
 # Experiment027 — angular-margin and pair-targeted greedy hyperplane sweeps
 
+## Read-only post-run audit and paired comparison (2026-11-05)
+
+The user subsequently reported that the numerical experiments **ran successfully**. The available conversation does not establish whether this means only the corrected 3-graph pilot or all 71 graphs; there are no copied VM numerical status files in GitHub. **Do not assert 213/213 cells until checked.**
+
+New **`scripts/experiment027_analyze.py`** is deliberately outside `src/maxkcut/` and does not change the content-hashed Experiment027 numerical runner. It independently reads the original signed graph and the exact SHA-pinned EVA factor, checks 16 GW normals are byte-equal across old/new experiments, verifies all 16 seeds for GW-RR, historical Hyperplane Sweep and each of the three new methods, validates per-stage NPZ SHA256 and original signed-cut scores, strict-best checkpoint SHA and score, counts every JSONL event, and independently scores each accepted high-dimensional normal from `accepted_normals.npz`. It fails closed on missing/mismatched input; no missing data is treated as zero. It then generates per-seed paired differences, graphwise best-of-16 comparisons, graph-cluster bootstrap intervals and a method leaderboard.
+
+From an **idle** Experiment027 worktree, in `conda activate maxkcut`, choose **one** command based on what actually ran:
+
+```powershell
+# After the successful G1/G11/G14 pilot, audit exactly 3 graphs / 9 new cells:
+python scripts/experiment027_analyze.py --graphs G1 G11 G14
+
+# If ALL 71 graphs have been run, audit full 71 graph / 213 new cells:
+python scripts/experiment027_analyze.py --graphs ALL
+```
+
+Analysis outputs are written under `$env:USERPROFILE\maxkcut-exp027\results\gset\experiment027-angular-greedy\analysis\`:
+`audited_comparison.json`, `audited_seed_scores.csv`, `audited_graph_comparisons.csv`, `audited_method_leaderboard.csv`, and `audited_paired_seed_deltas.csv`.
+
+Expected `audited_method_seed_archives` includes two historical comparator methods: **80 per graph**, so **240** for three graphs or **5,680** for 71; of those, new method-seed archives are **48 per graph** (144 or 3,408). The audit script does not rerun any optimization, does not edit historical raw output, and writes only the new study's `analysis/` directory. Share the small `audited_comparison.json` and leaderboard CSV for interpretation. Before calling any result a new best-known cut, perform independent provenance and reference verification. Back up *both* raw archives off-VM with verified checksums; do not leave unique experimental data only on the Windows computer.
+
+
 > **CURRENT VM STATUS (Nov 5, 2026):** The user reports that the repaired full-phase G1/G11/G14 numerical pilot succeeded. The status records, all 16 archived starts per method, verified signed-cut scores and off-VM backup have **not** been independently inspected. For precise Windows paths, source-factor directories, Experiment025 archives, where new results/journals are stored, commands to verify 9 method–graph cells, and safe resume, see **[Experiment027 VM handoff and file map](../../docs/experiment027-vm-handoff.md)**. The earlier FileNotFoundError for G14 in the assumed single Experiment021 factor folder was corrected by `scripts/experiment027_from_archives.py`, with successful hosted 12-test regression. This file retains the historical failure narrative for provenance.
 
 
