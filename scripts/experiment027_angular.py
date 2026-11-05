@@ -206,8 +206,23 @@ def _old_baseline(baseline_root, phase, graph, graph_sha, factor_sha, direction_
             or old_status.get("factor_sha256") != factor_sha
             or old_status.get("shared_directions_sha256") != direction_sha):
         raise ValueError("Experiment025 baseline differs in graph/factor/GW directions")
+    hyper_path = folder/"hyperplane-sweep"/"status.json"
+    hyper_best = None
+    hyper_sha = None
+    if hyper_path.is_file():
+        hyper_status=json.loads(hyper_path.read_text(encoding="utf8"))
+        if hyper_status.get("status") == "complete_16_best_seen":
+            if (hyper_status.get("graph_sha256") != graph_sha
+                    or hyper_status.get("factor_sha256") != factor_sha
+                    or hyper_status.get("shared_directions_sha256") != direction_sha):
+                raise ValueError("Experiment025 Hyperplane Sweep has mismatched provenance")
+            hyper_best=float(hyper_status["best_final"])
+            hyper_sha=sha(hyper_path)
     return dict(gw_refined_best=float(old_status["best_final"]),
-                old_status_sha256=sha(status),normals=old_normals)
+                hyperplane_refined_best=hyper_best,
+                old_status_sha256=sha(status),
+                hyperplane_status_sha256=hyper_sha,
+                normals=old_normals)
 
 
 def run_one(graph, method, phase, args):
@@ -284,7 +299,9 @@ def run_one(graph, method, phase, args):
                 refinement_details=refinements,
                 seed_seconds=time.monotonic()-started,
                 gw_refined_best_exp025=old["gw_refined_best"] if old else None,
-                baseline_status_sha256=old["old_status_sha256"] if old else None)
+                baseline_status_sha256=old["old_status_sha256"] if old else None,
+                hyperplane_refined_best_exp025=old["hyperplane_refined_best"] if old else None,
+                hyperplane_status_sha256=old["hyperplane_status_sha256"] if old else None)
             write_case(folder,method,index,final,stages,metadata,partitions)
             saved=verify_case(folder,method,index,g,edges,ident)
             if saved is None:
@@ -304,6 +321,8 @@ def run_one(graph, method, phase, args):
         raw_mean=float(np.mean([s["raw_cut"] for s in completed])),
         gw_refined_best_exp025=old["gw_refined_best"] if old else None,
         baseline_status_sha256=old["old_status_sha256"] if old else None,
+        hyperplane_refined_best_exp025=old["hyperplane_refined_best"] if old else None,
+        hyperplane_status_sha256=old["hyperplane_status_sha256"] if old else None,
         total_paths=sum(s["angular_summary"]["paths_evaluated"] for s in completed),
         selected_seed_index=max(completed,key=lambda s:s["best_seen_cut"])["index"])
     atomic_json(target/"status.json",row)
@@ -326,7 +345,8 @@ def summary(args):
                 rows.append({k:state.get(k) for k in (
                     "graph","method","phase","status","starts_completed",
                     "best_final","mean_final","best_raw","raw_mean",
-                    "gw_refined_best_exp025","total_paths")})
+                    "gw_refined_best_exp025","hyperplane_refined_best_exp025",
+                    "total_paths")})
     output=Path(args.root)/"analysis"/f"{args.phase}_method_summary.csv"
     output.parent.mkdir(parents=True,exist_ok=True)
     if rows:
