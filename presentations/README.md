@@ -1,3 +1,5 @@
+**Experiment025 complete-results edition (2026-11-03):** [94-slide Marp deck with 12 graph-structure figures](maxkcut_full_research_001_025.marp.md), [reproducible build and Actions instructions](EXPERIMENT025_PRESENTATION.md), [figure generator](build_experiment025_figures.mjs), and [GitHub Actions hosted renderer](../.github/workflows/experiment025-marp-presentation.yml). The old 44-slide and 74-slide decks remain historical; no EVA, SDP or refinement is rerun for this edition. PDF/HTML exports are uploaded as time-limited workflow artifacts; full raw VM results still require independent audit and backup.
+
 # maxkcut — Marp research presentation
 
 ## Included files
@@ -38,3 +40,5 @@ Every graph-level result comes from `experiment021-complete-71-gset/statistics/`
 See `RESEARCH_HANDOFF.md`, `AGENTS.md`, and Experiments019–021 notes for exact programs, commands, graph/factor SHA256 hashes, seeds and limitations. This is documentation only. Exporting the deck must not rerun expensive optimizations.
 
 The 2020 and 2022 papers and the 2021 dissertation are credited in the deck; there are no uncredited reused figures.
+
+Experiment025 benchmark reference update (2026-11-05): Three method-colored graph-family bar charts compare best-of-16 signed cut quality with a version-pinned external reference snapshot (Quicopt and OpenIsing). Rebuild using `node presentations/build_experiment025_reference_ratio_figures.mjs`; see `EXPERIMENT025_PRESENTATION.md`. Updated slide count: 97; export remains PDF and HTML only.

@@ -1,3 +1,5 @@
+**NEW — completed Experiment025 presentation (2026-11-03):** The original 74-slide Experiments001–023 Marp/PDF stays archived. The new [Experiment001–025 edition](maxkcut_full_research_001_025.marp.md) (94 slides) incorporates 12 committed reproducible SVG charts comparing 18 methods by graph, generator family, weight type, and original-edge structural metrics from Experiment022. Its hosted [GitHub Actions workflow](../.github/workflows/experiment025-marp-presentation.yml) regenerates figures and exports PDF/HTML. [Full build and scientific caveats](EXPERIMENT025_PRESENTATION.md). Complete computation does not imply independently audited reference records, equal-compute superiority, per-seed paired significance, or off-VM backup.
+
 # Full Max-Cut research seminar — Marp edition
 
 **Audience:** Professor Ángel E. Rodríguez Fernández. **Date:** 29 October 2026.
@@ -46,3 +48,5 @@ The script uses Python's standard library. The older scientific SVGs remain unde
 - Never treat repeated restarts or 1,207 planned method cells as independent graphs, or claim equal-compute superiority without an equal-budget result.
 
 The original 44-slide talk has not been edited.
+
+Experiment025 (2026-11-05): The 97-slide deck adds external-reference-normalized winner/GW bar charts for random (30), planar-family (24) and toroidal (17) G-set graphs. Source snapshots, all 1,278 method ratios and reproducible SVG source are committed; see `EXPERIMENT025_PRESENTATION.md`. Output artifacts remain PDF and HTML only.
