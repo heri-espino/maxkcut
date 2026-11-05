@@ -5,15 +5,19 @@ on:
     paths:
       - 'scripts/experiment027_angular.py'
       - 'scripts/experiment027_from_archives.py'
+      - 'scripts/experiment027_analyze.py'
       - 'tests/test_experiment027_angular.py'
       - 'tests/test_experiment027_factor_sources.py'
+      - 'tests/test_experiment027_analysis.py'
       - '.github/workflows/experiment027-angular-ci.yml'
   pull_request:
     paths:
       - 'scripts/experiment027_angular.py'
       - 'scripts/experiment027_from_archives.py'
+      - 'scripts/experiment027_analyze.py'
       - 'tests/test_experiment027_angular.py'
       - 'tests/test_experiment027_factor_sources.py'
+      - 'tests/test_experiment027_analysis.py'
       - '.github/workflows/experiment027-angular-ci.yml'
   workflow_dispatch:
 
@@ -47,6 +51,6 @@ jobs:
           MKL_NUM_THREADS: '1'
           OMP_NUM_THREADS: '1'
           NUMBA_NUM_THREADS: '1'
-        run: python -m pytest -q tests/test_experiment027_angular.py tests/test_experiment027_factor_sources.py
+        run: python -m pytest -q tests/test_experiment027_angular.py tests/test_experiment027_factor_sources.py tests/test_experiment027_analysis.py
       - name: Dry run without optimization
         run: python scripts/experiment027_angular.py run --dry-run --graphs G1 G11 --phase pilot
