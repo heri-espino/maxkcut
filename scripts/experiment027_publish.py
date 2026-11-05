@@ -220,6 +220,9 @@ def publish_to_git(paths, *, push, branch):
     else:
         command(["git", "commit", "-m", "experiment027: publish audited cuts, trajectories and SHA manifests"])
     if push:
+        # Explicitly upload LFS payloads even if the worktree's pre-push hook
+        # was never installed; do this BEFORE advancing the Git branch.
+        command(["git", "lfs", "push", "origin", "HEAD"])
         # Never force-push. Remote rejection requires fetch/review/retry.
         command(["git", "push", "origin", f"HEAD:refs/heads/{branch}"])
         print(f"Pushed to origin/{branch}. Verify remote LFS availability separately.")
