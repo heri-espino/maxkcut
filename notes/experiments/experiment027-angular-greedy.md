@@ -1,3 +1,5 @@
+> **RESULT PUBLICATION (2026-11-05):** Never require the user to paste large VM output into chat. [Run the Git LFS publisher on the VM](../../docs/experiment027-publication.md) to independently rescore all saved partitions, include every new method's per-iteration trace and partition archive as immutable ZIPs, push accessible compact analysis and SHA manifests to PR #80, and verify remote LFS payloads. Actual publication requires user execution; no EVA/old method recomputation and no merged PR.
+
 # Experiment027 — angular-margin and pair-targeted greedy hyperplane sweeps
 
 ## Read-only post-run audit and paired comparison (2026-11-05)
