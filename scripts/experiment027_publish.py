@@ -266,6 +266,10 @@ def main(argv=None):
                               action="no files created; run independent audit and publish without --dry-run"),
                          indent=2))
         return 0
+    # Refresh the independent audit against CURRENT VM bytes before export.
+    # This checks saved signed-graph partitions and trajectories; it never optimizes.
+    command([sys.executable, str(PROJECT / "scripts" / "experiment027_analyze.py"),
+             "--graphs", *graphs, "--new-root", str(root)])
     audit = validate_audit(root, graphs)
     # The independent audit covers the same graph list and is required BEFORE publishing.
     generated = []
