@@ -1,0 +1,60 @@
+name: Experiment027 angular-guided rounding tests (hosted only)
+
+on:
+  push:
+    paths:
+      - 'scripts/experiment027_angular.py'
+      - 'scripts/experiment027_from_archives.py'
+      - 'scripts/experiment027_analyze.py'
+      - 'scripts/experiment027_publish.py'
+      - 'tests/test_experiment027_angular.py'
+      - 'tests/test_experiment027_factor_sources.py'
+      - 'tests/test_experiment027_analysis.py'
+      - 'tests/test_experiment027_publication.py'
+      - '.github/workflows/experiment027-angular-ci.yml'
+  pull_request:
+    paths:
+      - 'scripts/experiment027_angular.py'
+      - 'scripts/experiment027_from_archives.py'
+      - 'scripts/experiment027_analyze.py'
+      - 'scripts/experiment027_publish.py'
+      - 'tests/test_experiment027_angular.py'
+      - 'tests/test_experiment027_factor_sources.py'
+      - 'tests/test_experiment027_analysis.py'
+      - 'tests/test_experiment027_publication.py'
+      - '.github/workflows/experiment027-angular-ci.yml'
+  workflow_dispatch:
+
+jobs:
+  toy-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install package and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e '.[test,eva-fast]'
+      - name: Source fingerprint remains unchanged (no EVA solve)
+        run: |
+          python - <<'PY'
+          from maxkcut.experiment025_bestcut import algorithm_source_sha256
+          print('Frozen Python source fingerprint:', algorithm_source_sha256())
+          PY
+      - name: Run only Experiment027 small-graph tests
+        env:
+          OPENBLAS_NUM_THREADS: '1'
+          MKL_NUM_THREADS: '1'
+          OMP_NUM_THREADS: '1'
+          NUMBA_NUM_THREADS: '1'
+        run: python -m pytest -q tests/test_experiment027_angular.py tests/test_experiment027_factor_sources.py tests/test_experiment027_analysis.py tests/test_experiment027_publication.py
+      - name: Dry run without optimization
+        run: python scripts/experiment027_angular.py run --dry-run --graphs G1 G11 --phase pilot

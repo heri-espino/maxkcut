@@ -1,4 +1,12 @@
+**Publish Experiment027 data directly from the Windows VM:** `scripts/experiment027_publish.py` performs the full independent archive audit, exports checksum-verified immutable raw iteration archives via Git LFS and publishes readable analysis CSV/JSON under `published/experiment027/`. On the idle Experiment027 worktree, use `python scripts/experiment027_publish.py --graphs G1 G11 G14 --push` for pilot or `--graphs ALL --push` after full coverage. The publishing code alone does not upload VM results; see [publication and verification runbook](docs/experiment027-publication.md). Historical Experiment025 remains read-only.
+
 # maxkcut
+
+**Experiment027 post-run analysis:** User reports successful numerical execution (scope not independently verified). New `scripts/experiment027_analyze.py` audits all archived new and historical 16-seed partitions and signed cuts, compares the three angular-guided methods against Experiment025 GW and Hyperplane Sweep, and saves a reproducible leaderboard/paired analysis. Run `--graphs G1 G11 G14` for pilot or `--graphs ALL` for the complete study; see [VM handoff and exact paths](docs/experiment027-vm-handoff.md). This read-only step performs no EVA or optimization.
+
+**Current Experiment027 status (Nov 5, 2026):** User reports the corrected three-graph full pilot (G1/G11/G14; three new angular methods, 16 original GW starts per method) succeeded on the university VM. Independent verification of 9/9 completed cells, numerical results and off-VM backup is still pending. For the **two worktrees, immutable Experiment025 baseline, per-graph EVA-factor source resolution, new results/journal paths, SHA checks, and resumable Windows commands**, read **[Experiment027 VM handoff](docs/experiment027-vm-handoff.md)** and [Experiment027 scientific protocol](notes/experiments/experiment027-angular-greedy.md). Do not rerun EVA, any Experiment025 method or overwrite historical raw output. Correct launcher: `scripts/experiment027_from_archives.py`. The original factor directory assumption was invalid for G14.
+
+
 
 **Experiment025 computational sweep COMPLETE locally (2026-11-03):** The university Windows VM completed and rechecked **71 graphs × 18 methods × 16 paired GW starts = 20,448/20,448 seed results**, with **1,278/1,278 complete graph-method cells** and `all_complete=true`. Full iteration archives were saved **only on the VM**, not GitHub. **Independent cut rescore, off-VM backup, paired statistical analysis, and compact Git publication are still pending.** Do NOT repeat the EVA/SDP solve or the finished refinements. [See dated completion/provenance note](notes/experiments/experiment025-full-local-computation-2026-11-03.md) and [VM operations guide](docs/university-vm-experiment025-operations.md). Previous incomplete-progress notes in this README are historical.
 
@@ -902,3 +910,5 @@ python -m maxkcut.eva_kmeans_init_full_cli --graphs G63 --restarts 50 --chunk-si
 ```
 
 [Full Experiment019 protocol](notes/experiments/experiment019-kmeans-init-full-pipeline.md).
+
+
