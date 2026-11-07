@@ -1,3 +1,5 @@
+> **VERSIONED GITHUB RELEASE DATA (Nov 7, 2026):** Prefer [no-LFS publisher](../../docs/experiment027-release-no-lfs.md) `scripts/experiment027_publish_release.py` to publish the complete existing Experiment027 16-seed raw iteration histories to GitHub Releases (one SHA-verified ZIP asset per graph), with audited regular-Git analyses and source SHA manifests. Previous Git LFS publication is optional and may exceed quota. The numerical data remain VM-local until the user runs the script and confirms the remote index; never repeat EVA/old methods.
+
 > **RESULT PUBLICATION (2026-11-05):** Never require the user to paste large VM output into chat. [Run the Git LFS publisher on the VM](../../docs/experiment027-publication.md) to independently rescore all saved partitions, include every new method's per-iteration trace and partition archive as immutable ZIPs, push accessible compact analysis and SHA manifests to PR #80, and verify remote LFS payloads. Actual publication requires user execution; no EVA/old method recomputation and no merged PR.
 
 # Experiment027 — angular-margin and pair-targeted greedy hyperplane sweeps
