@@ -171,14 +171,17 @@ def publish_index(tag, info, root, audit_dir, graphs):
     return dest, index
 
 
-def commit_small_files(folder, tag):
+def commit_small_files(folder, tag, latest=None):
     if run(["git", "diff", "--cached", "--name-only"]).stdout.strip():
         raise RuntimeError("Unrelated staged Git changes; refuse to commit")
     # Only ordinary-Git publication outputs, never the ZIPs or VM history.
     path = folder.relative_to(HERE).as_posix()
-    run(["git", "add", "--", path])
+    paths = [path]
+    if latest is not None:
+        paths.append(latest.relative_to(HERE).as_posix())
+    run(["git", "add", "--", *paths])
     staged = run(["git", "diff", "--cached", "--name-only"]).stdout.splitlines()
-    if not all(s.startswith(path + "/") for s in staged):
+    if not all(s.startswith(path + "/") or s in paths for s in staged):
         raise RuntimeError("Unexpected staged file; do not push")
     if staged:
         run(["git", "commit", "-m", f"experiment027: publish verified Release metadata {tag}"])
@@ -249,7 +252,18 @@ def main(argv=None):
         if release is None or release.get("draft"):
             raise RuntimeError("Release remained draft after publication")
     folder, idx = publish_index(tag, items, DEST, audit, graphs)
-    commit_small_files(folder, tag)
+    # Stable discovery path for future agents without guessing content tags.
+    # A smaller pilot must never downgrade a previously published full study.
+    pointer = DEST.parent / "latest_release.json"
+    previous = json.loads(pointer.read_text(encoding="utf8")) if pointer.is_file() else None
+    update_pointer = previous is None or len(graphs) >= int(previous.get("graph_count", 0))
+    if update_pointer:
+        pointer.write_bytes(stable_bytes(dict(
+            schema="experiment027-latest-release-v1",
+            graph_count=len(graphs), release_tag=tag, release_url=idx["release_url"],
+            index=(folder / "index.json").relative_to(HERE).as_posix(),
+        )))
+    commit_small_files(folder, tag, latest=pointer if update_pointer else None)
     print(json.dumps(dict(status="published", release=idx["release_url"],
                           index=str(folder / "index.json"), graph_count=len(graphs)),
                      indent=2), flush=True)
