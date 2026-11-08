@@ -43,11 +43,34 @@ def run(cmd, *, ok_codes=(0,), text=True):
 
 
 def repo_info():
+    """Allow the separate VM results worktree without moving its branch.
+
+    Publish only if its HEAD contains the current remote Experiment027 branch,
+    so the final Git push is a non-forced fast-forward. Never reset/checkout.
+    """
     branch = run(["git", "branch", "--show-current"]).stdout.strip()
-    if branch != BRANCH:
-        raise RuntimeError(f"Expected checkout {BRANCH}, found {branch!r}")
+    if branch not in (BRANCH, "exp027-local"):
+        raise RuntimeError(
+            f"Expected Experiment027 checkout {BRANCH!r} or 'exp027-local'; found {branch!r}. "
+            "Do not switch/clean a worktree holding numerical data."
+        )
     if run(["git", "diff", "--cached", "--name-only"]).stdout.strip():
         raise RuntimeError("Git index contains unrelated staged files; refuse publication")
+    # Refresh remote history before any audit/package/upload. The user's local
+    # exp027-local branch might be behind or diverged from the shared PR.
+    run(["git", "fetch", "origin", BRANCH])
+    remote = run(["git", "rev-parse", f"refs/remotes/origin/{BRANCH}"]).stdout.strip()
+    if not remote:
+        raise RuntimeError(f"Remote branch origin/{BRANCH} cannot be resolved")
+    ancestry = run(["git", "merge-base", "--is-ancestor", remote, "HEAD"],
+                   ok_codes=(0, 1))
+    if ancestry.returncode != 0:
+        raise RuntimeError(
+            f"Local {branch!r} does not contain origin/{BRANCH}. "
+            f"Do not force-push or reset. On the Experiment027 worktree, try "
+            f"'git merge --ff-only origin/{BRANCH}' after inspecting git status; "
+            "if that refuses, preserve both branches and reconcile divergence."
+        )
     gh = shutil.which("gh")
     if gh is None:
         raise RuntimeError(
