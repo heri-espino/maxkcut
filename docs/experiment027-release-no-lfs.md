@@ -1,3 +1,16 @@
+> **Nov 8, 2026: local VM branch compatibility.** The 71-graph preflight recognized all **3,408 new seeds** totaling **393,169,236 uncompressed bytes**. The only observed block was an overly strict publisher branch-name check: the VM uses a separate, important **`exp027-local`** branch. The publisher now accepts it safely, but insists the current remote `experiment027-angular-greedy` branch is its ancestor before uploading or committing. Do not switch or rename `exp027-local`. First run the commands below in that same worktree (this changes only the exp027 worktree, never the older `maxkcut` checkout):
+
+```powershell
+Set-Location "$env:USERPROFILE\maxkcut-exp027"
+conda activate maxkcut
+git status --short
+git fetch origin experiment027-angular-greedy
+git merge --ff-only origin/experiment027-angular-greedy
+python scripts/experiment027_publish_release.py --graphs ALL
+```
+
+If the fast-forward merge is refused, **stop; do not force, reset, rebase or clean the VM worktree**. The new publisher performs a second fetch/ancestry check before any expensive verification/upload. Its final push is a normal, non-forced push to `origin/experiment027-angular-greedy`. The previous attempt stopped before the audit/Release upload, so it did not publish numerical data.
+
 # Experiment027 publication WITHOUT Git LFS — GitHub Releases
 
 **Current preferred workflow (2026-11-07).** The user wishes to preserve all Experiment027 numerical history in GitHub without relying on Git LFS quota. The repository itself already contains substantial data; storing the raw binary histories as regular Git blobs would permanently enlarge clones and may violate file/push limits. **GitHub Release assets are hosted by the same repository but do not increase ordinary Git history or use Git LFS.** The small audited comparisons, per-file SHA256 manifests and a stable index remain ordinary committed Git files.
