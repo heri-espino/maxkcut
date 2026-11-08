@@ -99,3 +99,45 @@ def test_tag_is_stable_for_archive_list():
         return hashlib.sha256(rel.stable_bytes(data)).hexdigest()[:20]
     assert tag(a) == tag(b)
     assert tag(a) != tag(a[::-1])
+
+
+@pytest.mark.parametrize("checkout", ["experiment027-angular-greedy", "exp027-local"])
+def test_repo_info_allows_vm_worktree_without_switch_when_fast_forward_safe(monkeypatch, checkout):
+    from types import SimpleNamespace
+    calls = []
+    def fake_run(args, **kwargs):
+        calls.append(tuple(args))
+        if args[:3] == ["git", "branch", "--show-current"]:
+            return SimpleNamespace(stdout=checkout + "\n", stderr="", returncode=0)
+        if args[:3] == ["git", "rev-parse", "refs/remotes/origin/experiment027-angular-greedy"]:
+            return SimpleNamespace(stdout="a" * 40 + "\n", stderr="", returncode=0)
+        return SimpleNamespace(stdout="", stderr="", returncode=0)
+    monkeypatch.setattr(rel, "run", fake_run)
+    monkeypatch.setattr(rel.shutil, "which", lambda name: "C:/portable/gh.exe")
+    assert rel.repo_info() == "C:/portable/gh.exe"
+    assert ("git", "fetch", "origin", "experiment027-angular-greedy") in calls
+    assert ("git", "merge-base", "--is-ancestor", "a" * 40, "HEAD") in calls
+    assert all("reset" not in cmd and "switch" not in cmd and "checkout" not in cmd for cmd in calls)
+
+
+def test_repo_info_blocks_vm_branch_without_remote_ancestry(monkeypatch):
+    from types import SimpleNamespace
+    def fake_run(args, **kwargs):
+        if args[:3] == ["git", "branch", "--show-current"]:
+            return SimpleNamespace(stdout="exp027-local\n", stderr="", returncode=0)
+        if args[:3] == ["git", "rev-parse", "refs/remotes/origin/experiment027-angular-greedy"]:
+            return SimpleNamespace(stdout="b" * 40 + "\n", stderr="", returncode=0)
+        if args[:3] == ["git", "merge-base", "--is-ancestor"]:
+            return SimpleNamespace(stdout="", stderr="", returncode=1)
+        return SimpleNamespace(stdout="", stderr="", returncode=0)
+    monkeypatch.setattr(rel, "run", fake_run)
+    with pytest.raises(RuntimeError, match="does not contain"):
+        rel.repo_info()
+
+
+def test_repo_info_rejects_other_worktrees(monkeypatch):
+    from types import SimpleNamespace
+    monkeypatch.setattr(rel, "run", lambda args, **kwargs:
+                        SimpleNamespace(stdout="experiment025-results\n", stderr="", returncode=0))
+    with pytest.raises(RuntimeError, match="Expected Experiment027 checkout"):
+        rel.repo_info()
