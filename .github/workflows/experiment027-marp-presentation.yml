@@ -74,7 +74,7 @@ jobs:
             echo "Using browser: $BROWSER"
           fi
 
-      - name: Export full merged Marp presentation to PDF, PPTX, HTML
+      - name: Export full merged Marp presentation to PDF and HTML
         shell: bash
         run: |
           set -euo pipefail
@@ -84,8 +84,7 @@ jobs:
           browser=()
           if [[ -n "${BROWSER_PATH:-}" ]]; then browser=(--browser-path "$BROWSER_PATH"); fi
           ./node_modules/.bin/marp "$source" --allow-local-files "${browser[@]}" --pdf -o "${root}.pdf"
-          ./node_modules/.bin/marp "$source" --allow-local-files "${browser[@]}" --pptx -o "${root}.pptx"
-          ./node_modules/.bin/marp "$source" --allow-local-files --html -o "${root}.html"
+           ./node_modules/.bin/marp "$source" --allow-local-files --html -o "${root}.html"
 
       - name: Make SVG-backed HTML portable
         run: node presentations/embed_experiment027_html_assets.mjs
@@ -95,30 +94,24 @@ jobs:
         run: |
           set -euo pipefail
           root="presentations/build/maxkcut_full_research_001_027"
-          for extension in pdf pptx html; do test -s "${root}.${extension}"; done
+          for extension in pdf html; do test -s "${root}.${extension}"; done
           if command -v pdfinfo >/dev/null; then
             pages="$(pdfinfo "${root}.pdf" | awk '/^Pages:/ {print $2}')"
             test "$pages" -eq 117 || { echo "Expected 117 PDF pages, got $pages"; exit 1; }
             echo "Verified PDF pages: $pages"
           fi
-          if command -v unzip >/dev/null; then
-            count="$(unzip -Z1 "${root}.pptx" | grep -Ec '^ppt/slides/slide[0-9]+\.xml$')"
-            test "$count" -eq 117 || { echo "Expected 117 PPTX slides, got $count"; exit 1; }
-            echo "Verified PPTX slides: $count"
-          fi
           if grep -Eq 'assets/[A-Za-z0-9_.-]+\.svg' "${root}.html"; then
             echo "Portable HTML retained local SVG asset references"
             exit 1
           fi
-          du -h "${root}.pdf" "${root}.pptx" "${root}.html"
+          du -h "${root}.pdf" "${root}.html"
 
-      - name: Upload PDF, PowerPoint and standalone HTML artifacts
+      - name: Upload PDF and standalone HTML artifacts
         uses: actions/upload-artifact@v4
         with:
           name: maxkcut-experiment027-complete-marp
           path: |
             presentations/build/maxkcut_full_research_001_027.pdf
-            presentations/build/maxkcut_full_research_001_027.pptx
             presentations/build/maxkcut_full_research_001_027.html
           if-no-files-found: error
           retention-days: 30
