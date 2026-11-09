@@ -1,6 +1,8 @@
+**Current export policy (9 November 2026):** The user explicitly requested **no PowerPoint**. All future Experiments001–027 hosted builds export **PDF and portable HTML only**; the editable Marp and committed SVGs remain. Historical job #42570516934 produced a PowerPoint artifact before this preference was stated; that earlier ZIP is historical only, not the active output format. The current GitHub workflow excludes PPTX creation, validation and upload.
+
 ## Validated hosted build (2026-11-09 UTC / 2026-11-08 Mexico)
 
-[GitHub Actions run #42570516934](https://github.com/heri-espino/maxkcut/actions/runs/42570516934) **succeeded** on the hosted `ubuntu-latest` runner. Its checks independently regenerated and compared all 13 new committed E027 SVGs (and the historical E025 figures), verified the 71-graph/6,816-pair source data, validated the exact 117-slide merged Markdown, and exported PDF, PPTX and embedded-SVG standalone HTML. The job verified **117 PDF pages** and **117 PowerPoint slides**. Its [`maxkcut-experiment027-complete-marp` build artifact](https://github.com/heri-espino/maxkcut/actions/runs/42570516934) is a 40,072,286-byte ZIP containing all three formats; the 30-day artifact retention is not permanent storage. The **editable Markdown and 13 reproducible SVGs are permanently committed** to this research branch.
+[GitHub Actions run #42570516934](https://github.com/heri-espino/maxkcut/actions/runs/42570516934) **succeeded** on the hosted `ubuntu-latest` runner. Its checks independently regenerated and compared all 13 new committed E027 SVGs (and the historical E025 figures), verified the 71-graph/6,816-pair source data, validated the exact 117-slide merged Markdown, and exported PDF, PPTX and embedded-SVG standalone HTML. The job verified **117 PDF pages** and ****. Its [`maxkcut-experiment027-complete-marp` build artifact](https://github.com/heri-espino/maxkcut/actions/runs/42570516934) is a 40,072,286-byte ZIP containing all three formats; the 30-day artifact retention is not permanent storage. The **editable Markdown and 13 reproducible SVGs are permanently committed** to this research branch.
 
 **Line-ending provenance:** Git checkout may normalize Windows CSV CRLF sequences to LF. The E027 source validators accept only raw SHA256 equality **or** exact LF→CRLF round-trip equality against the immutable Release index checksum, and still fail closed on altered numerical data. No floating-point output, method definition, or source CSV row was modified by this compatibility fix.
 
@@ -80,12 +82,11 @@ node presentations/verify_experiment027_presentation.mjs
 
 ```powershell
 npx @marp-team/marp-cli@4.5.1 presentations/maxkcut_full_research_001_027.marp.md --allow-local-files --pdf -o presentations/build/maxkcut_full_research_001_027.pdf
-npx @marp-team/marp-cli@4.5.1 presentations/maxkcut_full_research_001_027.marp.md --allow-local-files --pptx -o presentations/build/maxkcut_full_research_001_027.pptx
 npx @marp-team/marp-cli@4.5.1 presentations/maxkcut_full_research_001_027.marp.md --allow-local-files --html -o presentations/build/maxkcut_full_research_001_027.html
 node presentations/embed_experiment027_html_assets.mjs
 ```
 
-The Marp 001–027 PDF/PPTX/standalone HTML are automatically exported in the dedicated [hosted Actions workflow](../.github/workflows/experiment027-marp-presentation.yml), which confirms 117 slide/pages and publishes an Actions artifact **`maxkcut-experiment027-complete-marp`**. Export runs only on `ubuntu-latest`, never the university Windows VM. The editable source and SVGs remain permanently committed; the CI export artifact has **30-day retention**, not permanent storage.
+The Marp 001–027 PDF/standalone HTML are automatically exported in the dedicated [hosted Actions workflow](../.github/workflows/experiment027-marp-presentation.yml), which confirms 117 slide/pages and publishes an Actions artifact **`maxkcut-experiment027-complete-marp`**. Export runs only on `ubuntu-latest`, never the university Windows VM. The editable source and SVGs remain permanently committed; the CI export artifact has **30-day retention**, not permanent storage.
 
 ## Handoff restrictions
 
