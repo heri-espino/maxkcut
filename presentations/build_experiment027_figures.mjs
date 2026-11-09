@@ -155,7 +155,7 @@ const inputs={
 const hash=s=>createHash("sha256").update(s,"utf8").digest("hex");
 const declared=JSON.parse(inputs.index).analysis_checksums;
 for(const [k,f] of [["graph","audited_graph_comparisons.csv"],["leaderboard","audited_method_leaderboard.csv"],["paired","audited_paired_seed_deltas.csv"],["seed","audited_seed_scores.csv"]]){
- if(hash(inputs[k])!==declared[f])throw Error("Changed or corrupted published CSV: "+f);
+ if(hash(inputs[k])!==declared[f] && hash(inputs[k].replace(/\r?\n/g,"\r\n"))!==declared[f])throw Error("Published CSV mismatch beyond Git CRLF normalization: "+f);
 }
 const output=compute(inputs);
 const dest=path.join(root,"presentations/assets");
