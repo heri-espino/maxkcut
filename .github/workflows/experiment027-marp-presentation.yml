@@ -1,0 +1,124 @@
+name: Build full Marp research presentation (Experiments 001–027)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - experiment027-angular-greedy
+    paths:
+      - "presentations/**"
+      - "published/experiment027/**"
+      - ".github/workflows/experiment027-marp-presentation.yml"
+  pull_request:
+    paths:
+      - "presentations/**"
+      - "published/experiment027/**"
+      - ".github/workflows/experiment027-marp-presentation.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: experiment027-marp-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  figures-and-deck:
+    # Hosted ubuntu runner ONLY: never schedule on the university Windows VM.
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Regenerate and verify all historical / E025 / E027 figures
+        shell: bash
+        env:
+          MPLBACKEND: Agg
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check "numpy>=1.26,<3" "matplotlib>=3.8,<4"
+          python presentations/build_assets.py
+          python presentations/build_full_research_figures.py
+          python presentations/make_extra_graphics.py
+          node presentations/build_experiment025_figures.mjs
+          node presentations/build_experiment025_figures.mjs --check
+          node presentations/build_experiment025_reference_ratio_figures.mjs
+          node presentations/build_experiment025_reference_ratio_figures.mjs --check
+          node presentations/build_experiment027_figures.mjs
+          node presentations/build_experiment027_figures.mjs --check
+          git diff --exit-code -- presentations/assets/experiment025_*.svg presentations/assets/experiment027_*.svg presentations/experiment025-figure-manifest.json presentations/experiment025-reference-ratio-manifest.json presentations/experiment027-figure-manifest.json
+          node presentations/verify_experiment025_presentation.mjs
+          node presentations/verify_experiment027_presentation.mjs
+
+      - name: Install pinned Marp CLI
+        run: npm install --no-save --no-package-lock @marp-team/marp-cli@4.5.1
+
+      - name: Discover Chromium browser
+        shell: bash
+        run: |
+          BROWSER="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || true)"
+          if [[ -n "$BROWSER" ]]; then
+            echo "BROWSER_PATH=$BROWSER" >> "$GITHUB_ENV"
+            echo "Using browser: $BROWSER"
+          fi
+
+      - name: Export full merged Marp presentation to PDF, PPTX, HTML
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p presentations/build
+          source="presentations/maxkcut_full_research_001_027.marp.md"
+          root="presentations/build/maxkcut_full_research_001_027"
+          browser=()
+          if [[ -n "${BROWSER_PATH:-}" ]]; then browser=(--browser-path "$BROWSER_PATH"); fi
+          ./node_modules/.bin/marp "$source" --allow-local-files "${browser[@]}" --pdf -o "${root}.pdf"
+          ./node_modules/.bin/marp "$source" --allow-local-files "${browser[@]}" --pptx -o "${root}.pptx"
+          ./node_modules/.bin/marp "$source" --allow-local-files --html -o "${root}.html"
+
+      - name: Make SVG-backed HTML portable
+        run: node presentations/embed_experiment027_html_assets.mjs
+
+      - name: Validate deck exports, page count and self-contained SVGs
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="presentations/build/maxkcut_full_research_001_027"
+          for extension in pdf pptx html; do test -s "${root}.${extension}"; done
+          if command -v pdfinfo >/dev/null; then
+            pages="$(pdfinfo "${root}.pdf" | awk '/^Pages:/ {print $2}')"
+            test "$pages" -eq 117 || { echo "Expected 117 PDF pages, got $pages"; exit 1; }
+            echo "Verified PDF pages: $pages"
+          fi
+          if command -v unzip >/dev/null; then
+            count="$(unzip -Z1 "${root}.pptx" | grep -Ec '^ppt/slides/slide[0-9]+\.xml$')"
+            test "$count" -eq 117 || { echo "Expected 117 PPTX slides, got $count"; exit 1; }
+            echo "Verified PPTX slides: $count"
+          fi
+          if grep -Eq 'assets/[A-Za-z0-9_.-]+\.svg' "${root}.html"; then
+            echo "Portable HTML retained local SVG asset references"
+            exit 1
+          fi
+          du -h "${root}.pdf" "${root}.pptx" "${root}.html"
+
+      - name: Upload PDF, PowerPoint and standalone HTML artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: maxkcut-experiment027-complete-marp
+          path: |
+            presentations/build/maxkcut_full_research_001_027.pdf
+            presentations/build/maxkcut_full_research_001_027.pptx
+            presentations/build/maxkcut_full_research_001_027.html
+          if-no-files-found: error
+          retention-days: 30
