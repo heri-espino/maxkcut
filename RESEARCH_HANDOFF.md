@@ -1,3 +1,9 @@
+# Latest Experiment027 — existing draft GitHub Release recovery (2026-11-08)
+
+After independently auditing and packing 71 existing numerical graph archives through G81, VM publisher stopped with `Release creation did not become visible`. The first publisher had queried a by-tag endpoint that does not expose drafts. The amended publisher now lists authenticated drafts with pagination, retrieves Release/asset pages by ID, and resumes without clobbering existing assets or rerunning optimization. To continue from `C:\Users\175199\maxkcut-exp027`, safely fast-forward `exp027-local` against fetched `origin/experiment027-angular-greedy` and run `python scripts/experiment027_publish_release.py --graphs ALL`. The user's pasted Trend Estimation path and experiment011 process query are unrelated; no source folders should be deleted. [Runbook](docs/experiment027-release-no-lfs.md). Actual remote data release/index unverified until VM publication succeeds.
+
+---
+
 **EXPERIMENT027 PUBLICATION BRANCH FIX (2026-11-08):** VM's valid separate results worktree is `C:\Users\175199\maxkcut-exp027` on **`exp027-local`**, not the remote PR's name; preflight covered 71 graphs/3,408 seed archives/393,169,236 bytes, but no data were uploaded. The corrected `scripts/experiment027_publish_release.py` accepts both branches ONLY if the local HEAD contains the latest fetched `origin/experiment027-angular-greedy` tip. Before rerun: `git fetch origin experiment027-angular-greedy` and `git merge --ff-only origin/experiment027-angular-greedy` on the **exp027 worktree**, then `python scripts/experiment027_publish_release.py --graphs ALL`. Stop if Git reports divergence. No switch, no rename, no reset, no force push; preserve Experiment025 old checkout. See [no-LFS release guide](docs/experiment027-release-no-lfs.md).
 
 # Current no-LFS archival plan for Experiment027 (2026-11-07)
