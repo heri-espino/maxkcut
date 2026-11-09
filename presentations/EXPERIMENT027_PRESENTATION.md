@@ -1,3 +1,9 @@
+## Validated hosted build (2026-11-09 UTC / 2026-11-08 Mexico)
+
+[GitHub Actions run #42570516934](https://github.com/heri-espino/maxkcut/actions/runs/42570516934) **succeeded** on the hosted `ubuntu-latest` runner. Its checks independently regenerated and compared all 13 new committed E027 SVGs (and the historical E025 figures), verified the 71-graph/6,816-pair source data, validated the exact 117-slide merged Markdown, and exported PDF, PPTX and embedded-SVG standalone HTML. The job verified **117 PDF pages** and **117 PowerPoint slides**. Its [`maxkcut-experiment027-complete-marp` build artifact](https://github.com/heri-espino/maxkcut/actions/runs/42570516934) is a 40,072,286-byte ZIP containing all three formats; the 30-day artifact retention is not permanent storage. The **editable Markdown and 13 reproducible SVGs are permanently committed** to this research branch.
+
+**Line-ending provenance:** Git checkout may normalize Windows CSV CRLF sequences to LF. The E027 source validators accept only raw SHA256 equality **or** exact LF→CRLF round-trip equality against the immutable Release index checksum, and still fail closed on altered numerical data. No floating-point output, method definition, or source CSV row was modified by this compatibility fix.
+
 # Full research seminar — Experiment001–027 merged Marp edition
 
 **Source:** [`maxkcut_full_research_001_027.marp.md`](maxkcut_full_research_001_027.marp.md), **117 slides**. The original [001–025 97-slide edition](maxkcut_full_research_001_025.marp.md) remains unmodified and available for historical comparison.
