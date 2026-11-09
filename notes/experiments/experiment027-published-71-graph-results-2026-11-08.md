@@ -1,3 +1,5 @@
+> **NEW PROSPECTIVE RESEARCH (9 November 2026):** The user proposes to isolate the geometry of GW hyperplane rounding by optimizing **only rotations/translations**, with **no Flip/KL/ILS/Tabu**. This is not a retrospective claim about E027's refined scores. See the separate [Experiment028 theory and experimental-protocol proposal](experiment028-hyperplane-geometry-proposal.md), which explicitly acknowledges existing threshold and arc sweeps and literature prior art. No new numerical results yet.
+
 # Experiment027 — complete published 71-graph results and first research interpretation
 
 **Date confirmed:** 2026-11-08. **Status:** Full dataset remotely indexed and independently scored by the VM publication pipeline. The original raw numerical archives remain on the Windows VM, and the complete **new-method** raw iteration histories were uploaded as 71 content-addressed GitHub Release ZIP assets with server-SHA256 verification according to the user's successful VM output. **Do not repeat EVA/SDP or any Experiment025/027 numerical method.** This is a publication milestone, not a global Max-Cut optimality or statistical superiority certificate.
