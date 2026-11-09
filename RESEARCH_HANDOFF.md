@@ -1,6 +1,12 @@
+# Export policy for full 001–027 Marp deck (9 November 2026)
+
+User explicitly requests **NO PowerPoint/PPTX output**. New commits remove the PPTX export step, slide-count check and artifact upload from `.github/workflows/experiment027-marp-presentation.yml`; maintain PDF and self-contained HTML plus editable Marp SVG source. Historical prior build #42570516934 did produce PPTX but is not the current workflow. Do not recreate PPTX unless requested.
+
+---
+
 # Experiment001–027 complete Marp research deck updated (2026-11-08)
 
-The requested **exact merged Marp Markdown** is committed to `presentations/maxkcut_full_research_001_027.marp.md`, preserving the previous 001–025 97-slide deck intact. New edition has **117 slides**, including 20 new E027 method/result/provenance slides and 13 deterministic generated SVGs; generator `presentations/build_experiment027_figures.mjs`, manifest and verification scripts plus hosted PDF/PPTX/HTML build. **Read [Experiment027 presentation runbook](presentations/EXPERIMENT027_PRESENTATION.md)**. All charts use published independently audited 71-graph original signed-cut comparisons, 3,408 new seeds, 2,272 comparator seeds and Experiment022 graph metadata; no EVA, SDP or numerical optimization rerun. New single arms improve on refined GW on average but not consistently on historical Hyperplane Sweep. Ex post 3-arm 42/13/16 graph portfolio is not equal budget. Historical Experiment025 18-method raw archives remain incompletely backed up. Draft PR #80 unmerged, no unauthorized merge.
+The requested **exact merged Marp Markdown** is committed to `presentations/maxkcut_full_research_001_027.marp.md`, preserving the previous 001–025 97-slide deck intact. New edition has **117 slides**, including 20 new E027 method/result/provenance slides and 13 deterministic generated SVGs; generator `presentations/build_experiment027_figures.mjs`, manifest and verification scripts plus hosted PDF/HTML build. **Read [Experiment027 presentation runbook](presentations/EXPERIMENT027_PRESENTATION.md)**. All charts use published independently audited 71-graph original signed-cut comparisons, 3,408 new seeds, 2,272 comparator seeds and Experiment022 graph metadata; no EVA, SDP or numerical optimization rerun. New single arms improve on refined GW on average but not consistently on historical Hyperplane Sweep. Ex post 3-arm 42/13/16 graph portfolio is not equal budget. Historical Experiment025 18-method raw archives remain incompletely backed up. Draft PR #80 unmerged, no unauthorized merge.
 
 ---
 
