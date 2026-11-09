@@ -1,3 +1,18 @@
+> **2026-11-08 — Full Experiment027 archived; draft-release lookup recovery:** The user-supplied Windows VM log shows all 71 graph archives were packed through G81, followed by `RuntimeError: Release creation did not become visible`. The old publisher created a **draft release** and then incorrectly queried the by-tag endpoint, which may not find drafts. The updated `scripts/experiment027_publish_release.py` retrieves the existing draft from the **authenticated, paginated release listing**, resolves by numeric ID, and paginates uploaded asset listings. It reuses SHA-addressed ZIP archives and existing upload assets; it does not rerun EVA, optimization, or historical 18 methods. The draft and Git analysis publication remain **unverified** until the VM run completes. 
+
+**Resume from the correct Experiment027 worktree** (never the protected `maxkcut` checkout):
+
+```powershell
+Set-Location "$env:USERPROFILE\maxkcut-exp027"
+conda activate maxkcut
+git status --short
+git fetch origin experiment027-angular-greedy
+git merge --ff-only origin/experiment027-angular-greedy
+python scripts/experiment027_publish_release.py --graphs ALL
+```
+
+Stop and preserve results if the fast-forward merge is rejected. A directory named `trendestimation-PC08_add97svd_20261105_025108` and process filter `experiment011` belong to another project, **not Maxkcut**; the pasted `Set-Location` failure did not leave `maxkcut-exp027`. GitHub documentation: [List releases](https://docs.github.com/en/rest/releases/releases#list-releases) and [Get a release by tag](https://docs.github.com/en/rest/releases/releases#get-a-release-by-tag-name).
+
 > **Nov 8, 2026: local VM branch compatibility.** The 71-graph preflight recognized all **3,408 new seeds** totaling **393,169,236 uncompressed bytes**. The only observed block was an overly strict publisher branch-name check: the VM uses a separate, important **`exp027-local`** branch. The publisher now accepts it safely, but insists the current remote `experiment027-angular-greedy` branch is its ancestor before uploading or committing. Do not switch or rename `exp027-local`. First run the commands below in that same worktree (this changes only the exp027 worktree, never the older `maxkcut` checkout):
 
 ```powershell
