@@ -1,3 +1,9 @@
+# Proposed next research: Experiment028, raw hyperplane geometry only (2026-11-09)
+
+[Experiment028 proposed study, mathematical framework and reproducibility requirements](notes/experiments/experiment028-hyperplane-geometry-proposal.md). Focus on rotations and translations of a single separating hyperplane for **fixed EVA vectors**, scoring **raw original signed Max-Cut**, with **NO Flip/KL/ILS/Tabu/postprocessing**. This is a proposal, not a claim of computed data. Key existing building blocks: exact `optimal_threshold` and `optimize_semicircle`. Affine lift `[Y,1]` permits joint search without a new SDP. Prior art exists (Kevin Lang 2004 swept random hyperplane; Maliakal et al 2025 learned rounding normals). Beware full row rank, which lets hyperplanes realize every labeling; test low-rank variants and structure associations, fully paired seeds and equal budgets. Do not alter E027 frozen optimizer or Experiment025 archives. User expressly requested the current Marp workflow **NOT** generate PowerPoint: PDF + self-contained HTML only.
+
+---
+
 # Export policy for full 001–027 Marp deck (9 November 2026)
 
 User explicitly requests **NO PowerPoint/PPTX output**. New commits remove the PPTX export step, slide-count check and artifact upload from `.github/workflows/experiment027-marp-presentation.yml`; maintain PDF and self-contained HTML plus editable Marp SVG source. Historical prior build #42570516934 did produce PPTX but is not the current workflow. Do not recreate PPTX unless requested.
