@@ -141,3 +141,69 @@ def test_repo_info_rejects_other_worktrees(monkeypatch):
                         SimpleNamespace(stdout="experiment025-results\n", stderr="", returncode=0))
     with pytest.raises(RuntimeError, match="Expected Experiment027 checkout"):
         rel.repo_info()
+
+
+def test_get_release_finds_existing_draft_via_paginated_list(monkeypatch):
+    """GitHub's /releases/tags/TAG endpoint returns 404 for drafts."""
+    from types import SimpleNamespace
+    tag = "experiment027-data-71g-abc123"
+    ident = 1000781
+    seen = []
+    assets = [dict(name=f"G{i}.zip", size=100, digest="sha256:"+"1"*64,
+                   state="uploaded") for i in range(71)]
+    def fake_run(args, **kwargs):
+        seen.append(args)
+        endpoint = args[-1]
+        if endpoint.endswith("/releases?per_page=100"):
+            result = [[dict(id=10, tag_name="older-release", draft=False)],
+                      [dict(id=ident, tag_name=tag, draft=True)]]
+        elif endpoint.endswith(f"/releases/{ident}"):
+            result = dict(id=ident, tag_name=tag, draft=True, assets=[])
+        elif endpoint.endswith(f"/releases/{ident}/assets?per_page=100"):
+            result = [assets[:40], assets[40:]]
+        else:
+            pytest.fail(f"Unexpected API call {args}")
+        return SimpleNamespace(stdout=json.dumps(result), stderr="", returncode=0)
+    monkeypatch.setattr(rel, "run", fake_run)
+    found = rel.get_release(tag)
+    assert found["id"] == ident
+    assert found["draft"] is True
+    assert len(found["assets"]) == 71
+    assert all("/releases/tags/" not in " ".join(args) for args in seen)
+
+
+def test_get_release_by_id_skips_repeated_release_listing(monkeypatch):
+    from types import SimpleNamespace
+    tag = "experiment027-data-71g-abc123"
+    calls = []
+    def fake_run(args, **kwargs):
+        calls.append(" ".join(args))
+        if args[-1].endswith("/releases/51"):
+            return SimpleNamespace(stdout=json.dumps(
+                dict(id=51, tag_name=tag, draft=True)), stderr="", returncode=0)
+        if args[-1].endswith("/releases/51/assets?per_page=100"):
+            return SimpleNamespace(stdout=json.dumps([[]]), stderr="", returncode=0)
+        pytest.fail(f"Unexpected API path: {args}")
+    monkeypatch.setattr(rel, "run", fake_run)
+    assert rel.get_release(tag, release_id=51)["assets"] == []
+    assert not any("releases?per_page" in x for x in calls)
+
+
+def test_ensure_release_reuses_draft_without_creating_duplicate(monkeypatch):
+    pending = dict(id=123, tag_name="experiment027-data-71g-abc123",
+                   draft=True, assets=[])
+    monkeypatch.setattr(rel, "get_release", lambda *a, **k: pending)
+    monkeypatch.setattr(
+        rel, "run", lambda *a, **k: pytest.fail(
+            "Should not create a second release or touch Git when draft exists"))
+    assert rel.ensure_release(pending["tag_name"], 71) == pending
+
+
+def test_get_release_does_not_match_other_tag(monkeypatch):
+    from types import SimpleNamespace
+    def fake_run(args, **kwargs):
+        return SimpleNamespace(stdout=json.dumps(
+            [[dict(id=1, tag_name="irrelevant", draft=True)]]),
+            stderr="", returncode=0)
+    monkeypatch.setattr(rel, "run", fake_run)
+    assert rel.get_release("experiment027-data-71g-missing") is None
