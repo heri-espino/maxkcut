@@ -44,7 +44,7 @@ const files=[
  ["seed","audited_seed_scores.csv"]];
 for(const [key,filename] of files){
  const csv=fs.readFileSync(path.join(root,"published/experiment027/releases",tag,"analysis",filename),"utf8");
- if(hash(csv)!==index.analysis_checksums[filename])throw Error("Source SHA mismatch: "+filename);
+ if(hash(csv)!==index.analysis_checksums[filename] && hash(csv.replace(/\r?\n/g,"\r\n"))!==index.analysis_checksums[filename])throw Error("Source SHA mismatch beyond CRLF normalization: "+filename);
  if(manifest.source_sha256[key]!==index.analysis_checksums[filename])throw Error("Manifest SHA mismatch: "+filename);
 }
 for(const cue of ["best-of-16","not a fair","graph-bootstrap","16 matched","off-VM","Experiment027"])if(!text.includes(cue))throw Error("Scientific caveat absent: "+cue);
