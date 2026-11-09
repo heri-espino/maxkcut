@@ -81,14 +81,43 @@ def repo_info():
     return gh
 
 
-def get_release(tag):
-    cmd = ["gh", "api", f"repos/{REPO}/releases/tags/{tag}"]
-    result = run(cmd, ok_codes=(0, 1))
-    if result.returncode == 1:
-        if "404" in result.stderr or "Not Found" in result.stderr:
+def _paged_api(endpoint):
+    """Return all members of a paginated GitHub REST collection.
+
+    gh api --paginate --slurp returns an array of page arrays; this handles
+    both complete release listings and releases with >30 individual assets.
+    """
+    out = run(["gh", "api", "--paginate", "--slurp", endpoint])
+    pages = json.loads(out.stdout)
+    if not isinstance(pages, list) or any(not isinstance(p, list) for p in pages):
+        raise ValueError(f"Unexpected GitHub paginated response: {endpoint}")
+    return [item for page in pages for item in page]
+
+
+def get_release(tag, *, release_id=None):
+    """Resolve published OR DRAFT releases using an authenticated listing.
+
+    GET /releases/tags/{tag} is documented for PUBLISHED releases only and
+    returns 404 for drafts. Do not interpret that 404 as permission to create
+    another release: duplicate creation can strand existing uploaded assets.
+    """
+    if release_id is None:
+        available = _paged_api(f"repos/{REPO}/releases?per_page=100")
+        matches = [r for r in available if r.get("tag_name") == tag]
+        if len(matches) > 1:
+            raise RuntimeError(f"More than one GitHub Release has tag {tag!r}")
+        if not matches:
             return None
-        raise RuntimeError("Unable to read release; check GitHub authorization/network")
-    return json.loads(result.stdout)
+        release_id = matches[0]["id"]
+    response = run(["gh", "api", f"repos/{REPO}/releases/{int(release_id)}"])
+    release = json.loads(response.stdout)
+    if release.get("tag_name") != tag:
+        raise ValueError(f"Release ID {release_id} has an unexpected tag")
+    # Independently list ALL assets rather than rely on a possibly truncated
+    # embedded assets array in the release's metadata.
+    release["assets"] = _paged_api(
+        f"repos/{REPO}/releases/{int(release_id)}/assets?per_page=100")
+    return release
 
 
 def ensure_release(tag, count):
@@ -111,10 +140,18 @@ def ensure_release(tag, count):
              "published/experiment027/releases/. No new SDP or old methods ran."
          ),
          "--draft", "--latest=false"])
-    out = get_release(tag)
-    if out is None:
-        raise RuntimeError("Release creation did not become visible")
-    return out
+    # GitHub's draft listing can briefly lag creation; never create a second
+    # release during this retry. Keep the draft intact on any failure.
+    import time
+    for attempt in range(5):
+        out = get_release(tag)
+        if out is not None:
+            return out
+        if attempt < 4:
+            time.sleep(2)
+    raise RuntimeError(
+        f"Draft release {tag} was created but is not yet visible in the "
+        "authenticated release listing; rerun later without deleting anything.")
 
 
 def check_asset(asset, archive, sha):
@@ -262,16 +299,16 @@ def main(argv=None):
             continue
         # Never --clobber: preserve immutable published data and partial progress.
         run(["gh", "release", "upload", tag, str(archive), "--repo", REPO])
-        release = get_release(tag)
+        release = get_release(tag, release_id=release["id"])
         if release is None:
             raise RuntimeError("Release disappeared during upload")
         verify_uploaded(release, [(archive, checksum)])
         print(f"Uploaded and server-digest-verified {g}", flush=True)
-    release = get_release(tag)
+    release = get_release(tag, release_id=release["id"])
     verify_uploaded(release, [(archive, checksum) for _, archive, _, checksum in items])
     if release.get("draft"):
         run(["gh", "release", "edit", tag, "--repo", REPO, "--draft=false", "--latest=false"])
-        release = get_release(tag)
+        release = get_release(tag, release_id=release["id"])
         if release is None or release.get("draft"):
             raise RuntimeError("Release remained draft after publication")
     folder, idx = publish_index(tag, items, DEST, audit, graphs)
