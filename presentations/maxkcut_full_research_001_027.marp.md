@@ -1638,3 +1638,367 @@ Source: Experiment025 completion milestone, the Experiment022 graph-feature audi
 - [Experiment025 aggregate analysis](https://github.com/heri-espino/maxkcut/pull/75) (provisional; archive audit pending).
 - Graph features: `results/gset/experiment022-graph-structure-methods/graph_features.csv`.
 - [Experiment027 published 71-graph Release](https://github.com/heri-espino/maxkcut/releases/tag/experiment027-data-71g-2b313a624780291eb4dd) and [full analysis](https://github.com/heri-espino/maxkcut/blob/experiment027-angular-greedy/published/experiment027/releases/experiment027-data-71g-2b313a624780291eb4dd/analysis/audited_comparison.json).
+
+---
+
+<!-- _class: chapter -->
+
+# Appendix A — Method-name decoder
+
+**What does each strange algorithm name mean?**
+
+An implementation-grounded guide to the **9 Experiment021 initializers**, **18 Experiment025 protocols**, **3 Experiment027 angular methods**, and the shared improvement stages.
+
+The name does **not** necessarily tell us which part of the search changes.
+
+---
+
+<!-- _class: compact -->
+
+## A1. First decode the vocabulary
+
+| Token | Meaning in this repository | How to read it |
+|---|---|---|
+| **GW** | Goemans–Williamson | A random hyperplane through the origin |
+| **FJ** | Frieze–Jerrum label | For $k=2$, the code uses GW's one-hyperplane rule |
+| **RR** | Randomized rounding | Sample a direction and separate by its sign |
+| **EVA** | Name of saved factor optimizer | All methods reuse its **fixed vertex vectors** |
+| **K-Means** | Spherical $k$-means | Group vectors by nearby directions |
+| **PCA** | Principal component analysis | Use an axis of strongest embedding variation |
+| **MST** | Minimum spanning tree | Connect vectors with minimum total geometric distance |
+| **L1 / L2 / L∞** | Manhattan / Euclidean / Chebyshev | Which distance defines the MST |
+| **EM / CEM** | EM-like updates / cross-entropy method | Probabilities, then probabilistic cut search |
+| **KL / ILS / Tabu** | Kernighan–Lin / iterated local search / tabu search | Post-rounding label modifications |
+
+*“EVA,” “NM,” and “2N” are inherited implementation labels; do not infer an unsupported acronym expansion from the letters.*
+
+---
+
+<!-- _class: compact -->
+
+## A2. Three distinct algorithm stages
+
+| Stage | What changes? | Example | Does the resulting cut stay a hyperplane split? |
+|---|---|---|---|
+| **Embedding** | Position of every vertex vector $y_i$ | Saved EVA factor | Not a partition yet |
+| **Rounding / initialization** | Hyperplane, centroids, groups or probabilities | GW, MST, EM, Angular Gain | **Sometimes** |
+| **Graph-based refinement** | Binary vertex labels themselves | Flip, KL, ILS, Tabu | **Not necessarily** |
+
+**Full Experiment025/027 benchmark:** initial partition → retain best GW start → **Flip → KL → ILS** (except Tabu control).
+
+**For the proposed geometry-only study:** stop after **rounding**. Do not let KL/ILS hide which cuts the hyperplane can actually represent.
+
+---
+
+<!-- _class: compact -->
+
+## A3. The early EVA names: three raw rounders
+
+| Archived name | Plain-English name | Actual initial operation |
+|---|---|---|
+| `FJ_EVA` | Random GW hyperplane on EVA vectors | Sample $r$; cut by $y_i^\top r\geq0$ |
+| `K-Means2N_EVA` | Two independently initialized spherical centers | Draw two unrelated random unit directions; run spherical Lloyd updates |
+| `K-MeansNM_EVA` | Antipodal spherical two-means | Start centers at $r$ and $-r$; update centroids; retain best observed signed cut |
+| `FJ-Flip_EVA` | GW plus vertex flips | Add a positive-gain single-vertex search after raw GW |
+| `K-MeansNM-Flip_EVA` | Antipodal K-means plus flips | Add the same flip stage after spherical clustering |
+
+**Important:** the suffix `-Flip` identifies a **second algorithmic stage**, not a different EVA factor. The original `FJ_EVA` name is a legacy repository label; for $k=2$ its code implements GW rather than multiway FJ rounding.
+
+Source: `src/maxkcut/eva_rounding_cli.py`, `src/maxkcut/rounding.py`.
+
+---
+
+<!-- _class: compact -->
+
+## A4. Experiment021 — Nine centroid starts (1–5)
+
+All nine rules initialize **two spherical K-means centers**. Then Lloyd, Flip, KL and ILS run under the same protocol.
+
+| Recorded initializer | What its name means | Actual center choice |
+|---|---|---|
+| `paired` | Original paired control | Random unit $r$ and its **antipode** $-r$ |
+| `independent` | Independent centers | Two unrelated random unit directions |
+| `sample-antipodal` | Vertex sample + opposite | Choose an EVA row $y_i$, then $-y_i$ |
+| `sample-pair` | Two real embedding samples | Choose two distinct EVA rows |
+| `farthest-pair` | A sampled row and its furthest | Choose $y_i$ and the row with smallest dot product to it |
+
+Here **“paired” means antipodal centers**, not the later benchmark's *matched 16 GW seeds*.
+
+Source: `src/maxkcut/eva_kmeans_initializers.py`.
+
+---
+
+<!-- _class: compact -->
+
+## A5. Experiment021 — Nine centroid starts (6–9)
+
+| Recorded initializer | Literal idea | Actual construction |
+|---|---|---|
+| `spherical-pp` | Spherical K-means++ | First sampled EVA row; second drawn with probability proportional to squared spherical Euclidean distance |
+| `mean-perturb` | Perturb the mean direction | Two nearby normalized directions around the embedding mean |
+| `pca-antipodal` | PCA axis and its antipode | Leading centered PCA direction + random jitter, then its negative |
+| `gw-screen16` | Screen **16 GW hyperplanes** | Score 16 fresh normal vectors; retain the best, then start two antipodal centers |
+
+**Beware two different “16” counts:** `gw-screen16` spends 16 *additional initial scoring trials per restart* in Experiment021. Experiment025's `GW16` refers to **16 shared starting normals per method and graph**.
+
+These nine rules alter **initial centroids**, not the subsequent graph-search algorithm.
+
+---
+
+<!-- _class: compact -->
+
+## A6. Experiment025 — The three control protocols
+
+| Exact method name | Why that name? | What it does |
+|---|---|---|
+| `gw-rr` | GW randomized rounding | Use the **same original GW hyperplane** and its raw labels |
+| `control-paired` | Paired K-MeansNM baseline | Start the two centers at the **same saved** $\pm r$ and run spherical Lloyd |
+| `control-tabu` | Paired control with Tabu | **Same initial K-MeansNM** as above, but switch final ILS-KL stage to Tabu-KL |
+
+**Crucial:** `control-tabu` is not a new rounding initializer; it changes the **refiner**. Do not group it with standard-refinement methods for strict equal-postprocessor interpretation.
+
+Every arm has an archived, matched GW direction, but their internal work differs.
+
+---
+
+<!-- _class: compact -->
+
+## A7. Experiment025 — Three hyperplane/cut-aware methods
+
+| Exact name | Translation | How the method searches |
+|---|---|---|
+| `gw-threshold` | Move the GW plane **parallel to itself** | Sort projections $y_i^\top r$; examine every feasible threshold; use best signed cut |
+| `cutaware-kmeans` | Cut-aware spherical K-means | Start GW-aligned Lloyd; propose perturbed/centroid/gain-guided directions; exactly optimize the threshold for each |
+| `hyperplane-sweep` | Optimize the hyperplane by angular sweeps | Rotate the normal along candidate great semicircles; exactly find each arc's best cut; keep improvements |
+
+**What “exact” does not mean:** threshold optimization is global **for one fixed direction**, and arc optimization is exact **for one chosen arc**. Neither is an analytical global Max-Cut solver.
+
+Sources: `eva_cutaware_kmeans.py`, `eva_direct_rounding.py`.
+
+---
+
+<!-- _class: compact -->
+
+## A8. Why threshold and rotation are different
+
+**Translate** a hyperplane by changing $b$ while the normal $r$ stays fixed:
+
+$\qquad x_i=\mathbf1[y_i^\top r>b]$.
+
+Only the order of the scalar projections $z_i=y_i^\top r$ matters. There are at most $n+1$ feasible threshold regions (fewer under ties).
+
+**Rotate** it by changing $r$ while $b=0$:
+
+$\qquad r(\theta)=r\cos\theta+u\sin\theta,\quad u^\top r=0.$
+
+The labels change only at crossing angles. Sort the events and score each constant-cut region.
+
+**Experimental consequence:** `gw-threshold` and `hyperplane-sweep` are complementary search strategies, not two spellings of the same algorithm. The new Experiment028 proposal studies combinations **without any KL/ILS correction**.
+
+---
+
+<!-- _class: compact -->
+
+## A9. Experiment025 — Multigroup-K4 and Multigroup-K8
+
+**Names decoded:** `multigroup-k4` = first make **4 clusters**; `multigroup-k8` = first make **8 clusters**.
+
+1. Run spherical $k$-means on the saved EVA vectors, initially using antipodal center pairs.
+2. Sum the original signed graph weights between each pair of clusters.
+3. Enumerate binary assignments of the $k$ temporary clusters to two cut sides.
+4. Keep the highest-scoring **binary merge** encountered during Lloyd iterations.
+
+| Method | Temporary clusters | Nontrivial binary merges per cluster configuration |
+|---|---:|---:|
+| `multigroup-k4` | 4 | $2^{4-1}-1=7$ |
+| `multigroup-k8` | 8 | $2^{8-1}-1=127$ |
+
+**These do not solve Max-4-Cut or Max-8-Cut.** Their final labels are always **binary Max-Cut** labels; (k) counts temporary clusters only.
+
+Source: `eva_multigroup_kmeans.py`.
+
+---
+
+<!-- _class: compact -->
+
+## A10. Experiment025 — The three EM-like methods
+
+**EM = expectation–maximization-like alternation**, here between probabilities and spherical centroids; it is **not** an ordinary fitted Gaussian-mixture model.
+
+| Exact method | Expand the name | What actually happens |
+|---|---|---|
+| `em-hard` | Hard cut from soft EM-like updates | Alternate Bernoulli membership probabilities and centroids under an entropy-regularized signed-cut objective; harden to labels |
+| `em-cem` | EM plus **cross-entropy method** | First run soft EM, then sample binary partitions and refit probabilities toward high-scoring (“elite”) cuts |
+| `em-gibbs` | EM plus **Gibbs sampling** | First run soft EM; then use temperature-annealed conditional vertex sampling based on signed flip gains |
+
+Experiment025 starts probabilities near the **same GW partition**; no prior best-known elite is smuggled in. In CEM/Gibbs the intermediate sample can get worse, while the best hard cut is retained.
+
+Source: `eva_soft_em_bernoulli.py`.
+
+---
+
+<!-- _class: compact -->
+
+## A11. What is an `mst-l2-...` name?
+
+Split the method name into three parts:
+
+**`mst` – `l2` – `bestcut`**
+
+| Part | Controls | Does *not* mean |
+|---|---|---|
+| **mst** | Build a **minimum spanning tree** on every EVA vector | An MST of the *original signed graph* |
+| **l1** | Distance $\sum_j|y_{ij}-y_{kj}|$ | The cut objective |
+| **l2** | Euclidean distance $\|y_i-y_k\|_2$ | Vertex count |
+| **linf** | Maximum coordinate difference | Infinite-dimensional embedding |
+| **longest / balanced / diameter / bestcut / multicut** | How to turn the tree into an initial binary cut | A different SDP solution |
+
+**The metric chooses the tree.** Afterwards, candidates are always evaluated on the **original signed graph**, not using tree edge lengths.
+
+Source: `eva_mst.py`, `eva_mst_center.py`.
+
+---
+
+<!-- _class: compact -->
+
+## A12. Five L2-MST variants, decoded
+
+| Exact method | Meaning | What gets split? |
+|---|---|---|
+| `mst-l2-longest` | Longest geometric tree edge | Remove the **longest** MST edge |
+| `mst-l2-balanced` | Most balanced tree split | Remove the edge maximizing $|S|(n-|S|)$ |
+| `mst-l2-diameter` | Midpoint of tree diameter | Remove the edge containing the **weighted-diameter midpoint** |
+| `mst-l2-bestcut` | Best *signed* cut among tree-edge splits | Evaluate all single-edge tree splits; choose the highest original cut |
+| `mst-l2-multicut` | Cut *multiple* tree edges | Remove 1, 4 or 16 long edges; optimize binary assignments of the resulting components |
+
+**“BestCut” means best within the tree-edge candidate family, not globally optimal Max-Cut.** “Balanced” optimizes sizes, not the original graph objective.
+
+---
+
+<!-- _class: compact -->
+
+## A13. The remaining MST variants and an important caveat
+
+| Exact method | What changes from `mst-l2-bestcut`? |
+|---|---|
+| `mst-l1-bestcut` | Compute the geometric MST using **Manhattan distance**; then select the original-score-best tree-edge split |
+| `mst-linf-bestcut` | Compute the geometric MST using **maximum-coordinate/Chebyshev distance**; then make that same best-cut selection |
+
+**How Multicut actually works:** removing $q\in\{1,4,16\}$ long MST edges makes $q+1$ components. It searches binary component assignments using original signed aggregate edges. These **component flips are internal to its rounding construction**.
+
+**Experiment025 caveat:** MST branches are explicitly **GW-anchored hybrids**. A deterministic tree does not produce 16 independent trees; the same GW starting candidate is retained whenever it scores better than the MST-derived candidate.
+
+Source: `experiment024_paired_gw16.py`, `eva_mst_multicut.py`.
+
+---
+
+<!-- _class: compact -->
+
+## A14. Experiment027 — Three angular greedy additions
+
+All three **move a hyperplane in the saved EVA space**, test up to 8 exact semicircle candidates per round, and accept the best **strict** signed-cut improvement.
+
+| Exact method | Name meaning | Which candidate boundary to prioritize? |
+|---|---|---|
+| `angular-margin-greedy` | Closest-angle-first | Vertices with smallest angular distance to the current hyperplane |
+| `angular-gain-greedy` | Flip-benefit per angle | Largest nonnegative graph flip gain divided by angular margin $+10^{-3}$ |
+| `angular-pair-greedy` | Target two boundaries jointly | Pairs of high-priority vertices; propose a tangent toward their two crossing constraints |
+
+**“Greedy”** = accept the best **immediately realized** improvement, then repeat; stop when no tested candidate improves. Max **32 rounds** per start. No claim of global hyperplane optimality.
+
+Source: `scripts/experiment027_angular.py`.
+
+---
+
+<!-- _class: compact -->
+
+## A15. Angular score, margin, and the word “pair”
+
+For current spin labels $s_i=1-2x_i$, graph weight matrix $W$, and normal $r$:
+
+- **Margin:** $\delta_i=\arcsin\!\bigl(|y_i^\top r|/\|y_i\|\bigr)$.
+- **One-vertex flip gain:** $g_i=s_i(Ws)_i$.
+- **Gain-to-margin ranking:** $q_i=\max(0,g_i)/(\delta_i+10^{-3})$.
+
+**Margin** prioritizes the next easy geometric crossing. **Gain** combines that cost with the original graph's incentive to change the vertex's side. **Pair** proposes a direction that targets two hyperplane crossing constraints.
+
+Every proposal is still validated by the **exact signed-cut sweep**. A promising single flip or pair is not accepted just because its local gain is positive: its intended labels may not be individually realizable by the chosen hyperplane movement.
+
+The Experiment027 official results then apply the **same Flip/KL/ILS refinement** as Experiment025.
+
+---
+
+<!-- _class: compact -->
+
+## A16. The four improvement-stage names
+
+These are **not initial rounding methods**. They operate on an already binary partition.
+
+| Name | Full name / mnemonic | How it searches the cut |
+|---|---|---|
+| **Flip** | Positive-gain vertex flips | Move one vertex when its original signed-cut change is positive |
+| **KL** | Kernighan–Lin-style | Lock a sequence of vertices according to signed gains; retain the best **cumulative prefix** |
+| **ILS-KL** | Iterated local search + KL | Perturb the current cut, run KL again, explore/retain the best over cycles |
+| **Tabu-KL** | Tabu search + KL | Temporarily forbid recently visited moves, diversify, and apply KL |
+
+The common E025/E027 pipeline is **Round → Flip → KL → ILS-KL**. The `control-tabu` arm uses **Tabu-KL in place of ILS-KL**.
+
+Sources: `eva_elite_search.py`, `experiment023_methods.py`, `experiment025_journal.py`.
+
+---
+
+<!-- _class: compact -->
+
+## A17. Read result tables without mixing endpoints
+
+| Label in figures | Definition | Can it prove “the hyperplane works”? |
+|---|---|---|
+| **Raw / Round** | Partition after the named rounding strategy, with retained GW candidate in the paired benchmark | **Yes**, provided the retention rule is declared |
+| **Flip** | Raw partition after positive vertex-flip search | **No**: labels need not be hyperplane-separable |
+| **KL** | After cumulative-gain Kernighan–Lin optimization | **No** |
+| **Final / Best** | Best recorded cut over the full ILS/Tabu refinement trajectory | **No** |
+| **Best-of-16** | Highest score from 16 paired starts on the same graph | Reports a search budget, **not** one typical start |
+
+**Important:** method comparisons must use the *same stage*. In the new pure-hyperplane proposal, **only raw realized cuts qualify for the primary endpoint**.
+
+Repeated 16 starts are correlated within a graph; use graphs for uncertainty analysis.
+
+---
+
+<!-- _class: compact -->
+
+## A18. Which existing methods belong in a pure-hyperplane study?
+
+| Method | What it tells us | Admit to the geometric-only comparison? |
+|---|---|---|
+| `gw-rr` | Baseline random origin hyperplane | **Yes** |
+| `gw-threshold` | Best translation at one fixed normal | **Yes** |
+| `hyperplane-sweep` | Angular rotation with exact arc evaluation | **Yes, raw only** |
+| `angular-margin/gain/pair-greedy` | Three guided rotation heuristics | **Yes, raw only** |
+| `cutaware-kmeans` | Directions from centroids and objective-aware perturbations; affine threshold | **Yes, raw hyperplane candidates only** |
+| `multigroup-k4/k8`, MST, EM, `control-tabu` | Non-hyperplane combinatorial/probabilistic partition construction or later refinement | **Separate controls**, not pure separator moves |
+| **Flip / KL / ILS / Tabu** | Direct label-space correction | **No** |
+
+Never infer global optimality from an exact search along a **single line or arc**. No Experiment028 data have been generated.
+
+---
+
+<!-- _class: small -->
+
+## A19. The full name-to-code reference
+
+**Every Experiment025 name (18):**
+
+`gw-rr`, `control-paired`, `gw-threshold`, `cutaware-kmeans`, `hyperplane-sweep`, `multigroup-k4`, `multigroup-k8`, `em-hard`, `em-cem`, `em-gibbs`, `mst-l2-longest`, `mst-l2-balanced`, `mst-l2-diameter`, `mst-l2-bestcut`, `mst-l2-multicut`, `mst-l1-bestcut`, `mst-linf-bestcut`, `control-tabu`.
+
+**Every Experiment027 name (3):**
+
+`angular-margin-greedy`, `angular-gain-greedy`, `angular-pair-greedy`.
+
+**Every Experiment021 initializer name (9):**
+
+`paired`, `independent`, `sample-antipodal`, `sample-pair`, `farthest-pair`, `spherical-pp`, `mean-perturb`, `pca-antipodal`, `gw-screen16`.
+
+**Implementation provenance:** `eva_kmeans_initializers.py`, `eva_rounding_cli.py`, `experiment024_paired_gw16.py`, `experiment023_methods.py`, `eva_mst_center.py`, `eva_mst_multicut.py`, `eva_multigroup_kmeans.py`, `eva_soft_em_bernoulli.py`, `eva_direct_rounding.py`, `scripts/experiment027_angular.py`.
+
+*This appendix explains the **implemented** algorithms and naming conventions, not inferred acronyms or extra performance claims.*
