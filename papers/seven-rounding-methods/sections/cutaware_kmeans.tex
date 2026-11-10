@@ -1,0 +1,49 @@
+\section{Method 7: Cut-aware Spherical K-Means}\label{sec:cutaware}
+\subsection{How the name differs from ordinary K-Means}
+The method \texttt{cutaware-kmeans} begins with the GW-paired spherical Lloyd trajectory, but it scores the \emph{original signed graph} when selecting directions. It then tests perturbed, centroid-based and gain-weighted directions. For each such direction, it finds the \emph{exact best affine threshold} conditional on that direction. Thus the method searches both directions and offsets, but is only exact in one dimension at a time.
+
+\subsection{An exact threshold conditional on one direction}
+For a fixed unit direction $d$, let $z_i=y_i^\top d$. With offset $b$, choose $\ell_i(b)=\1[z_i>b]$. The binary partition changes only as $b$ crosses one of the sorted projection values $z_i$; tied projections must move together. The best signed cut for this fixed direction is
+\begin{equation}\label{eq:threshold}
+\max_{b\in\R}\cut\bigl(1-2\1[Yd>b]\bigr).
+\end{equation}
+Sorting the $z_i$ and sweeping all attainable event groups with the exact gain \eqref{eq:flip} costs $O(np+n\log n+m)$, including the projection. This is \emph{not} an exact global optimization over all $d$; the best threshold can also yield unbalanced sides, since no balance constraint is imposed.
+
+\subsection{The six implemented proposal actions}
+The full Experiment025 protocol starts spherical Lloyd with centers $(-r_0,r_0)$, at most 100 iterations, and considers every center-difference direction $d=c_1-c_0$. It additionally attempts 96 direction trials by cycling through six actions:
+\begin{enumerate}
+\item The first four actions add Gaussian noise to an incumbent good direction or a fresh random normal. Experiment025's paired implementation uses perturbation scales $0.05$ and $0.20$.
+\item The fifth action computes the two spherical centroids of the \emph{current winning partition} and proposes their normalized difference.
+\item The sixth constructs a graph-aware direction from the incumbent labels and signed gains:
+\begin{equation}\label{eq:proxy}
+q_i=\frac{1}{1+|g_i|},\qquad
+d\propto\sum_i(2\ell_i-1)q_i y_i.
+\end{equation}
+\end{enumerate}
+Note the important implementation nuance in \eqref{eq:proxy}: \emph{small absolute flip gains receive higher weights}. This proposal is not the mathematical derivative of the discontinuous original cut with respect to $d$. Each direction is normalized, subjected to exact threshold search, and independently scored against the actual signed graph. The incumbent retains the highest scored candidate, including the original K-MeansNM trajectory.
+
+\begin{algorithm}[tb]
+\caption{Cut-aware spherical K-Means and threshold search}\label{alg:cutaware}
+\begin{algorithmic}[1]
+\Require $G,Y$, common GW normal $r_0$, 100 Lloyd iterations, 96 trials
+\State Initialize two centers at $(-r_0,r_0)$
+\For{each Lloyd iteration}
+ \State Obtain the current spherical partition and its centroid difference $d$
+ \State Exactly optimize the offset of $d$ using \eqref{eq:threshold}
+ \State Keep the best verified signed cut; update spherical centroids
+\EndFor
+\For{each of 96 direction trials}
+ \State Choose Gaussian perturbation, centroid-difference or \eqref{eq:proxy}
+ \State Normalize $d$, solve the exact fixed-$d$ threshold sweep
+ \State Independently rescore and retain the best original signed cut
+\EndFor
+\State \Return best binary partition, direction and offset diagnostics
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Geometric interpretation}
+A linear separator with threshold $b$ has labels $\sign(y_i^\top d-b)$. Since
+$\sign(y_i^\top d-b)=\sign((y_i,1)^\top(d,-b))$, affine separators in $\R^p$ are origin-passing separators in $\R^{p+1}$ after augmentation. This is merely a geometric reformulation of the rounding family; it does not recompute the SDP or automatically preserve a GW approximation guarantee. Cut-aware K-Means is therefore a natural candidate for \emph{raw-only} affine-hyperplane experiments, unlike Gibbs or direct vertex flips.
+
+\subsection{Empirical finding}
+Experiment025's provisional mean graphwise post-refinement gain is $0.266807\%$ over refined GW, with 95\% graph-bootstrap interval $[0.177533,0.363149]\%$ and 56/5/10 graph wins/ties/losses. Against Cut-aware K-Means, Hyperplane Sweep wins/ties/loses 41/7/23 graphs; its mean relative advantage is $0.050811$ percentage points, while the signed-rank $p$-value on absolute cut differences is $0.110$. Neither comparison justifies calling the threshold optimizer a global solution to Max-Cut.
