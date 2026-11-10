@@ -1,0 +1,35 @@
+\section{Method 3: Angular Margin Greedy}\label{sec:margin}
+\subsection{What changes relative to Angular Gain?}
+The geometric state, exact arc sweep, $K=8$ candidate budget, $L=32$ outer-round cap and strict acceptance logic are \emph{identical} to the previous section. Only the \emph{target-ordering rule} changes. The name \texttt{angular-margin-greedy} means that vertices closest to the moving hyperplane boundary have first priority, without using $g_i$ to rank them. Compute
+\[
+\delta_i=\arcsin\left(\frac{|y_i^\top r|}{\|y_i\|_2}\right)
+\]
+for unit $r$, and sort by increasing $\delta_i$, breaking ties by vertex index. Use exactly the projected tangent \eqref{eq:targettangent} for each candidate vertex and call the same exact, original-signed \texttt{optimize_semicircle} kernel.
+
+\subsection{Why this is a meaningful ablation}
+The margin $\delta_i$ quantifies how far the current normal must rotate before vertex $i$ can lie exactly on the separating boundary. For fixed $r$, smaller $\delta_i$ means a crossing is geometrically accessible by a shorter great-circle motion. The method tests whether such proximity is itself a useful candidate signal. It does \emph{not} assume that flipping the closest vertex improves the signed objective. Every candidate arc is rescored on the original weighted graph; even a nearest boundary is rejected if it does not lead to a strict gain.
+
+\begin{algorithm}[tb]
+\caption{Angular Margin Greedy}\label{alg:margin}
+\begin{algorithmic}[1]
+\Require $G,Y,r_0$, $K=8$, $L=32$
+\State $r\gets r_0$; $C\gets\cut(s(r))$
+\For{$t=1,\ldots,L$}
+ \State Compute all $\delta_i$ and sort vertices by $(\delta_i,i)$
+ \State Initialize the next best result to current $(r,C)$
+ \For{the first $K$ nondegenerate target tangents $u_i$}
+  \State Exactly sweep all original-signed crossing events along $(r,u_i)$
+  \State Keep the best independently verified strict improvement
+ \EndFor
+ \If{no tested arc improves $C$} \State \textbf{break}\EndIf
+ \State Accept one best arc; update the normal and archive the event
+\EndFor
+\State \Return the final feasible hyperplane and raw cut
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Analytical observations}
+Unlike a differentiable optimization algorithm, the landscape of $F(r)$ is piecewise constant. A conventional gradient is zero almost everywhere and cannot identify which crossing produces a positive cut change. The margin ranking controls the \emph{geometric distance} to an event but omits the \emph{graph cost} of that event. In contrast, Gain ranks by both $g_i$ and $\delta_i$. Their difference is an interpretable source of testable hypotheses, not proof that either dominates on every graph.
+
+\subsection{Measured performance}
+The independently audited 71-graph post-refinement mean gain is $0.302682\%$ versus refined GW (95\% graph bootstrap $[0.213226,0.400243]\%$), with 56/9/6 graph wins/ties/losses. It beats/ties/loses against the historical Hyperplane Sweep on 29/14/28 graphs; the average best-of-16 cut difference is $-1.000$ original signed unit. The matched-seed mean raw difference to Sweep is $-16.807$ units and final-stage best difference is $-1.463$. The archive reports 62,888 attempted sweeps across 1,136 starts. These values describe original signed cuts, not geometric distances or approximation guarantees.
