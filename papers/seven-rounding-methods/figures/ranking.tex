@@ -1,0 +1,23 @@
+\begin{tikzpicture}[x=10cm,y=0.65cm]
+\draw[->,thin] (0,0.2)--(0.49,0.2) node[right,font=\scriptsize]{mean gain (\%)};
+\foreach \t in {0,0.1,0.2,0.3,0.4} {
+  \draw[gray!30] (\t,0.35)--(\t,7.5);
+  \node[font=\scriptsize,anchor=north] at (\t,0.18) {\t};
+}
+\def\RankRow#1#2#3#4#5#6{%
+ \node[font=\scriptsize,anchor=east] at (-0.012,#1) {#2};
+ \fill[#6!40] (0,#1-0.21) rectangle (#3,#1+0.21);
+ \draw[#6,line width=.7pt] (#4,#1)--(#5,#1);
+ \draw[#6,line width=.7pt] (#4,#1-.11)--(#4,#1+.11);
+ \draw[#6,line width=.7pt] (#5,#1-.11)--(#5,#1+.11);
+}
+\RankRow{7}{Hyperplane Sweep}{0.317618}{0.225150}{0.419601}{methodblue}
+\RankRow{6}{Angular Gain}{0.316704}{0.233363}{0.403293}{methodteal}
+\RankRow{5}{Angular Margin}{0.302682}{0.213226}{0.400243}{methodteal}
+\RankRow{4}{Angular Pair}{0.281426}{0.198963}{0.367844}{methodteal}
+\RankRow{3}{Paired K-Means}{0.271877}{0.178158}{0.372921}{methodblue}
+\RankRow{2}{EM--Gibbs}{0.270688}{0.195602}{0.352190}{methodblue}
+\RankRow{1}{Cut-aware K-Means}{0.266807}{0.177533}{0.363149}{methodblue}
+\node[font=\scriptsize,anchor=west,text=methodblue] at (0,7.92) {E025 provisional};
+\node[font=\scriptsize,anchor=west,text=methodteal] at (0.23,7.92) {E027 audited};
+\end{tikzpicture}

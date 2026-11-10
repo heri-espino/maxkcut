@@ -1,0 +1,58 @@
+\section{Method 1: Hyperplane Sweep}\label{sec:hyperplane}
+\subsection{Mechanism: continuous normals, discrete partitions}
+The implemented \sourcecode{hyperplane-sweep} method moves the normal of an origin-passing separating hyperplane, keeping the embedding $Y$ fixed. The current state is a unit normal $r\in\sphere^{p-1}$ and cut $\cut(s(r))$. A sweep is exact along a \emph{chosen} rotation path, not globally over every possible separating direction.
+
+Choose a unit tangent $u$ with $u^\top r=0$ and set
+\begin{equation}\label{eq:arc}
+r(\theta)=r\cos\theta+u\sin\theta,\qquad -\pi/2<\theta<\pi/2.
+\end{equation}
+With $a_i=y_i^\top r$ and $b_i=y_i^\top u$, the only sign changes occur when $a_i\cos\theta+b_i\sin\theta=0$. In the open interval, $\cos\theta>0$, so for $b_i\ne0$ the crossing angle is
+\begin{equation}\label{eq:angle}
+\theta_i=\arctan(-a_i/b_i).
+\end{equation}
+If $b_i=0\ne a_i$ no crossing occurs; a zero projection along the entire path requires fixed tie handling. Vertices crossing at the same angle must be processed as a group. The signed gain formula \eqref{eq:flip} updates the score without recomputing every edge after each crossing.
+
+\begin{proposition}[Exact fixed-arc search]\label{prop:arc}
+Under exact arithmetic, sorting crossing events and updating the signed gains finds the best cut among the constant-partition open intervals of one specified semicircle, in $O(np+n\log n+m)$ time including the projections and sparse-edge updates.
+\end{proposition}
+\begin{proof}
+There are at most $n$ crossings. Every open interval between consecutive crossings has an identical binary partition, so its cut is constant. Each vertex flips at most once; the incident-edge updates for all flips sum to $O(m)$. Sorting costs $O(n\log n)$ and projections cost $O(np)$. Taking the maximum of all visited interval values establishes the restricted optimum.
+\end{proof}
+The source independently reconstructs and checks the selected normal, partition, and original signed objective. If floating-point degeneracies prevent reconstruction, it retains the original cut rather than asserting an unattainable event score.
+\begin{figure}[tb]
+\centering
+\input{figures/arc_events}
+\caption{A selected rotation arc is partitioned into constant-cut regions by finitely many vertex-crossing angles. Schematic illustration, not experimental measurements.}
+\label{fig:events}
+\end{figure}
+
+\subsection{Actual tangent selection and search budget}
+The full Experiment025 protocol attempts 250 arcs per starting normal. In \sourcecode{src/maxkcut/eva_direct_rounding.py}, proposals alternate cyclically:
+\begin{enumerate}
+\item \textbf{Random}: choose Gaussian $z$ and normalize $(I-rr^\top)z$.
+\item \textbf{Gain-labelled}: compute $g_i=s_i(Ws)_i$, select vertices with $g_i<-10^{-9}$, and form a weighted sum of their EVA vectors, projected into $r^\perp$. The \emph{actual code selects negative-gain flips}, despite a historical comment about improving moves; a negative $g_i$ is harmful as a standalone flip.
+\item \textbf{Boundary-labelled}: pick up to 96 vertices having smallest $|g_i|$, combine their vectors with random signs and project into $r^\perp$. This is \emph{not} a smallest-angular-margin rule.
+\end{enumerate}
+Degenerate proposals fall back to random tangents. The selected arc's best realized score replaces the incumbent only after a strict improvement. All attempted scores and modes are journaled.
+
+\begin{algorithm}[tb]
+\caption{Hyperplane Sweep: one matched GW start}\label{alg:hp}
+\begin{algorithmic}[1]
+\Require Graph $G$, fixed $Y$, GW normal $r_0$, $T=250$
+\State $r\gets r_0$; $C\gets\cut(s(r))$
+\For{$t=1,\ldots,T$}
+ \State Choose the cyclic mode random/gain/boundary
+ \State Generate and validate a tangent $u\perp r$
+ \State $(\hat r,\hat s,\hat C)\gets\mathrm{ExactArcSweep}(G,Y,r,u)$
+ \State Verify the original signed cut of $\hat s$
+ \If{$\hat C>C$}
+   \State $(r,C)\gets(\hat r,\hat C)$
+ \EndIf
+ \State Journal the attempt and accepted incumbent
+\EndFor
+\State \Return $r,s(r),C$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Empirical finding and limits}
+The provisional Experiment025 aggregate reports mean graphwise best-of-16 gain $0.317618\%$ over refined GW, 95\% graph bootstrap interval $[0.225150,0.419601]\%$, and 59 wins, 7 ties, 5 losses among 71 graphs. Mean absolute gain is 14.08 signed cut units. Its mean relative advantage over \sourcecode{control-paired} is 0.045740 percentage points; a Wilcoxon graph-level signed-rank comparison of absolute cut differences reports $p=0.226$. These are different estimands. The measured performance belongs to Sweep \emph{plus} Flip/KL/ILS, not to raw hyperplane rotation alone, and the full Experiment025 source partitions still need independent off-VM auditing.

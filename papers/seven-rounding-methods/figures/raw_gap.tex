@@ -1,0 +1,20 @@
+\begin{tikzpicture}[x=0.37cm,y=.78cm]
+\foreach \y/\name/\raw/\final in {
+3/{Gain}/-17.031/-0.971,
+2/{Margin}/-16.807/-1.463,
+1/{Pair}/-16.145/-2.160
+} {
+\node[anchor=east,font=\small] at (-19.4,\y) {\name};
+\fill[methodorange!55] (\raw,\y+0.02) rectangle (0,\y+0.26);
+\fill[methodteal!65] (\final,\y-0.26) rectangle (0,\y-0.02);
+\node[font=\scriptsize,anchor=east] at (\raw-.2,\y+.12) {\raw};
+\node[font=\scriptsize,anchor=east] at (\final-.3,\y-.14) {\final};
+}
+\draw[->,thin] (-19.3,.2)--(1,.2) node[right,font=\scriptsize]{cut units};
+\foreach \x in {-18,-12,-6,0} {
+\draw[gray!30] (\x,.3)--(\x,3.45);
+\node[anchor=north,font=\scriptsize] at (\x,.18) {\x};
+}
+\node[font=\scriptsize,text=methodorange] at (-15.5,3.7) {raw vs HP};
+\node[font=\scriptsize,text=methodteal] at (-5.0,3.7) {final best vs HP};
+\end{tikzpicture}

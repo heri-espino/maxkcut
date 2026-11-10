@@ -1,0 +1,17 @@
+\begin{tikzpicture}[x=1cm,y=1cm]
+\draw[-{Latex},thick,methodblue] (0,0)--(12,0) node[right] {$\theta$};
+\foreach \x/\txt in {1.7/{\theta_1},4.0/{\theta_2},6.9/{\theta_3},9.5/{\theta_4}} {
+ \draw[methodorange,dashed,thick] (\x,-0.18)--(\x,1.2);
+ \node[above,methodorange] at (\x,1.2) {$\txt$};
+}
+\node at (.8,.38) {\scriptsize $C_0$};
+\node at (2.85,.38) {\scriptsize $C_1$};
+\node at (5.4,.38) {\scriptsize $C_2$};
+\node at (8.2,.38) {\scriptsize $C_3$};
+\node at (10.6,.38) {\scriptsize $C_4$};
+\draw[ultra thick,methodteal] (6.96,-.28)--(9.44,-.28);
+\node[below] at (.0,-.15) {\scriptsize $-\pi/2$};
+\node[below] at (11.8,-.15) {\scriptsize $\pi/2$};
+\node[align=center,font=\scriptsize] at (6.1,-1.05)
+ {Each event-free interval has a constant cut; the green interval is an illustrative optimum.};
+\end{tikzpicture}

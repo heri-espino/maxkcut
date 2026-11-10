@@ -1,0 +1,71 @@
+\section{Method 6: Soft EM Followed by Gibbs Annealing}\label{sec:gibbs}
+\subsection{One method name, two distinct algorithms}
+The name \sourcecode{em-gibbs} is a \emph{soft EM-like optimization of Bernoulli membership probabilities}, followed by a temperature-annealed Gibbs sampler acting on a hard binary graph partition. The EM-like first stage is \emph{not} maximum-likelihood Gaussian mixture modeling: it optimizes a stated entropy-regularized signed-cut objective with spherical-centroid alignment.
+
+\subsection{The soft free energy and conditional probability update}
+Let $p_i\in(0,1)$ denote the probability of side 1, assuming independent Bernoulli variables for the soft expected-cut calculation. Let $c_0,c_1$ be unit spherical centers, $\kappa\ge0$ their geometric weight, and $T>0$ temperature. The implementation's free energy is
+\begin{align}\label{eq:freeenergy}
+\mathcal L_T(p,c_0,c_1)
+={}&\sum_{\{i,j\}\in E}
+ w_{ij}(p_i+p_j-2p_ip_j)\nonumber\\
+&+\kappa\sum_i\bigl[(1-p_i)y_i^\top c_0+
+                           p_i y_i^\top c_1\bigr]+T\sum_iH(p_i),\\
+H(p)&=-p\log p-(1-p)\log(1-p).\nonumber
+\end{align}
+The first term is the expected original signed cut because $\Pr(\ell_i\ne\ell_j)=p_i+p_j-2p_ip_j$. Differentiating with respect to $p_i$, holding the other memberships and centroids fixed, gives
+\[
+\frac{\partial\mathcal L_T}{\partial p_i}
+=\sum_jw_{ij}(1-2p_j)+\kappa y_i^\top(c_1-c_0)
+ +T\log\frac{1-p_i}{p_i}.
+\]
+The conditional stationary target therefore satisfies
+\begin{equation}\label{eq:softupdate}
+p_i^{\rm target}=
+\operatorname{sigmoid}\!\left(
+\frac{[W(1-2p)]_i+\kappa\,y_i^\top(c_1-c_0)}{T}\right).
+\end{equation}
+The implementation performs a \emph{damped, synchronous} probability update with backtracking if free energy decreases. For fixed memberships, the geometric M-step is
+\begin{equation}\label{eq:softcenters}
+c_0=\frac{\sum_i(1-p_i)y_i}{\|\sum_i(1-p_i)y_i\|_2},
+\qquad
+c_1=\frac{\sum_i p_i y_i}{\|\sum_i p_i y_i\|_2},
+\end{equation}
+with a degenerate-center fallback. Temperature changes between stages, so a monotonicity statement applies within each fixed-$T$ stage only.
+
+Experiment025 initializes $p_i=0.95$ or $0.05$ depending on the \emph{same current GW partition}, recalculates centroids, uses eight geometrically spaced temperature stages and up to 20 soft iterations per stage. This is not a historical elite warm start. The soft stage hardens with $\ell_i=\1[p_i\ge1/2]$.
+
+\subsection{Gibbs heat-bath flips and derivation}
+For a current hard spin partition $s$ and vertex gain $g_i=s_i(Ws)_i$, compare the two conditional scores that differ only at $i$. Their cut-value difference is $g_i$. At temperature $T$, the probability of choosing the opposite spin is
+\begin{equation}\label{eq:gibbs}
+\Pr(\mathrm{flip}\ i\mid s_{-i},T)
+=\frac{\exp((\cut(s)+g_i)/T)}
+{\exp(\cut(s)/T)+\exp((\cut(s)+g_i)/T)}
+=\operatorname{sigmoid}(g_i/T).
+\end{equation}
+Positive gains are favored, but negative gains are allowed with positive probability; this is how annealing can move across poor intermediate partitions. The implemented full protocol cools from $T=12$ to $0.4$ over 150 sweeps, visits vertices in a seeded random order, and retains the best original signed hard cut. The Gibbs walker may deteriorate before finding a better candidate. Gibbs updates operate directly on labels and are not restricted to hyperplane-realizable partitions.
+
+\begin{algorithm}[tb]
+\caption{EM--Gibbs before the common postprocessor}\label{alg:gibbs}
+\begin{algorithmic}[1]
+\Require $G,Y$, shared GW labels, soft and Gibbs temperature schedules
+\State Initialize $p_i$ at $0.95/0.05$ according to the shared GW partition
+\State Initialize spherical centroids from soft memberships
+\For{each of 8 soft-temperature stages}
+ \For{up to 20 damped EM-like updates}
+  \State Propose memberships by \eqref{eq:softupdate}; backtrack if needed
+  \State Update centroids by \eqref{eq:softcenters}; audit free energy
+ \EndFor
+\EndFor
+\State Harden memberships to a feasible original signed cut
+\For{150 cooling Gibbs sweeps}
+ \For{each vertex in seeded order}
+  \State Calculate $g_i$ and flip with probability \eqref{eq:gibbs}
+  \State Retain every improved original signed hard cut
+ \EndFor
+\EndFor
+\State \Return best hard partition (not necessarily a hyperplane cut)
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Empirical finding and limits}
+The provisional Experiment025 aggregate gives mean graphwise best-of-16 gain $0.270688\%$ over refined GW, with 95\% bootstrap interval $[0.195602,0.352190]\%$ and 59/9/3 graph wins/ties/losses. Hyperplane Sweep wins/ties/loses against EM--Gibbs on 36/9/26 graphs, with a two-sided signed-rank $p=0.1633$ on absolute cut differences. This full-protocol competitiveness does not imply that raw Gibbs partitions are linearly separable. Moreover, the code uses stochastic label search, so the method should not be counted as a pure geometric hyperplane rounder in a later no-KL/no-ILS experiment.

@@ -1,0 +1,50 @@
+\section{Method 2: Angular Gain Greedy}\label{sec:gain}
+\subsection{The meaning of the name}
+The method named \sourcecode{angular-gain-greedy} combines the graph's signed single-vertex flip incentive with geometric proximity to a hyperplane crossing. Crucially, it \emph{does not directly flip vertices}. It ranks geometric tangent proposals, executes an exact signed-score sweep along each proposed arc, and accepts the best verified improvement.
+
+Given the current unit normal $r$ and $s_i=1-2\1[y_i^\top r>0]$, the signed flip gain is $g_i=s_i(Ws)_i$ from \eqref{eq:flip}. The shortest angular distance from $r$ to the constraint $y_i^\top r=0$ is
+\begin{equation}\label{eq:margin}
+\delta_i=\arcsin\!\left(\frac{|y_i^\top r|}{\|y_i\|_2\|r\|_2}\right).
+\end{equation}
+The implemented ranking is
+\begin{equation}\label{eq:priority}
+q_i=\frac{\max(0,g_i)}{\delta_i+10^{-3}}.
+\end{equation}
+Vertices are sorted by decreasing $q_i$, then by increasing $\delta_i$, then by index. If every gain is nonpositive, small margins take precedence. The stabilizer $10^{-3}$ prevents ranking instability near a zero margin.
+
+\subsection{Constructing a candidate tangent}
+Set $a_i=y_i^\top r$, $v_i=y_i-a_ir$ and
+\begin{equation}\label{eq:targettangent}
+u_i=-\frac{\sigma(a_i)v_i}{\|v_i\|_2},\quad
+\sigma(a)=\begin{cases}+1,&a\ge0,\\-1,&a<0.\end{cases}
+\end{equation}
+This is the implemented projected target direction in the tangent space $r^\perp$; degenerate projected vectors are skipped. The candidate labels are \emph{not} assigned by toggling $s_i$. Instead, \sourcecode{optimize_semicircle} tests the full continuum of event intervals along $r(\theta)$ from \eqref{eq:arc}. Multiple vertices can cross on that arc.
+
+\subsection{Outer greedy loop}
+For every round, calculate all signed gains and angular margins; form up to $K=8$ valid tangents from the highest-ranked vertices; evaluate each with the exact arc kernel and independently rescore its binary cut; select only the largest strict improvement. Stop at the first round with no improvement or after $L=32$ rounds. Thus no more than 256 arcs are considered per seed, although early stopping normally reduces the count. The full source logs every proposed vertex, signed gain, angle, realized cut and accepted normal.
+
+\begin{algorithm}[tb]
+\caption{Angular Gain Greedy}\label{alg:gain}
+\begin{algorithmic}[1]
+\Require $G$, frozen $Y$, GW normal $r$, $K=8$, $L=32$
+\State $C\gets\cut(s(r))$
+\For{$t=1,\ldots,L$}
+ \State Compute $g_i=s_i(Ws)_i$ and $\delta_i$; rank vertices by \eqref{eq:priority}
+ \State $(r_{\rm next},C_{\rm next})\gets(r,C)$
+ \For{up to $K$ nondegenerate ranked targets $i$}
+  \State Build tangent $u_i$ from \eqref{eq:targettangent}
+  \State $(\hat r,\hat s,\hat C)\gets\mathrm{ExactArcSweep}(G,Y,r,u_i)$
+  \State Rescore $\hat s$ and journal every attempted cut
+  \If{$\hat C>C_{\rm next}$}
+   \State $(r_{\rm next},C_{\rm next})\gets(\hat r,\hat C)$
+  \EndIf
+ \EndFor
+ \If{$C_{\rm next}\le C$}\State \textbf{break}\EndIf
+ \State $(r,C)\gets(r_{\rm next},C_{\rm next})$; archive accepted normal
+\EndFor
+\State \Return realized normal, labels and signed cut
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Findings}
+Experiment027 independently audits 71 graphs, 16 matched starts, and this new method's four-stage journal. The mean post-refinement gain versus refined GW is $R_{\mathrm{gain}}=0.316704\%$, with graph-bootstrap interval $[0.233363,0.403293]\%$ and 61/8/2 graph wins/ties/losses. Against the \emph{historical} Hyperplane Sweep, the best-of-16 comparisons are 30/10/31; average signed-cut difference $-0.310$ units. Across \emph{matched individual seeds}, raw angular gain minus raw Sweep averages $-17.031$ units, while the final best-stage delta averages $-0.971$. These different estimands show that later Flip/KL/ILS can mask substantial raw rounding differences. The source records 65,488 attempted arcs across 1,136 starts (not 256 arcs executed per start).

@@ -1,0 +1,41 @@
+\section{Method 5: Paired Spherical K-Means Control}\label{sec:paired}
+\subsection{The paired two-center initialization}
+The exact method name is \sourcecode{control-paired}; the term \emph{paired} means that the two \emph{centers} are antipodal. It is the historical K-MeansNM rule, applied to the \emph{same GW normal} shared by the other protocols:
+\begin{equation}\label{eq:pairedinit}
+c_0^{(0)}=-r_0,\qquad c_1^{(0)}=r_0.
+\end{equation}
+This pairing is distinct from the statistical matching of 16 normal vectors across experiments. The method is an adaptive spherical clustering initializer, not a modified EVA factor.
+
+\subsection{Lloyd updates}
+For unit-norm EVA vectors $y_i$, the assignment stage maximizes cosine similarity:
+\begin{equation}\label{eq:lloydassignment}
+\ell_i^{(t)}=\argmax_{a\in\{0,1\}}y_i^\top c_a^{(t)}.
+\end{equation}
+Let $V_a^{(t)}=\{i:\ell_i^{(t)}=a\}$. A nonempty cluster updates its center to the normalized spherical mean:
+\begin{equation}\label{eq:lloydcenters}
+c_a^{(t+1)}
+=\frac{\sum_{i\in V_a^{(t)}}y_i}
+{\left\|\sum_{i\in V_a^{(t)}}y_i\right\|_2}.
+\end{equation}
+Degenerate or empty-center cases use a seeded fallback. At most 100 Lloyd iterations run in the full protocol, or fewer if the labels stabilize. The first assignment has exactly the initial GW split (apart from zero-projection tie conventions), because the difference of the initial similarities is $2y_i^\top r_0$. Later centers may cease to be antipodal, but their binary nearest-center decision is still induced by the homogeneous normal $c_1-c_0$.
+
+\subsection{Original-cut retention versus clustering inertia}
+Spherical Lloyd updates optimize a geometric association measure; they do not directly maximize weighted signed Max-Cut. The implementation separately evaluates the \emph{original signed graph} at every Lloyd assignment and saves the best cut found along the trajectory, including the initial GW split. In particular, the retained raw best cannot be worse than its own initial GW cut, even though an individual unretained Lloyd step may be worse.
+
+\begin{algorithm}[tb]
+\caption{Paired spherical K-MeansNM}\label{alg:paired}
+\begin{algorithmic}[1]
+\Require $G$, frozen $Y$, shared normal $r_0$
+\State Initialize $c_0=-r_0,c_1=r_0$ and retain original GW labels
+\For{$t=1,\ldots,100$}
+ \State Set labels by \eqref{eq:lloydassignment}
+ \State Score the original signed cut and update best-so-far
+ \If{assignments have converged}\State\textbf{break}\EndIf
+ \State Update nonempty cluster centers by \eqref{eq:lloydcenters}
+\EndFor
+\State \Return best observed binary partition and original signed score
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Experiment025 findings}
+The provisional 71-graph aggregate reports mean graphwise best-of-16 improvement $0.271877\%$ (95\% graph-bootstrap interval $[0.178158,0.372921]\%$) versus refined GW. Graphwise wins/ties/losses are 55/8/8. Hyperplane Sweep beats/ties/loses against this control on 36/10/25 graphs, but a paired graphwise Wilcoxon test on absolute signed-cut differences reports $p=0.2256$; it does not resolve the two top methods on that test. This result demonstrates the value of structured centroid search \emph{after the common refiner}, not that spherical K-Means produces a globally optimal raw cut.
