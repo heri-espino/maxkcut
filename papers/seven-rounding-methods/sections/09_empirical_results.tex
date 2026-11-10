@@ -1,0 +1,67 @@
+\section{Integrated empirical findings}\label{sec:results}
+\subsection{The complete seven-method ordering}
+\Cref{tab:seven} reproduces the seven highest relative best-of-16 scores among the 18 historical protocols plus the three independently audited new angular variants. A ranked list is useful for exposition but is \emph{not} a significance ordering. In particular, the top two values differ by only $0.000914$ percentage points; such a small descriptive difference must not be interpreted as proof of superiority.
+\begin{table}[tb]
+\centering\small
+\caption{The selected seven by equal-graph mean post-refinement best-of-16 improvement over the \emph{refined} GW-RR control. Confidence intervals bootstrap graphs (E025: 30,000 draws; E027: 2,000). W/T/L is versus \emph{refined GW}. E025 is still provisionally supported by its 1,278-row aggregate; E027 has an independent five-method archive audit.}\label{tab:seven}
+\begin{tabular}{@{}rlcccc@{}}
+\toprule
+Rank & Method & Gain (\%) & 95\% graph interval (\%) & W/T/L vs GW & Source\\
+\midrule
+1 & Hyperplane Sweep      & 0.317618 & [0.225150, 0.419601] & 59/7/5 & E025\\
+2 & Angular Gain Greedy   & 0.316704 & [0.233363, 0.403293] & 61/8/2 & E027\\
+3 & Angular Margin Greedy & 0.302682 & [0.213226, 0.400243] & 56/9/6 & E027\\
+4 & Angular Pair Greedy   & 0.281426 & [0.198963, 0.367844] & 56/7/8 & E027\\
+5 & Paired K-Means Control& 0.271877 & [0.178158, 0.372921] & 55/8/8 & E025\\
+6 & EM--Gibbs             & 0.270688 & [0.195602, 0.352190] & 59/9/3 & E025\\
+7 & Cut-aware K-Means     & 0.266807 & [0.177533, 0.363149] & 56/5/10 & E025\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[tb]
+\centering
+\input{figures/ranking}
+\caption{Source-reported seven-method mean graphwise gains and 95\% bootstrap intervals from the two historical audits. A comparison of marginal intervals is \emph{not} a paired test of between-method differences; the two colors distinguish source/audit status.}
+\label{fig:ranking}
+\end{figure}
+
+\subsection{Direct comparison with Hyperplane Sweep}
+For Experiment027, matched comparisons against the historical HP comparator are available at \emph{both} raw and refined stages. Best-of-16 graph counts versus HP are Gain 30/10/31, Margin 29/14/28 and Pair 28/9/34, with respective mean best-of-16 cut differences $-0.310$, $-1.000$ and $-1.085$ units. None has established a consistent single-method advantage. Their 95\% \emph{exploratory} graph-bootstrap intervals for mean absolute differences against HP overlap zero; these were post-publication descriptive computations, not a prospective multiple-comparison test.
+
+For E025's three selected non-HP methods, the historical aggregate provides the opposite orientation of W/T/L (HP against each):
+\[
+\begin{array}{lll}
+\text{HP vs paired:}&36/10/25,&
+\text{HP vs EM--Gibbs:}\ 36/9/26,\\
+\text{HP vs cut-aware:}&41/7/23.&&
+\end{array}
+\]
+The E025 graphwise Wilcoxon signed-rank $p$-values for these \emph{absolute cut differences} are respectively $0.2256$, $0.1633$ and $0.1097$. No multiplicity-adjusted cross-study head-to-head superiority has been established. Bootstrap intervals for mean \emph{relative gain} and Wilcoxon tests for \emph{absolute signed differences} have different targets and can legitimately disagree.
+
+\subsection{Why the raw endpoint changes the interpretation}
+The audited E027 per-seed comparison provides the following paired means over 71 graphs times 16 shared start indices:
+\begin{table}[tb]
+\centering\small
+\caption{New angular method minus historical HP in signed cut \emph{units}. Means use all 1,136 matched graph--seed pairs per new method; they are not best-of-16 maxima.}\label{tab:raw}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Method & Raw round cut minus HP & Final best-stage minus HP & Best-of-16 graph difference\\
+\midrule
+Angular Gain Greedy   & $-17.031$ & $-0.971$ & $-0.310$\\
+Angular Margin Greedy & $-16.807$ & $-1.463$ & $-1.000$\\
+Angular Pair Greedy   & $-16.145$ & $-2.160$ & $-1.085$\\
+\bottomrule
+\end{tabular}
+\end{table}
+The raw gap is an order of magnitude larger than the after-refinement gap. This is a \emph{negative result for the interpretation of raw angular search} under the recorded starting budget, even though all three full protocols outperform refined GW on average. The multiple maxima and mean-of-seeds are not algebraically interchangeable: $\max_t(C_a-C_b)$ and $\max_t C_a-\max_t C_b$ are different quantities.
+
+\subsection{Recorded work is not equal work}
+The three E027 angular methods evaluated 65,488, 62,888 and 65,320 arcs respectively over their 1,136 starts; the original HP protocol nominally budgets up to 250 attempts per start. Reported mean per-seed wall times are approximately GW $0.937$ s, HP $2.487$ s, Gain $0.996$ s, Margin $1.057$ s and Pair $0.983$ s. These descriptive archived times are not a controlled equal-hardware benchmark: E025's aggregate wall-time field is the last invocation, not total 16-seed work, and method-specific preprocessing and attempted events differ substantially. We therefore do not claim a causal speedup or a demonstrated equal-budget quality improvement.
+
+The in-sample portfolio taking the best of the three angular results \emph{after running all three} beats HP on 42 graphs, ties on 13 and loses on 16, with mean best-of-16 signed-cut difference $+2.761$ units. This spends a larger search budget and uses an ex post oracle choice; it is not a deployable equal-cost algorithm.
+
+\subsection{Graph families and limitations}
+The Experiment025 Hyperplane Sweep mean relative gain over GW is reported as $+0.375\%$ on the 30 random graphs, $+0.411\%$ on 24 planar-family graphs and $+0.084\%$ on 17 toroidal graphs. Within 35 positive-weight graphs it is $+0.163\%$ and within 36 signed-weight graphs $+0.468\%$. Graph families and edge signs are not independently randomized and can be confounded. No causal structure-dependent method recommendation follows. The old archive status, source differences and post-hoc selection limit inferential scope.
+
+All published values in this section are transcribed from the committed E025 method-ranking and head-to-head CSVs and the E027 independently audited comparison CSV/JSON. The manuscript's \sourcecode{data/top_seven.csv} is a \emph{derived presentation table}, not a replacement for those primary files. The accompanying checker validates both sources at each build.
