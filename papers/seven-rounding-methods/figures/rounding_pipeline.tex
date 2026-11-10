@@ -1,0 +1,20 @@
+\begin{tikzpicture}[
+  every node/.style={font=\footnotesize,align=center},
+  step/.style={draw=methodblue!75,rounded corners=3pt,thick,fill=blue!5,
+     minimum height=9mm,text width=31mm},
+  arrow/.style={-{Latex[length=2.5mm]},thick,draw=methodblue},
+  node distance=8mm]
+\node[step] (embed) {Saved EVA vectors\\$Y\in\R^{n\times p}$};
+\node[step,right=of embed] (round) {Method-specific\\rounding/initializer};
+\node[step,right=of round] (raw) {Original signed\\raw cut};
+\node[step,below=10mm of raw] (refine) {Flip $\to$ KL\\$\to$ ILS--KL};
+\node[step,left=of refine] (final) {Best-ever\\refined cut};
+\draw[arrow] (embed)--(round);
+\draw[arrow] (round)--(raw);
+\draw[arrow] (raw)--(refine);
+\draw[arrow] (refine)--(final);
+\node[draw=methodorange,rounded corners=2pt,fill=orange!7,
+ text width=64mm,below=10mm of round] (note)
+ {Only the \textbf{raw} cut measures what the geometric rounding method produced.};
+\draw[-{Latex},methodorange,thick] (raw.south west) to[bend right=16] (note.east);
+\end{tikzpicture}
