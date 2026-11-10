@@ -56,6 +56,13 @@ Angular Pair Greedy   & $-16.145$ & $-2.160$ & $-1.085$\\
 \end{table}
 The raw gap is an order of magnitude larger than the after-refinement gap. This is a \emph{negative result for the interpretation of raw angular search} under the recorded starting budget, even though all three full protocols outperform refined GW on average. The multiple maxima and mean-of-seeds are not algebraically interchangeable: $\max_t(C_a-C_b)$ and $\max_t C_a-\max_t C_b$ are different quantities.
 
+\begin{figure}[tb]
+\centering
+\input{figures/raw_gap}
+\caption{Mean paired-seed raw and final-best signed cut differences from historical Hyperplane Sweep (Experiment027). The common refiner greatly reduces the initial raw disadvantage; these are not graphwise best-of-16 maxima.}
+\label{fig:rawgap}
+\end{figure}
+
 \subsection{Recorded work is not equal work}
 The three E027 angular methods evaluated 65,488, 62,888 and 65,320 arcs respectively over their 1,136 starts; the original HP protocol nominally budgets up to 250 attempts per start. Reported mean per-seed wall times are approximately GW $0.937$ s, HP $2.487$ s, Gain $0.996$ s, Margin $1.057$ s and Pair $0.983$ s. These descriptive archived times are not a controlled equal-hardware benchmark: E025's aggregate wall-time field is the last invocation, not total 16-seed work, and method-specific preprocessing and attempted events differ substantially. We therefore do not claim a causal speedup or a demonstrated equal-budget quality improvement.
 
