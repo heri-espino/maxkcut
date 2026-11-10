@@ -1,6 +1,6 @@
 \section{Method 2: Angular Gain Greedy}\label{sec:gain}
 \subsection{The meaning of the name}
-The method named \texttt{angular-gain-greedy} combines the graph's signed single-vertex flip incentive with geometric proximity to a hyperplane crossing. Crucially, it \emph{does not directly flip vertices}. It ranks geometric tangent proposals, executes an exact signed-score sweep along each proposed arc, and accepts the best verified improvement.
+The method named \sourcecode{angular-gain-greedy} combines the graph's signed single-vertex flip incentive with geometric proximity to a hyperplane crossing. Crucially, it \emph{does not directly flip vertices}. It ranks geometric tangent proposals, executes an exact signed-score sweep along each proposed arc, and accepts the best verified improvement.
 
 Given the current unit normal $r$ and $s_i=1-2\1[y_i^\top r>0]$, the signed flip gain is $g_i=s_i(Ws)_i$ from \eqref{eq:flip}. The shortest angular distance from $r$ to the constraint $y_i^\top r=0$ is
 \begin{equation}\label{eq:margin}
@@ -18,7 +18,7 @@ Set $a_i=y_i^\top r$, $v_i=y_i-a_ir$ and
 u_i=-\frac{\sigma(a_i)v_i}{\|v_i\|_2},\quad
 \sigma(a)=\begin{cases}+1,&a\ge0,\\-1,&a<0.\end{cases}
 \end{equation}
-This is the implemented projected target direction in the tangent space $r^\perp$; degenerate projected vectors are skipped. The candidate labels are \emph{not} assigned by toggling $s_i$. Instead, \texttt{optimize_semicircle} tests the full continuum of event intervals along $r(\theta)$ from \eqref{eq:arc}. Multiple vertices can cross on that arc.
+This is the implemented projected target direction in the tangent space $r^\perp$; degenerate projected vectors are skipped. The candidate labels are \emph{not} assigned by toggling $s_i$. Instead, \sourcecode{optimize_semicircle} tests the full continuum of event intervals along $r(\theta)$ from \eqref{eq:arc}. Multiple vertices can cross on that arc.
 
 \subsection{Outer greedy loop}
 For every round, calculate all signed gains and angular margins; form up to $K=8$ valid tangents from the highest-ranked vertices; evaluate each with the exact arc kernel and independently rescore its binary cut; select only the largest strict improvement. Stop at the first round with no improvement or after $L=32$ rounds. Thus no more than 256 arcs are considered per seed, although early stopping normally reduces the count. The full source logs every proposed vertex, signed gain, angle, realized cut and accepted normal.
