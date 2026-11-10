@@ -16,7 +16,7 @@ User requested an **explanation of each confusing method name inside the existin
 
 # Full research seminar — Experiment001–027 merged Marp edition
 
-**Source:** [`maxkcut_full_research_001_027.marp.md`](maxkcut_full_research_001_027.marp.md), **117 slides**. The original [001–025 97-slide edition](maxkcut_full_research_001_025.marp.md) remains unmodified and available for historical comparison.
+**Source:** [`maxkcut_full_research_001_027.marp.md`](maxkcut_full_research_001_027.marp.md), **137 slides** (including 20 algorithm-name appendix slides). The original [001–025 97-slide edition](maxkcut_full_research_001_025.marp.md) remains unmodified and available for historical comparison.
 
 **Publication date:** 2026-11-08. **Scientific scope:** original 71 G-set signed Max-Cut graphs, saved EVA Gram factors, Experiment025's 18-method descriptive census, and new Experiment027 angular-guided rounding. Do **not** interpret numerical cut improvements as certified global optima or as approximation guarantees for Max-`k`-Cut with `k>2`.
 
@@ -70,7 +70,7 @@ node presentations/build_experiment027_figures.mjs --check
 node presentations/verify_experiment027_presentation.mjs
 ```
 
-The verifier requires **117 nonblank slides**, all 13 new SVGs, all historical figures, source SHA checks, the published release inventory and the previous MathJax formula count.
+The verifier requires **137 nonblank slides**, all 13 new SVGs, all historical figures, source SHA checks, the published release inventory and the previous MathJax formula count.
 
 **Full figure refresh** for historical + E025 + E027:
 
@@ -94,7 +94,7 @@ npx @marp-team/marp-cli@4.5.1 presentations/maxkcut_full_research_001_027.marp.m
 node presentations/embed_experiment027_html_assets.mjs
 ```
 
-The Marp 001–027 PDF/standalone HTML are automatically exported in the dedicated [hosted Actions workflow](../.github/workflows/experiment027-marp-presentation.yml), which confirms 117 slide/pages and publishes an Actions artifact **`maxkcut-experiment027-complete-marp`**. Export runs only on `ubuntu-latest`, never the university Windows VM. The editable source and SVGs remain permanently committed; the CI export artifact has **30-day retention**, not permanent storage.
+The Marp 001–027 PDF/standalone HTML are automatically exported in the dedicated [hosted Actions workflow](../.github/workflows/experiment027-marp-presentation.yml), which confirms 137 PDF pages and publishes an Actions artifact **`maxkcut-experiment027-complete-marp`**. Export runs only on `ubuntu-latest`, never the university Windows VM. The editable source and SVGs remain permanently committed; the CI export artifact has **30-day retention**, not permanent storage.
 
 ## Handoff restrictions
 
