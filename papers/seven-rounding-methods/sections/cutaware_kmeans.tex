@@ -1,6 +1,6 @@
 \section{Method 7: Cut-aware Spherical K-Means}\label{sec:cutaware}
 \subsection{How the name differs from ordinary K-Means}
-The method \texttt{cutaware-kmeans} begins with the GW-paired spherical Lloyd trajectory, but it scores the \emph{original signed graph} when selecting directions. It then tests perturbed, centroid-based and gain-weighted directions. For each such direction, it finds the \emph{exact best affine threshold} conditional on that direction. Thus the method searches both directions and offsets, but is only exact in one dimension at a time.
+The method \sourcecode{cutaware-kmeans} begins with the GW-paired spherical Lloyd trajectory, but it scores the \emph{original signed graph} when selecting directions. It then tests perturbed, centroid-based and gain-weighted directions. For each such direction, it finds the \emph{exact best affine threshold} conditional on that direction. Thus the method searches both directions and offsets, but is only exact in one dimension at a time.
 
 \subsection{An exact threshold conditional on one direction}
 For a fixed unit direction $d$, let $z_i=y_i^\top d$. With offset $b$, choose $\ell_i(b)=\1[z_i>b]$. The binary partition changes only as $b$ crosses one of the sorted projection values $z_i$; tied projections must move together. The best signed cut for this fixed direction is
