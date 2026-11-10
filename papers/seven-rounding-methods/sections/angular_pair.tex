@@ -1,0 +1,45 @@
+\section{Method 4: Angular Pair Greedy}\label{sec:pair}
+\subsection{Why target a pair?}
+The name \texttt{angular-pair-greedy} refers to a \emph{pair of desired hyperplane-crossing constraints}, not a direct two-vertex combinatorial flip. At a current unit normal $r$, a single vertex $i$ is on the separating boundary when $y_i^\top r=0$. For two vertices, the simultaneous linear constraints are
+\begin{equation}\label{eq:pairconstraints}
+y_i^\top r_{\rm target}=0,\qquad
+y_j^\top r_{\rm target}=0.
+\end{equation}
+This asks for a normal in the common orthogonal complement of $y_i$ and $y_j$, if it is nonempty.
+
+\subsection{Actual pair selection and tangent geometry}
+First calculate $g_i=s_i(Ws)_i$, $\delta_i$ and $q_i$ as in Angular Gain. Rank vertices by decreasing $q_i$ and increasing $\delta_i$. Make a pool from the first $\min(n,\max(2K,8))$ vertices ($K=8$ in the full protocol). Enumerate pairs in that pool, sorting them by decreasing $q_i+q_j$, then increasing $\delta_i+\delta_j$, then lexicographic vertex indices. Attempt the first $K$ valid pair tangents.
+
+For a selected pair, put $A=[y_i\ \ y_j]\in\R^{p\times2}$. If $A$ is rank deficient, the current implementation skips the pair. Otherwise, project the current normal into the orthogonal complement:
+\begin{equation}\label{eq:pairproject}
+z=r-A(A^\top A)^+A^\top r,\quad
+t=\frac{z}{\|z\|_2},\quad
+u=\frac{t-(t^\top r)r}{\|t-(t^\top r)r\|_2}.
+\end{equation}
+The implementation orients $t$ so that $t^\top r\ge0$, and skips numerically invalid or vanishing projections. Here $(\cdot)^+$ is a pseudoinverse. The construction aims toward a normal satisfying \eqref{eq:pairconstraints}, but the subsequent \emph{exact semicircle sweep} may choose a better interval \emph{before or beyond} those crossings.
+
+\begin{algorithm}[tb]
+\caption{Angular Pair Greedy}\label{alg:pair}
+\begin{algorithmic}[1]
+\Require $G,Y,r_0$, $K=8$, $L=32$
+\State $r\gets r_0$; $C\gets\cut(s(r))$
+\For{$t=1,\ldots,L$}
+ \State Compute $q_i,\delta_i$ and select the top-$\max(2K,8)$ vertex pool
+ \State Rank pairs by $-(q_i+q_j)$, $\delta_i+\delta_j$, then indices
+ \State Initialize next best to $(r,C)$
+ \For{up to $K$ valid ranked pairs $(i,j)$}
+  \State Project $r$ using \eqref{eq:pairproject} to obtain $u$
+  \State Exactly sweep the arc $(r,u)$; independently rescore all candidates
+  \State Retain the strongest strict candidate and journal its pair
+ \EndFor
+ \If{no improvement} \State \textbf{break}\EndIf
+ \State Accept the best verified new normal, and journal its partition
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Geometry and conditional limitations}
+Targeting two boundaries introduces interaction information at the \emph{proposal} level but does not exactly solve a best double-flip graph problem. Pair selection does not enforce both intended vertices to cross at the chosen arc maximizer, nor does it enumerate all $\binom n2$ pairs. Its additional rank condition and pseudoinverse cost can discard seemingly attractive targets. Every accepted partition is still a valid homogeneous hyperplane cut of the fixed $Y$.
+
+\subsection{Measured performance}
+The independently audited mean best-of-16 gain is $0.281426\%$ versus refined GW, with graph-bootstrap interval $[0.198963,0.367844]\%$ and 56/7/8 graph wins/ties/losses. Against the historical Hyperplane Sweep, it wins/ties/loses 28/9/34 graphs and has mean absolute best-of-16 signed-cut difference $-1.085$ units. The mean matched-seed raw difference is $-16.145$ units; the corresponding mean final best-stage difference is $-2.160$. Across 1,136 seeds the journal records 65,320 attempted great-semicircle paths. The fact that this pair heuristic does not beat the simpler single-target guidance globally is an observed negative result worth preserving.
