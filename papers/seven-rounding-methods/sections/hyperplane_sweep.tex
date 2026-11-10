@@ -1,6 +1,6 @@
 \section{Method 1: Hyperplane Sweep}\label{sec:hyperplane}
 \subsection{Mechanism: continuous normals, discrete partitions}
-The implemented \texttt{hyperplane-sweep} method moves the normal of an origin-passing separating hyperplane, keeping the embedding $Y$ fixed. The current state is a unit normal $r\in\sphere^{p-1}$ and cut $\cut(s(r))$. A sweep is exact along a \emph{chosen} rotation path, not globally over every possible separating direction.
+The implemented \sourcecode{hyperplane-sweep} method moves the normal of an origin-passing separating hyperplane, keeping the embedding $Y$ fixed. The current state is a unit normal $r\in\sphere^{p-1}$ and cut $\cut(s(r))$. A sweep is exact along a \emph{chosen} rotation path, not globally over every possible separating direction.
 
 Choose a unit tangent $u$ with $u^\top r=0$ and set
 \begin{equation}\label{eq:arc}
@@ -55,4 +55,4 @@ Degenerate proposals fall back to random tangents. The selected arc's best reali
 \end{algorithm}
 
 \subsection{Empirical finding and limits}
-The provisional Experiment025 aggregate reports mean graphwise best-of-16 gain $0.317618\%$ over refined GW, 95\% graph bootstrap interval $[0.225150,0.419601]\%$, and 59 wins, 7 ties, 5 losses among 71 graphs. Mean absolute gain is 14.08 signed cut units. Its mean relative advantage over \texttt{control-paired} is 0.045740 percentage points; a Wilcoxon graph-level signed-rank comparison of absolute cut differences reports $p=0.226$. These are different estimands. The measured performance belongs to Sweep \emph{plus} Flip/KL/ILS, not to raw hyperplane rotation alone, and the full Experiment025 source partitions still need independent off-VM auditing.
+The provisional Experiment025 aggregate reports mean graphwise best-of-16 gain $0.317618\%$ over refined GW, 95\% graph bootstrap interval $[0.225150,0.419601]\%$, and 59 wins, 7 ties, 5 losses among 71 graphs. Mean absolute gain is 14.08 signed cut units. Its mean relative advantage over \sourcecode{control-paired} is 0.045740 percentage points; a Wilcoxon graph-level signed-rank comparison of absolute cut differences reports $p=0.226$. These are different estimands. The measured performance belongs to Sweep \emph{plus} Flip/KL/ILS, not to raw hyperplane rotation alone, and the full Experiment025 source partitions still need independent off-VM auditing.
