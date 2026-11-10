@@ -19,6 +19,13 @@ Under exact arithmetic, sorting crossing events and updating the signed gains fi
 There are at most $n$ crossings. Every open interval between consecutive crossings has an identical binary partition, so its cut is constant. Each vertex flips at most once; the incident-edge updates for all flips sum to $O(m)$. Sorting costs $O(n\log n)$ and projections cost $O(np)$. Taking the maximum of all visited interval values establishes the restricted optimum.
 \end{proof}
 The source independently reconstructs and checks the selected normal, partition, and original signed objective. If floating-point degeneracies prevent reconstruction, it retains the original cut rather than asserting an unattainable event score.
+\begin{figure}[tb]
+\centering
+\input{figures/arc_events}
+\caption{A selected rotation arc is partitioned into constant-cut regions by finitely many vertex-crossing angles. Schematic illustration, not experimental measurements.}
+\label{fig:events}
+\end{figure}
+
 \subsection{Actual tangent selection and search budget}
 The full Experiment025 protocol attempts 250 arcs per starting normal. In \sourcecode{src/maxkcut/eva_direct_rounding.py}, proposals alternate cyclically:
 \begin{enumerate}
