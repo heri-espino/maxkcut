@@ -97,7 +97,7 @@ jobs:
           for extension in pdf html; do test -s "${root}.${extension}"; done
           if command -v pdfinfo >/dev/null; then
             pages="$(pdfinfo "${root}.pdf" | awk '/^Pages:/ {print $2}')"
-            test "$pages" -eq 117 || { echo "Expected 117 PDF pages, got $pages"; exit 1; }
+            test "$pages" -eq 137 || { echo "Expected 137 PDF pages, got $pages"; exit 1; }
             echo "Verified PDF pages: $pages"
           fi
           if grep -Eq 'assets/[A-Za-z0-9_.-]+\.svg' "${root}.html"; then
