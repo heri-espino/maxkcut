@@ -1,0 +1,67 @@
+\documentclass[10pt,letterpaper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=0.88in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{graphicx,booktabs,tabularx,array,multirow}
+\usepackage{algorithm,algpseudocode}
+\usepackage{microtype}
+\usepackage{xcolor,tikz,pgfplots}
+\usetikzlibrary{arrows.meta,positioning,calc,shapes.geometric}
+\pgfplotsset{compat=1.18}
+\usepackage[round,authoryear]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue!55!black,citecolor=blue!55!black,urlcolor=blue!55!black]{hyperref}
+\usepackage[nameinlink,capitalise,noabbrev]{cleveref}
+\setlength{\parskip}{0.24em}
+\setlength{\parindent}{1.2em}
+\definecolor{methodblue}{RGB}{23,91,133}
+\definecolor{methodteal}{RGB}{13,128,134}
+\definecolor{methodorange}{RGB}{181,111,40}
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{proposition}[lemma]{Proposition}
+\newtheorem{remark}[lemma]{Remark}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\sphere}{\mathbb{S}}
+\newcommand{\cut}{\mathcal{C}}
+\newcommand{\1}{\mathbf{1}}
+\newcommand{\argmax}{\operatorname*{arg\,max}}
+\newcommand{\sign}{\operatorname{sign}}
+\newcommand{\GW}{\mathrm{GW}}
+\newcommand{\HP}{\mathrm{HP}}
+\newcommand{\meanRel}{\overline{\Delta}^{\mathrm{rel}}}
+\newcommand{\sourcecode}[1]{\texttt{\detokenize{#1}}}
+\title{\bfseries Seven Leading Max-Cut Rounding Protocols:\\
+Algorithms, Derivations, Implementation Details, and a 71-Graph Empirical Comparison}
+\author{Heriberto Espino-Montelongo\\
+\small Universidad de las Am\'ericas Puebla}
+\date{Research methods manuscript -- 10 November 2026\\
+\small Working analysis; not a claim of a new approximation guarantee}
+\begin{document}
+\maketitle
+\begin{abstract}
+We provide an implementation-grounded, step-by-step mathematical explanation of seven protocols selected from the full Experiment025 and Experiment027 Max-Cut studies on the same 71 weighted G-set graphs. The selection rule is the equally weighted mean relative improvement, over the \emph{refined} Goemans--Williamson (GW) baseline, of the best signed cut obtained across 16 common starting normals. The seven leading protocols are Hyperplane Sweep, Angular Gain Greedy, Angular Margin Greedy, Angular Pair Greedy, Paired Spherical K-Means, EM--Gibbs, and Cut-aware K-Means. Their observed gains range from 0.2668\% to 0.3176\%. We derive the signed vertex-flip identity, an exact event-driven angular sweep, the geometric ranking rules and pairwise tangent construction, fixed-direction exact threshold optimization, spherical Lloyd updates, and the entropy-regularized Bernoulli/Gibbs mechanism. An important experimental qualification is that published rankings use subsequent common Flip/Kernighan--Lin/iterated-local-search refinement: they do \emph{not} isolate pure hyperplane rounding. The Experiment027 subset has independently audited 3,408 new and 2,272 comparator seed archives; the historical 18-method Experiment025 ranking is supported by a complete aggregate CSV but has not undergone the same independent archive-wide partition rescore. We distinguish conditional exactness from global optimality, method diversity from compute-matched superiority, and observed rank from inferential certainty.
+\end{abstract}
+\noindent\textbf{Keywords:} Max-Cut; SDP rounding; Goemans--Williamson; hyperplane search; angular greedy optimization; spherical K-Means; Gibbs sampling; reproducible experiments.
+
+\tableofcontents
+\clearpage
+
+\input{sections/01_problem_and_protocol}
+\input{sections/hyperplane_sweep}
+\input{sections/angular_gain}
+\input{sections/angular_margin}
+\input{sections/angular_pair}
+\input{sections/control_paired}
+\input{sections/em_gibbs}
+\input{sections/cutaware_kmeans}
+\input{sections/09_empirical_results}
+\input{sections/10_discussion}
+
+\appendix
+\input{sections/appendix_derivations}
+\input{sections/appendix_reproducibility}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+\end{document}
