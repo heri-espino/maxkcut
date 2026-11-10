@@ -1,6 +1,6 @@
 \section{Method 6: Soft EM Followed by Gibbs Annealing}\label{sec:gibbs}
 \subsection{One method name, two distinct algorithms}
-The name \texttt{em-gibbs} is a \emph{soft EM-like optimization of Bernoulli membership probabilities}, followed by a temperature-annealed Gibbs sampler acting on a hard binary graph partition. The EM-like first stage is \emph{not} maximum-likelihood Gaussian mixture modeling: it optimizes a stated entropy-regularized signed-cut objective with spherical-centroid alignment.
+The name \sourcecode{em-gibbs} is a \emph{soft EM-like optimization of Bernoulli membership probabilities}, followed by a temperature-annealed Gibbs sampler acting on a hard binary graph partition. The EM-like first stage is \emph{not} maximum-likelihood Gaussian mixture modeling: it optimizes a stated entropy-regularized signed-cut objective with spherical-centroid alignment.
 
 \subsection{The soft free energy and conditional probability update}
 Let $p_i\in(0,1)$ denote the probability of side 1, assuming independent Bernoulli variables for the soft expected-cut calculation. Let $c_0,c_1$ be unit spherical centers, $\kappa\ge0$ their geometric weight, and $T>0$ temperature. The implementation's free energy is
