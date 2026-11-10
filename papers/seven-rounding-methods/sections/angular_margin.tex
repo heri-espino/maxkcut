@@ -1,10 +1,10 @@
 \section{Method 3: Angular Margin Greedy}\label{sec:margin}
 \subsection{What changes relative to Angular Gain?}
-The geometric state, exact arc sweep, $K=8$ candidate budget, $L=32$ outer-round cap and strict acceptance logic are \emph{identical} to the previous section. Only the \emph{target-ordering rule} changes. The name \texttt{angular-margin-greedy} means that vertices closest to the moving hyperplane boundary have first priority, without using $g_i$ to rank them. Compute
+The geometric state, exact arc sweep, $K=8$ candidate budget, $L=32$ outer-round cap and strict acceptance logic are \emph{identical} to the previous section. Only the \emph{target-ordering rule} changes. The name \sourcecode{angular-margin-greedy} means that vertices closest to the moving hyperplane boundary have first priority, without using $g_i$ to rank them. Compute
 \[
 \delta_i=\arcsin\left(\frac{|y_i^\top r|}{\|y_i\|_2}\right)
 \]
-for unit $r$, and sort by increasing $\delta_i$, breaking ties by vertex index. Use exactly the projected tangent \eqref{eq:targettangent} for each candidate vertex and call the same exact, original-signed \texttt{optimize_semicircle} kernel.
+for unit $r$, and sort by increasing $\delta_i$, breaking ties by vertex index. Use exactly the projected tangent \eqref{eq:targettangent} for each candidate vertex and call the same exact, original-signed \sourcecode{optimize_semicircle} kernel.
 
 \subsection{Why this is a meaningful ablation}
 The margin $\delta_i$ quantifies how far the current normal must rotate before vertex $i$ can lie exactly on the separating boundary. For fixed $r$, smaller $\delta_i$ means a crossing is geometrically accessible by a shorter great-circle motion. The method tests whether such proximity is itself a useful candidate signal. It does \emph{not} assume that flipping the closest vertex improves the signed objective. Every candidate arc is rescored on the original weighted graph; even a nearest boundary is rejected if it does not lead to a strict gain.
