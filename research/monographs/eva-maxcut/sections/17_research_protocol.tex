@@ -1,0 +1,26 @@
+\chapter{Experimental Design, Failure Modes, and Research Questions}\label{ch:protocol}
+\section{Three independent layers of evaluation}
+\paragraph{Layer I: continuous optimization.} For a fixed graph, compare the original signed-weight input hash, $F(Y_{\mathrm{EVA}})$, $F(X_{\mathrm{CVX}})$, primal feasibility, dual feasibility, the SDP upper bound, memory, runtime, rank and convergence diagnostics. If a numerical convex solver returns a lower primal objective than an EVA feasible candidate, report the discrepancy and seek improved accuracy rather than asserting that the convex optimum is smaller.
+
+\paragraph{Layer II: Gram geometry.} Compare $\norm{Y_{\mathrm{EVA}}Y_{\mathrm{EVA}}^\top-X_{\mathrm{CVX}}}_F$, spectrum, effective rank, selected edge cosines and distances, and row norm errors. Two factors can have different coordinates but the same Gram matrix due to right orthogonal transformations. For large $n$, compute edgewise discrepancies or randomized trace estimates without materializing a dense $n\times n$ matrix.
+
+\paragraph{Layer III: rounding.} Fix one factor, pair seeds, run GW and every clustering/refinement method under the same evaluation budget, and score the original graph objective. Save the best observed \emph{discrete} cut at every meaningful iteration, not merely the final iterate. Compare rounders on the \emph{same factor} to isolate rounding effects. If the factor changes, report a distinct two-factor experiment rather than a pure rounding comparison.
+
+\section{Statistical sampling and uncertainty}
+For $R$ random roundings with scores $c_1,\ldots,c_R$, estimate $\overline c=R^{-1}\sum_rc_r$ and sample variance $s_c^2=(R-1)^{-1}\sum_r(c_r-\overline c)^2$. Report means and distributions alongside best-of-$R$ cuts: best-of-$R$ is an order statistic and increases in expectation with $R$, so comparisons require matched restart counts. With paired seeds, calculate differences $d_r=c_r^{(A)}-c_r^{(B)}$ to reduce between-seed variance. Graphwise aggregates should use a declared weighting (equal graph or equal edge mass), and multiple-comparison uncertainty should not be confused with descriptive rankings.
+
+\section{Numerical precision and stopping criteria}
+An EVA angular tolerance, a convex solver's primal residual tolerance, and the absolute duality gap are not interchangeable. For EVA, report $\max\theta_{t,i}$, $\norm{\operatorname{grad}F(Y)}_F$, $\lambda_{\min}(Z)$, and the completed sweep count. For the convex solver, report the primal residual, minimal eigenvalue and whether a feasible dual objective was independently validated. If PSD projection is used, score both pre- and postrepair matrices and disclose the repair threshold.
+
+\section{Research hypotheses worth testing}
+\begin{enumerate}
+\item \emph{Rank and geometry:} does increasing $p$ toward the conservative $\Theta(\sqrt n)$ regime systematically improve EVA's primal objective, yet make rounding slower or less stable?
+\item \emph{Certificate frequency:} on which graph families does the candidate dual slack from an EVA fixed point become PSD without additional optimization? Can a small diagonal shift produce informative near-optimal bounds?
+\item \emph{Clustering versus random hyperplanes:} controlling for a common fixed embedding, which method yields the best expected cut, best-of-$R$ cut and variance?
+\item \emph{Structure-dependent behavior:} do odd cycles, toroidal instances, signed edges, and highly heterogeneous degree distributions predict differences in EVA convergence or rounding performance?
+\item \emph{Numerical equivalence:} when CVXPY and EVA report nearly equal continuous objectives, are their Gram matrices close, or are there substantially different optimal faces?
+\end{enumerate}
+Each hypothesis should be associated with a prespecified statistic, common graph identity, random seeds and a negative-result reporting rule.
+
+\section{Repository-first preservation protocol}
+Do not overwrite the project's existing experimental solutions or rerun expensive SDP/EVA optimizations for purely pedagogical comparisons. For a new research experiment, assign the next sequential \texttt{experimentNNN} identifier, preserve script, graph hash, environment versions, settings, numerical results, plots, notes and exact reproduction steps. Keep an \texttt{AGENTS.md} or handoff note current, and push changes to a scoped branch for review without merging unless authorized. Large factor files should use repository-approved storage or Git LFS with verified remote backup. This monograph's \texttt{experiments/experiment001} is a standalone pedagogical verification campaign, not a renumbering of the existing maxkcut repository's experiments.
