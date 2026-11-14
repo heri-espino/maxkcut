@@ -69,7 +69,9 @@ def editable(path: str) -> bool:
     if path in {"README.md", "AGENTS.md", "RESEARCH_HANDOFF.md", "docs/architecture.md"}:
         return True
     if path == ".github/workflows/experiment025-marp-presentation.yml":
-        return True
+        # GitHub Actions push token has no permission to edit workflow files.
+        # Update this file separately with the authorized GitHub connector.
+        return False
     if path.startswith("documents/presentations/"):
         return True
     if path.startswith("documents/monographs/eva-maxcut/"):
