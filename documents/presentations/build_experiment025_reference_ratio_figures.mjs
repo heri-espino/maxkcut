@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /** Reproduce 3 Experiment025 external reference charts, no network / optimization.
  * References frozen 2026-11-05: Quicopt fa2b8bc70a8e, OpenIsing 5d22c7d5e375.
- * Usage: node presentations/build_experiment025_reference_ratio_figures.mjs [--check]
+ * Usage: node documents/presentations/build_experiment025_reference_ratio_figures.mjs [--check]
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -42,7 +42,7 @@ stats[family]={graphs:vals.length,meanBestPct:+mean.toFixed(6),meanGWPct:+meanGW
 }
 return{files,ratios:ratioLines.join("\n")+"\n",manifest:{files:Object.keys(files),nGraphs:graphs.length,nMethods:methods.length,nCells:full.length,externalReferenceCount:refs.length,quicoptGraded:refs.filter(r=>r.quicopt_best_known!=="").length,stats,noNumericalSolver:true}};
 }
-const dir=path.join(process.cwd(),"presentations");
+const dir=path.join(process.cwd(),"documents/presentations");
 const snapshot=fs.readFileSync(path.join(dir,"data/experiment025_gset_reference_snapshot_2026-11-05.csv"),"utf8");
 const outcomes=fs.readFileSync(path.join(process.cwd(),"results/gset/experiment025-gw16-bestcut-quality/analysis/full_best_final_by_graph.csv"),"utf8");
 const {files,ratios,manifest}=generate(snapshot,outcomes);

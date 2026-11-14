@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const dir = path.join(process.cwd(), "presentations");
+const dir = path.join(process.cwd(), "documents/presentations");
 const deck = fs.readFileSync(path.join(dir, "maxkcut_full_research_001_025.marp.md"), "utf8");
 const htmlPath = path.join(dir, "build/maxkcut_full_research_001_025.html");
 const refs = [...new Set([...deck.matchAll(/!\[[^\]]*\]\((assets\/[A-Za-z0-9_.-]+\.svg)\)/g)].map(m => m[1]))];

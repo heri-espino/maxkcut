@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const root = process.cwd();
-const deckPath = path.join(root, "presentations/maxkcut_full_research_001_025.marp.md");
+const deckPath = path.join(root, "documents/presentations/maxkcut_full_research_001_025.marp.md");
 const deck = fs.readFileSync(deckPath,"utf8");
 const directory = path.dirname(deckPath);
 const manifest = JSON.parse(fs.readFileSync(path.join(directory,"experiment025-figure-manifest.json"),"utf8"));

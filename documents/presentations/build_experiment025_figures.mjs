@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /** Deterministic Experiment025 Marp SVG figures. Read existing compact CSVs only;
  * no EVA/SDP solve, optimization, network access, or random graphics.
- * Run: node presentations/build_experiment025_figures.mjs [--check]
+ * Run: node documents/presentations/build_experiment025_figures.mjs [--check]
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -264,7 +264,7 @@ if (sha !== "8a9d84cfc35f1d424519b862676facc288a6366bc1820e52975a2bf76678de6c") 
   throw new Error(`Unexpected Experiment025 source CSV SHA256: ${sha}`);
 }
 const {files, summary} = makeFigures(csv, fs.readFileSync(featuresFile,"utf8"), fs.readFileSync(rankingFile,"utf8"));
-const dest = path.join(root,"presentations","assets");
+const dest = path.join(root,"documents/presentations","assets");
 fs.mkdirSync(dest,{recursive:true});
 const check = process.argv.includes("--check");
 for(const [name,content] of Object.entries(files)) {
@@ -273,7 +273,7 @@ for(const [name,content] of Object.entries(files)) {
  else fs.writeFileSync(p,content,"utf8");
 }
 const report=JSON.stringify({...summary,csvSha256:sha},null,2)+"\n";
-const reportFile=path.join(root,"presentations","experiment025-figure-manifest.json");
+const reportFile=path.join(root,"documents/presentations","experiment025-figure-manifest.json");
 if(check){if(!fs.existsSync(reportFile)||fs.readFileSync(reportFile,"utf8")!==report)throw Error("Figure manifest changed.");}
 else fs.writeFileSync(reportFile,report,"utf8");
 console.log(JSON.stringify({...summary,mode:check?"check":"generate"},null,2));

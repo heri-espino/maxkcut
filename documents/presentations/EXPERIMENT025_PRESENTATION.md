@@ -1,6 +1,6 @@
 # Experiment025 completed-results seminar — Marp 001–025 edition
 
-**Slide source:** `presentations/maxkcut_full_research_001_025.marp.md`, 97 slides after removing a blank slide from the historical deck. **Original 001–023 Marp and PDF remain intact** as archived October 29 evidence.
+**Slide source:** `documents/presentations/maxkcut_full_research_001_025.marp.md`, 97 slides after removing a blank slide from the historical deck. **Original 001–023 Marp and PDF remain intact** as archived October 29 evidence.
 
 **Scientific status:** full 71 × 18 × 16 = 20,448 numerical refinements recorded completed on the university VM. The 1,278-row aggregate CSV is the only numerical Experiment025 source in this presentation. The full VM-local raw JSONL/NPZ archive has not been independently rescored or verified backed up off the VM. This is a reproducible **descriptive scientific presentation**, not a certified method superiority / equal-compute / new-record claim.
 
@@ -9,12 +9,12 @@
 | Input | Purpose |
 | --- | --- |
 | `results/gset/experiment025-gw16-bestcut-quality/analysis/full_best_final_by_graph.csv` | Exactly 1,278 graph-method rows, 16/16 status complete; best-of-16 and mean-of-16 cut scores |
-| `results/gset/experiment025-gw16-bestcut-quality/analysis/experiment025_method_ranking.csv` | Aggregate best-of-16 graph bootstrap intervals from [Experiment025 report](../notes/experiments/experiment025-aggregate-analysis.md) |
+| `results/gset/experiment025-gw16-bestcut-quality/analysis/experiment025_method_ranking.csv` | Aggregate best-of-16 graph bootstrap intervals from [Experiment025 report](../../notes/experiments/experiment025-aggregate-analysis.md) |
 | `results/gset/experiment022-graph-structure-methods/graph_features.csv` | Original-edge structural features (n, m, average degree, degree CV, transitivity, triangles, negative-edge fraction, etc.) |
-| `presentations/build_experiment025_figures.mjs` | Deterministic Node 22 SVG figure renderer, no Python scientific package / optimizer |
-| `presentations/experiment025-figure-manifest.json` | Machine-readable figure inventory and input SHA |
-| `presentations/assets/experiment025_*.svg` | **15 committed, source-reproducible vector charts**, included by relative path in the deck |
-| `presentations/verify_experiment025_presentation.mjs` | Checks slide boundaries, broken image paths, complete chart references and source manifest |
+| `documents/presentations/build_experiment025_figures.mjs` | Deterministic Node 22 SVG figure renderer, no Python scientific package / optimizer |
+| `documents/presentations/experiment025-figure-manifest.json` | Machine-readable figure inventory and input SHA |
+| `documents/presentations/assets/experiment025_*.svg` | **15 committed, source-reproducible vector charts**, included by relative path in the deck |
+| `documents/presentations/verify_experiment025_presentation.mjs` | Checks slide boundaries, broken image paths, complete chart references and source manifest |
 
 **Source SHA256:** `8a9d84cfc35f1d424519b862676facc288a6366bc1820e52975a2bf76678de6c` for the full aggregate CSV. The figure generator checks that hash and verifies all 71 graphs, 18 methods, 1,278 cells, 16 completed starts per cell and a consistent join to 71 original-edge feature records. Any changes to inputs require an explicit, reviewed update; it refuses to silently build from a different source.
 
@@ -22,9 +22,9 @@
 
 The three new charts compare each method's best-of-16 signed cut against a graph-specific externally reported feasible cut: `ratio[g,m] = 100 * C[g,m] / B[g]`. Bars are graphwise maxima over 18 methods, colored by the winning method; gray companion bars show refined GW-RR. All tied winning methods are shown as equal-width colored segments, rather than selecting an arbitrary single winner. Axes are intentionally truncated at 96% and labeled. The graphwise maximum is an in-sample oracle, not a prospective algorithm.
 
-Source snapshot: `presentations/data/experiment025_gset_reference_snapshot_2026-11-05.csv`. The [Quicopt G-set table](https://github.com/Quicopt/Benchmarks/blob/fa2b8bc70a8effc5e3d0a5096b178bb559e02aca/docs/gset.md) has **52/71 best-known fields**; for the other 19, the [Quicopt obtained cuts](https://quicopt.com/benchmarks/gset/) and [OpenIsing G-set table](https://github.com/KULeuven-MICAS/openising/blob/5d22c7d5e3752ac7cdea8ababd361cdf46ba44bd/ising/benchmarks/G/README.md) provide available feasible values. We take the largest of these three source fields, preserving each candidate and its provenance in the snapshot. **These are reference lower bounds, not guaranteed current world records or certified optima. The ratio to a feasible reference is not a mathematical approximation guarantee.**
+Source snapshot: `documents/presentations/data/experiment025_gset_reference_snapshot_2026-11-05.csv`. The [Quicopt G-set table](https://github.com/Quicopt/Benchmarks/blob/fa2b8bc70a8effc5e3d0a5096b178bb559e02aca/docs/gset.md) has **52/71 best-known fields**; for the other 19, the [Quicopt obtained cuts](https://quicopt.com/benchmarks/gset/) and [OpenIsing G-set table](https://github.com/KULeuven-MICAS/openising/blob/5d22c7d5e3752ac7cdea8ababd361cdf46ba44bd/ising/benchmarks/G/README.md) provide available feasible values. We take the largest of these three source fields, preserving each candidate and its provenance in the snapshot. **These are reference lower bounds, not guaranteed current world records or certified optima. The ratio to a feasible reference is not a mathematical approximation guarantee.**
 
-All 1,278 graph×method normalized values are committed in `presentations/data/experiment025_best_of16_method_ratios.csv`. The independent `presentations/build_experiment025_reference_ratio_figures.mjs` generator produces 3 SVGs and `experiment025-reference-ratio-manifest.json`. GitHub Actions regenerates and byte-compares all outputs, without touching EVA or the Windows VM.
+All 1,278 graph×method normalized values are committed in `documents/presentations/data/experiment025_best_of16_method_ratios.csv`. The independent `documents/presentations/build_experiment025_reference_ratio_figures.mjs` generator produces 3 SVGs and `experiment025-reference-ratio-manifest.json`. GitHub Actions regenerates and byte-compares all outputs, without touching EVA or the Windows VM.
 
 ## Figure design and interpretation
 
@@ -40,19 +40,19 @@ From the **repository root** with Node 22 and Python 3 installed:
 
 ```powershell
 python -m pip install numpy matplotlib
-python presentations/build_assets.py
-python presentations/build_full_research_figures.py
-python presentations/make_extra_graphics.py
-node presentations/build_experiment025_figures.mjs
-node presentations/build_experiment025_figures.mjs --check
-node presentations/build_experiment025_reference_ratio_figures.mjs
-node presentations/build_experiment025_reference_ratio_figures.mjs --check
-node presentations/verify_experiment025_presentation.mjs
+python documents/presentations/build_assets.py
+python documents/presentations/build_full_research_figures.py
+python documents/presentations/make_extra_graphics.py
+node documents/presentations/build_experiment025_figures.mjs
+node documents/presentations/build_experiment025_figures.mjs --check
+node documents/presentations/build_experiment025_reference_ratio_figures.mjs
+node documents/presentations/build_experiment025_reference_ratio_figures.mjs --check
+node documents/presentations/verify_experiment025_presentation.mjs
 ```
 
 The exported HTML embeds all referenced SVGs, so the downloadable deck needs no external figure files. Marp uses `$...# Experiment025 completed-results seminar — Marp 001–025 edition
 
-**Slide source:** `presentations/maxkcut_full_research_001_025.marp.md`, 97 slides after removing a blank slide from the historical deck. **Original 001–023 Marp and PDF remain intact** as archived October 29 evidence.
+**Slide source:** `documents/presentations/maxkcut_full_research_001_025.marp.md`, 97 slides after removing a blank slide from the historical deck. **Original 001–023 Marp and PDF remain intact** as archived October 29 evidence.
 
 **Scientific status:** full 71 × 18 × 16 = 20,448 numerical refinements recorded completed on the university VM. The 1,278-row aggregate CSV is the only numerical Experiment025 source in this presentation. The full VM-local raw JSONL/NPZ archive has not been independently rescored or verified backed up off the VM. This is a reproducible **descriptive scientific presentation**, not a certified method superiority / equal-compute / new-record claim.
 
@@ -61,12 +61,12 @@ The exported HTML embeds all referenced SVGs, so the downloadable deck needs no 
 | Input | Purpose |
 | --- | --- |
 | `results/gset/experiment025-gw16-bestcut-quality/analysis/full_best_final_by_graph.csv` | Exactly 1,278 graph-method rows, 16/16 status complete; best-of-16 and mean-of-16 cut scores |
-| `results/gset/experiment025-gw16-bestcut-quality/analysis/experiment025_method_ranking.csv` | Aggregate best-of-16 graph bootstrap intervals from [Experiment025 report](../notes/experiments/experiment025-aggregate-analysis.md) |
+| `results/gset/experiment025-gw16-bestcut-quality/analysis/experiment025_method_ranking.csv` | Aggregate best-of-16 graph bootstrap intervals from [Experiment025 report](../../notes/experiments/experiment025-aggregate-analysis.md) |
 | `results/gset/experiment022-graph-structure-methods/graph_features.csv` | Original-edge structural features (n, m, average degree, degree CV, transitivity, triangles, negative-edge fraction, etc.) |
-| `presentations/build_experiment025_figures.mjs` | Deterministic Node 22 SVG figure renderer, no Python scientific package / optimizer |
-| `presentations/experiment025-figure-manifest.json` | Machine-readable figure inventory and input SHA |
-| `presentations/assets/experiment025_*.svg` | **15 committed, source-reproducible vector charts**, included by relative path in the deck |
-| `presentations/verify_experiment025_presentation.mjs` | Checks slide boundaries, broken image paths, complete chart references and source manifest |
+| `documents/presentations/build_experiment025_figures.mjs` | Deterministic Node 22 SVG figure renderer, no Python scientific package / optimizer |
+| `documents/presentations/experiment025-figure-manifest.json` | Machine-readable figure inventory and input SHA |
+| `documents/presentations/assets/experiment025_*.svg` | **15 committed, source-reproducible vector charts**, included by relative path in the deck |
+| `documents/presentations/verify_experiment025_presentation.mjs` | Checks slide boundaries, broken image paths, complete chart references and source manifest |
 
 **Source SHA256:** `8a9d84cfc35f1d424519b862676facc288a6366bc1820e52975a2bf76678de6c` for the full aggregate CSV. The figure generator checks that hash and verifies all 71 graphs, 18 methods, 1,278 cells, 16 completed starts per cell and a consistent join to 71 original-edge feature records. Any changes to inputs require an explicit, reviewed update; it refuses to silently build from a different source.
 
@@ -84,17 +84,17 @@ From the **repository root** with Node 22 and Python 3 installed:
 
 ```powershell
 python -m pip install numpy matplotlib
-python presentations/build_assets.py
-python presentations/build_full_research_figures.py
-python presentations/make_extra_graphics.py
-node presentations/build_experiment025_figures.mjs
-node presentations/build_experiment025_figures.mjs --check
-node presentations/verify_experiment025_presentation.mjs
+python documents/presentations/build_assets.py
+python documents/presentations/build_full_research_figures.py
+python documents/presentations/make_extra_graphics.py
+node documents/presentations/build_experiment025_figures.mjs
+node documents/presentations/build_experiment025_figures.mjs --check
+node documents/presentations/verify_experiment025_presentation.mjs
 ```
 
  for inline mathematics and `$...$` for display equations, with `math: mathjax` explicitly set. The editable Marp Markdown and original SVGs remain versioned in Git.
 
-All old and new SVGs remain in `presentations/assets/`. For a quick reproducibility check without Python plotting dependencies, run **only** the two Node scripts; all 15 new Experiment025 figures are committed and require no regeneration.
+All old and new SVGs remain in `documents/presentations/assets/`. For a quick reproducibility check without Python plotting dependencies, run **only** the two Node scripts; all 15 new Experiment025 figures are committed and require no regeneration.
 
 ## Render complete PDF and standalone HTML
 
