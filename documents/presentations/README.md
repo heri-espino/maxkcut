@@ -37,7 +37,7 @@ If CLI is already installed, use `marp` in place of `npx @marp-team/marp-cli`.
 
 Every graph-level result comes from `experiment021-complete-71-gset/statistics/` on the repository's `main` branch (originally Experiment021). Rankings use each initializer's 50-restart `best_final` for a graph. Ties counted for all winners or split as `1/t` fractional wins. Average effects are unweighted averages of graph-specific matched mean differences; raw scores from different graphs are not pooled.
 
-See `RESEARCH_HANDOFF.md`, `AGENTS.md`, and Experiments019–021 notes for exact programs, commands, graph/factor SHA256 hashes, seeds and limitations. This is documentation only. Exporting the deck must not rerun expensive optimizations.
+See the [repository research handoff](../../RESEARCH_HANDOFF.md), [canonical agent guide](../../AGENTS.md), and Experiments019–021 notes for exact programs, commands, graph/factor SHA256 hashes, seeds and limitations. This is documentation only. Exporting the deck must not rerun expensive optimizations.
 
 The 2020 and 2022 papers and the 2021 dissertation are credited in the deck; there are no uncredited reused figures.
 
