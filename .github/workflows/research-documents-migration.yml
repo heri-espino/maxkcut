@@ -1,0 +1,63 @@
+name: One-time research document reorganization (hosted only)
+
+on:
+  push:
+    branches:
+      - docs/organize-research-documents
+    paths:
+      - scripts/maintenance/organize_research_documents.py
+      - .github/workflows/research-documents-migration.yml
+
+permissions:
+  contents: write
+
+jobs:
+  organize:
+    if: github.ref == 'refs/heads/docs/organize-research-documents'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out the isolated documentation branch
+        uses: actions/checkout@v4
+        with:
+          ref: docs/organize-research-documents
+          fetch-depth: 0
+          lfs: false
+
+      - name: Verify clean branch and perform checksum-verified moves
+        shell: bash
+        run: |
+          set -euo pipefail
+          git switch docs/organize-research-documents
+          test -z "$(git status --porcelain)"
+          python scripts/maintenance/organize_research_documents.py --apply
+
+      - name: Verify the migrated presentations without running EVA or SDP
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check links, deterministic assets, and the preserved document tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/maintenance/organize_research_documents.py --check
+          node documents/presentations/build_experiment025_figures.mjs --check
+          node documents/presentations/build_experiment025_reference_ratio_figures.mjs --check
+          node documents/presentations/verify_experiment025_presentation.mjs
+          git add -A
+          git diff --cached --check
+          if git diff --cached --name-only -- src/ tests/ results/ G-Set/ | grep -q .; then
+            echo 'Forbidden optimizer, test, dataset, or experiment-result modification'
+            exit 1
+          fi
+          git diff --cached --stat | tail -25
+
+      - name: Commit verified document relocation without rewriting history
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'docs: relocate presentations and EVA monograph under documents/'
+          git push origin HEAD:refs/heads/docs/organize-research-documents
