@@ -1,0 +1,49 @@
+name: Restore EVA monograph binary artifacts
+
+on:
+  push:
+    branches:
+      - docs/eva-maxcut-rigorous-monograph
+    paths:
+      - .github/workflows/eva-monograph-restore.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: docs/eva-maxcut-rigorous-monograph
+          persist-credentials: true
+      - name: Restore and independently verify archived assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd research/monographs/eva-maxcut
+          test -f _transport/monograph-pdf.b64
+          test -f _transport/figurepng.b64
+          test -f _transport/figurepdf.b64
+          mkdir -p figures
+          base64 --decode _transport/monograph-pdf.b64 > EVA_MaxCut_Theory_and_Examples.pdf
+          base64 --decode _transport/figurepng.b64 > figures/eva_wheel6_trace.png
+          base64 --decode _transport/figurepdf.b64 > figures/eva_wheel6_trace.pdf
+          echo 'fbf70060933c326eeb4b05f39483a009c03860f30ce6b05bbdba07c7dc168b2f  EVA_MaxCut_Theory_and_Examples.pdf' | sha256sum --check
+          echo '6e7fa6bfadfe33372db0d4f24262b2b34568fda0382ed9b949faf494515d068c  figures/eva_wheel6_trace.png' | sha256sum --check
+          echo '425f1daaffed0c7ae6057d0450fcac30ebbd5f5352f9c510a7e087797db7c156  figures/eva_wheel6_trace.pdf' | sha256sum --check
+          test "$(head -c 5 EVA_MaxCut_Theory_and_Examples.pdf)" = '%PDF-'
+      - name: Commit exact verified assets, remove transport files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add research/monographs/eva-maxcut/EVA_MaxCut_Theory_and_Examples.pdf
+          git add research/monographs/eva-maxcut/figures/eva_wheel6_trace.png
+          git add research/monographs/eva-maxcut/figures/eva_wheel6_trace.pdf
+          git rm research/monographs/eva-maxcut/_transport/*.b64
+          git commit -m 'docs(monograph): preserve verified PDF and figures as Git binaries'
+          git push origin HEAD:docs/eva-maxcut-rigorous-monograph
