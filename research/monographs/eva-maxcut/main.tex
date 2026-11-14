@@ -1,0 +1,88 @@
+% Compile: latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
+% This document is modular: each conceptual section is a separate \input file.
+\documentclass[11pt,oneside]{book}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=1.05in,headheight=14pt]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm,mathrsfs}
+\usepackage{microtype,booktabs,array,tabularx,longtable,multirow,siunitx}
+\usepackage{enumitem,graphicx,xcolor,tikz,pgfplots,listings}
+\usepackage[most]{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+\usepackage[capitalize,nameinlink,noabbrev]{cleveref}
+\usepackage{bookmark}
+\usetikzlibrary{arrows.meta,positioning,calc,angles,quotes}
+\pgfplotsset{compat=1.18}
+\definecolor{navy}{HTML}{183353}
+\definecolor{teal}{HTML}{166C7A}
+\definecolor{warm}{HTML}{9D5B2E}
+\definecolor{slate}{HTML}{475569}
+\hypersetup{colorlinks=true,linkcolor=navy,citecolor=teal,urlcolor=teal}
+\setlist[itemize]{topsep=3pt,itemsep=2pt}
+\setlist[enumerate]{topsep=3pt,itemsep=3pt}
+\numberwithin{equation}{chapter}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{claim}[theorem]{Claim}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Ssym}{\mathbb{S}}
+\newcommand{\Sp}{\mathbb{S}_{+}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\Diag}{\operatorname{Diag}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\rank}{\operatorname{rank}}
+\newcommand{\range}{\operatorname{range}}
+\newcommand{\nullsp}{\operatorname{null}}
+\newcommand{\OPT}{\operatorname{OPT}}
+\newcommand{\Cut}{\operatorname{Cut}}
+\newcommand{\ip}[2]{\left\langle #1,#2\right\rangle}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+\newcommand{\abs}[1]{\left\lvert #1\right\rvert}
+\newcommand{\one}{\boldsymbol{1}}
+\newcommand{\st}{\text{subject to}}
+\newtcolorbox{intuition}[1][]{colback=teal!4,colframe=teal!55!black,title=Geometric interpretation,#1}
+\newtcolorbox{caution}[1][]{colback=warm!5,colframe=warm!70!black,title=Important qualification,#1}
+\newtcolorbox{takeaway}[1][]{colback=navy!3,colframe=navy!45,title=Key identity,#1}
+\lstdefinestyle{py}{language=Python,basicstyle=\ttfamily\footnotesize,breaklines=true,frame=single,rulecolor=\color{slate!40},numbers=left,numberstyle=\tiny\color{slate},showstringspaces=false,keywordstyle=\color{navy}\bfseries,commentstyle=\color{teal},stringstyle=\color{warm},tabsize=4}
+\pagestyle{fancy}\fancyhf{}\fancyhead[L]{\small\color{slate}Max-Cut, SDP and EVA}\fancyhead[R]{\small\color{slate}\nouppercase{\leftmark}}\fancyfoot[C]{\thepage}
+\setcounter{tocdepth}{2}
+\title{\Huge\bfseries The Max-Cut Semidefinite Relaxation,\\[.4em] Gram Factorization, and Efficient Vector Ascent\\[.6em]\Large A Rigorous Theory-to-Examples Monograph}
+\author{Independent mathematical exposition and reproducible examples\\[.3em]\normalsize Prepared for the maxkcut research project}
+\date{November 2026\\\small Version 1.0 --- modular source edition}
+\begin{document}
+\frontmatter\maketitle
+\input{sections/00_preface}
+\tableofcontents
+\mainmatter
+\part{Mathematical Foundations and Theoretical Analysis}
+\input{sections/01_notation}
+\input{sections/02_discrete_maxcut}
+\input{sections/03_gram_psd}
+\input{sections/04_sdp_primal}
+\input{sections/05_dual_kkt}
+\input{sections/06_factorizations}
+\input{sections/07_rounding}
+\input{sections/08_low_rank_geometry}
+\input{sections/09_eva_coordinate}
+\input{sections/10_eva_convergence}
+\input{sections/11_certification}
+\input{sections/12_connections}
+\part{Nontrivial Worked Examples and Reproducible Computation}
+\input{sections/13_cycle5}
+\input{sections/14_wheel6}
+\input{sections/15_eva_trace}
+\input{sections/16_computational_reproduction}
+\input{sections/17_research_protocol}
+\appendix
+\input{sections/18_appendix}
+\backmatter
+\input{sections/19_references}
+\end{document}
