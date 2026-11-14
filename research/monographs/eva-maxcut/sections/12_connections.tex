@@ -1,0 +1,18 @@
+\chapter{Connections to Geometry, Statistical Mechanics, and Nonconvex Optimization}\label{ch:connections}
+\section{Euclidean distance geometry}
+The Gram matrix simultaneously stores all pairwise cosines and squared distances between normalized vectors. A candidate distance array $D_{ij}^2=2(1-X_{ij})$ is realizable on a unit sphere if and only if a PSD unit-diagonal Gram matrix exists. This links Max-Cut rounding to Euclidean distance geometry, manifold embeddings, and metric-based clustering. Graph weights emphasize only selected entries of that global geometry.
+
+\section{Spin systems and frustration}
+For positive $w_{ij}$, each edge prefers antiparallel vectors. A cycle of even length admits a rank-one configuration satisfying every edge; an odd cycle cannot. By allowing unit vectors to rotate in higher dimensions, the relaxation distributes frustration geometrically among edges. The $C_5$ example shows exactly how spreading the angular mismatch produces a fractional objective strictly exceeding the largest discrete cut.
+
+\section{The product-of-spheres manifold and gauge symmetry}
+The search space $\mathcal M_p=(S^{p-1})^n$ is curved despite its simple row constraints. Its Riemannian gradient and tangent Hessian determine stationary behavior. The action of $O(p)$ on the right of $Y$ changes coordinates but leaves the Gram matrix invariant. Accordingly, optimization over embeddings has flat symmetry directions; convergence of the Gram matrix can be more meaningful than entrywise convergence of $Y$.
+
+\section{Coordinate ascent versus global convex optimization}
+An SDP solver optimizes a linear functional over a convex cone slice, seeking primal and often dual solutions. EVA optimizes directly over a nonconvex parameterization with cheap exact coordinate subproblems. Convexity is not inherited by the factor problem: a convex function of $X$ can become nonconvex as a function of $Y$ under $X=YY^\top$. The correct comparison is not ``convex optimizer versus Cholesky,'' because Cholesky is only a postprocessing step. It is ``convex conic solve, then factorization'' versus ``factorized direct optimization.''
+
+\section{Spectral graph theory}
+The Laplacian $L=D-W$ appears both as the SDP cost matrix $C=L/4$ and as the source of spectral upper bounds. In highly symmetric graphs, graph automorphisms simplify its eigenspaces; this leads to explicit SDP dual certificates via Fourier modes, as shown for the cycle and wheel in Part II. In general, eigenvalue bounds can be weaker than the SDP's full dual optimization.
+
+\section{Implication for research benchmarking}
+The scalar quantities to compare are (i) discrete cut weight, (ii) continuous primal SDP objective, (iii) independently valid dual upper bound, (iv) the primal--dual gap, and (v) compute/memory costs. The matrices to compare are $X_{\mathrm{EVA}}=Y_{\mathrm{EVA}}Y_{\mathrm{EVA}}^\top$ and the repaired or unrepaired $X_{\mathrm{CVX}}$. The rounders should receive a common fixed Gram factor within each experimental comparison. These separate measurements answer different questions and should not be collapsed into a single ``best solver'' claim.

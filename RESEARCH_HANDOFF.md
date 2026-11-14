@@ -1,3 +1,10 @@
+
+## Mathematical exposition added — EVA, Max-Cut SDP, factorization (2026-11-14)
+
+The self-contained [modular EVA/SDP mathematical monograph](research/monographs/eva-maxcut/README.md) has 20 TeX input modules, [49-page compiled PDF](research/monographs/eva-maxcut/EVA_MaxCut_Theory_and_Examples.pdf), fully reproducible (C_5) and weighted (W_6) analytic primal–dual examples, EVA trace plots, code, and `experiment001` outputs. It carefully separates exact SDP dual certification from finite-tolerance EVA stationarity; it is instructional rather than a new G-set benchmark. See its local `AGENTS.md` and `RESEARCH_HANDOFF.md`. No archived EVA/SDP factors or Experiment025 results changed.
+
+---
+
 # UPDATED PRESENTATION — EXPERIMENT025 STRUCTURAL COMPARISON (2026-11-03)
 
 A new 94-slide [Experiment001–025 Marp seminar](presentations/maxkcut_full_research_001_025.marp.md) extends the 74-slide historical deck without modifying it. Twelve committed deterministic [SVG figures](presentations/assets) visualize full 71×18 best-of-16 comparisons, uncertainty, each graph, family and sign strata, fractional winner credit, and structural associations using Experiment022 original-edge degree, transitivity, and negative-edge fraction; the CSV is from draft [aggregate analysis PR #75](https://github.com/heri-espino/maxkcut/pull/75). The [figures and complete reproduction guide](presentations/EXPERIMENT025_PRESENTATION.md) plus [GitHub Actions Marp PDF/HTML build](.github/workflows/experiment025-marp-presentation.yml) use a hosted runner, do not recompute EVA or numerical refinements, and leave the VM's unbacked raw archive untouched. Interpret associations descriptively; independent rescore, off-VM backup and paired individual-seed inference remain pending. Keep this presentation branch stacked on PR #75 until the source data and method findings are reviewed.

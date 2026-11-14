@@ -1,5 +1,12 @@
 # maxkcut
 
+## EVA and Max-Cut SDP mathematical monograph
+
+A [49-page, reproducible mathematical monograph](research/monographs/eva-maxcut/EVA_MaxCut_Theory_and_Examples.pdf) develops the Max-Cut integer problem, convex SDP primal/dual, Gram and spectral factorization (including the limits of ordinary Cholesky), Goemans–Williamson rounding, low-rank geometry, EVA coordinate ascent, KKT conditions, dual certificates and convergence. Part II includes fully certified five-cycle and weighted six-vertex wheel examples, with a seeded EVA trajectory.
+
+The [modular LaTeX entry point](research/monographs/eva-maxcut/main.tex) imports 20 [concept files](research/monographs/eva-maxcut/sections/); the [monograph README](research/monographs/eva-maxcut/README.md) provides build/reproduction commands, and the [experiment001 archive](research/monographs/eva-maxcut/experiments/experiment001/) retains calculations. This documentation does **not** rerun or modify the G-set EVA factors, Experiment025 refinements, or the university VM.
+
+
 **Experiment025 computational sweep COMPLETE locally (2026-11-03):** The university Windows VM completed and rechecked **71 graphs × 18 methods × 16 paired GW starts = 20,448/20,448 seed results**, with **1,278/1,278 complete graph-method cells** and `all_complete=true`. Full iteration archives were saved **only on the VM**, not GitHub. **Independent cut rescore, off-VM backup, paired statistical analysis, and compact Git publication are still pending.** Do NOT repeat the EVA/SDP solve or the finished refinements. [See dated completion/provenance note](notes/experiments/experiment025-full-local-computation-2026-11-03.md) and [VM operations guide](docs/university-vm-experiment025-operations.md). Previous incomplete-progress notes in this README are historical.
 
 

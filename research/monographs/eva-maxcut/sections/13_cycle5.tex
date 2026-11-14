@@ -1,0 +1,86 @@
+\chapter{The Five-Cycle: An Exact Integrality Gap and Spectral Certificate}\label{ch:cycle5}
+\section{The graph and discrete optimization}
+Let $G=C_5$ be the unweighted cycle on $V=\{0,1,2,3,4\}$ with edge set $E=\{\{i,(i+1)\bmod 5\}:i=0,\ldots,4\}$. Its adjacency and Laplacian are
+\begin{equation}
+W=\begin{pmatrix}0&1&0&0&1\\1&0&1&0&0\\0&1&0&1&0\\0&0&1&0&1\\1&0&0&1&0\end{pmatrix},\qquad L=2I_5-W.
+\end{equation}
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=0.84,>=Stealth]
+\foreach \i in {0,...,4} {
+  \coordinate (v\i) at ({90-72*\i}:2cm);
+  \node[circle,draw=navy,fill=navy!7,minimum size=8mm] at (v\i) {$\i$};
+}
+\foreach \i in {0,...,4} {
+  \pgfmathtruncatemacro{\j}{mod(\i+1,5)}
+  \draw[very thick,slate] (v\i)--(v\j);
+}
+\end{tikzpicture}
+\caption{The frustrated unweighted cycle $C_5$. An odd cycle cannot have all five edges crossing a binary cut; a two-dimensional SDP embedding can distribute the angular mismatch.}\label{fig:c5}
+\end{figure}
+
+A sign assignment cuts an even number of edges around a closed cycle because the product $\prod_i x_ix_{i+1}=1$. On an odd cycle, five crossing edges would imply this product is $(-1)^5=-1$, a contradiction. Four crossings are achievable by alternating spins and leaving one uncut edge. Therefore
+\begin{equation}\label{eq:c5cut}\boxed{\OPT_{\mathrm{MC}}(C_5)=4.}\end{equation}
+
+\section{Construct a nontrivial rank-two primal embedding}
+Write $c=\cos(\pi/5)=(1+\sqrt5)/4$. Define for $j=0,\ldots,4$,
+\begin{equation}\label{eq:c5Y}
+y_j=\begin{pmatrix}\cos(4\pi j/5)\\ \sin(4\pi j/5)\end{pmatrix}\in\R^2.
+\end{equation}
+Every row is unit length, and adjacent rows have
+\[
+y_j^\top y_{j+1}=\cos(4\pi/5)=-c.
+\]
+The Gram matrix is a circulant correlation matrix with entries $X_{ij}=\cos(4\pi(i-j)/5)$. In explicit form, with $b:=\cos(2\pi/5)=(\sqrt5-1)/4$,
+\begin{equation}\label{eq:c5X}
+X=\begin{pmatrix}
+1&-c&b&b&-c\\
+-c&1&-c&b&b\\
+b&-c&1&-c&b\\
+b&b&-c&1&-c\\
+-c&b&b&-c&1
+\end{pmatrix}.
+\end{equation}
+By construction $X=YY^\top\succeq0$ and $\diag X=\one$. It has rank two, not rank one. The continuous objective is
+\begin{equation}\label{eq:c5score}
+F(X)=\frac12\sum_{\{i,j\}\in E}(1-X_{ij})=\frac52(1+c)
+=\frac{25+5\sqrt5}{8}\approx4.522542486.
+\end{equation}
+This is strictly greater than the best discrete cut $4$, but so far it is only a \emph{feasible primal value}, not yet a proof of SDP optimality.
+
+\section{An explicit dual certificate}
+The eigenvectors of a cycle adjacency matrix are discrete Fourier modes. The eigenvalues of $L=2I-W$ are
+\begin{equation}
+\lambda_k(L)=2-2\cos(2\pi k/5),\quad k=0,1,2,3,4.
+\end{equation}
+The largest Laplacian eigenvalue is $2+2c$, attained at the two modes $k=2,3$. Define the constant dual vector
+\[
+\nu_i=\frac{2+2c}{4}=\frac{1+c}{2}\quad (i=0,\ldots,4)
+\]
+and the slack
+\begin{equation}
+Z=\frac{1+c}{2}I_5-\frac14L.
+\end{equation}
+Because $\lambda_{\max}(L)=2+2c$, all eigenvalues of $Z$ are nonnegative; explicitly they are
+\[
+\bigl\{0,0,\tfrac{c+b}{2},\tfrac{c+b}{2},\tfrac{1+c}{2}\bigr\}.
+\]
+The two columns of $Y$ are precisely the real and imaginary parts of the Fourier modes attaining $\lambda_{\max}(L)$, hence $ZY=0$. The dual objective is
+\[
+\sum_{i=0}^4\nu_i=\frac52(1+c)=F(X).
+\]
+Weak duality then proves
+\begin{equation}\label{eq:c5cert}
+\boxed{\OPT_{\mathrm{SDP}}(C_5)=\frac{25+5\sqrt5}{8}\approx4.522542486>4=\OPT_{\mathrm{MC}}(C_5).}
+\end{equation}
+This constitutes an exact analytic primal--dual certificate, not a numerical solver assertion.
+
+\section{What random hyperplane rounding does here}
+The angle between consecutive vectors is $\theta=4\pi/5$. By \cref{lem:sep}, a randomly chosen hyperplane separates each adjacent pair with probability $(4\pi/5)/\pi=4/5$. Summing over the five edges,
+\[
+\E[\Cut(x)]=5\cdot\frac45=4.
+\]
+Since no cut exceeds $4$, the rounded result equals $4$ with probability one (except zero-probability tie directions). Thus the SDP has a strict integrality gap even though GW rounding \emph{recovers the exact discrete optimum} in this particular example. The approximation ratio for the relaxed objective is $4/4.522542\approx0.884458$, while the ratio to the discrete optimum is exactly one.
+
+\section{What would a factorization look like?}
+The Gram matrix \eqref{eq:c5X} has nonzero eigenvalues $5/2,5/2$ and three zeros. An eigen-square-root gives an $n\times2$ embedding orthogonally equivalent to \eqref{eq:c5Y}. A standard positive-definite Cholesky factorization can fail because the matrix is singular; adding an arbitrary diagonal jitter would perturb the exact correlation structure. Directly optimizing EVA with $p\ge2$ can represent this solution, but only a global-optimality certificate establishes that a particular computed factor achieves it.

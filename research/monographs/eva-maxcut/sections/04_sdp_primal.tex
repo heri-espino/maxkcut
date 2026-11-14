@@ -1,0 +1,37 @@
+\chapter{The Convex Max-Cut SDP: Derivation and Exactness Questions}\label{ch:sdp}
+\section{Lifting a quadratic program}
+Introduce $X=xx^\top$ into the integer formulation \eqref{eq:iqp}. Then $x_i^2=1$ becomes $X_{ii}=1$, and $X\succeq0$ follows automatically. The condition $\rank(X)=1$ remains nonconvex. Dropping that condition yields
+\begin{equation}\label{eq:sdp-primal}
+\boxed{\begin{aligned}
+\OPT_{\mathrm{SDP}}=\max_{X\in\Ssym^n}\quad &\ip{C}{X},\qquad C:=\frac14L,\\
+\st\quad&\diag(X)=\one,\\
+&X\succeq0.
+\end{aligned}}
+\end{equation}
+The objective is linear in $X$, and the feasible region is a convex compact spectrahedron. Optimization is therefore a \emph{convex optimization problem} in the standard sense (maximization of a concave---here linear---function over a convex set).
+
+\begin{proposition}[Relaxation and upper bound]\label{prop:upper}
+For any weighted undirected graph,
+\[
+\OPT_{\mathrm{MC}}\le\OPT_{\mathrm{SDP}}.
+\]
+\end{proposition}
+\begin{proof}
+Given $x\in\{\pm1\}^n$, $X=xx^\top$ is SDP-feasible and $\ip{C}{X}=\frac14x^\top Lx$. Thus the SDP feasible region includes every discrete cut matrix and can only attain a greater or equal maximum.
+\end{proof}
+
+\section{The vector program}
+Replacing $X$ by $YY^\top$ gives
+\begin{equation}\label{eq:bm}
+\boxed{\max_{Y\in\R^{n\times p}}\ \tr(Y^\top CY)\quad \st\quad \norm{y_i}=1\quad\forall i.}
+\end{equation}
+For $p=n$, \cref{thm:psd-equiv} implies this parameterization is globally equivalent to \eqref{eq:sdp-primal}: every feasible $X$ admits a factor. For $p<n$ it covers only the matrices in $\mathcal E_n$ with rank at most $p$. The nonconvexity is in the factorized constraint surface, not in the original SDP.
+
+\section{Slater's condition and compactness}
+The identity $I_n$ satisfies $\diag(I_n)=\one$ and $I_n\succ0$, so strict feasibility holds. The feasible set is closed and bounded ($|X_{ij}|\le1$), hence compact. Therefore an optimal $X^*$ exists, and SDP strong duality applies. The use of an interior-point method, first-order conic solver, or ADMM affects numerical accuracy and computational resources, but not the mathematical program being solved.
+
+\section{Why rank one is special}
+If a feasible $X$ has rank one, write $X=vv^\top$. Then $1=X_{ii}=v_i^2$, so $v_i\in\{\pm1\}$. Thus any rank-one SDP solution gives an exact discrete cut. Conversely, every discrete cut matrix has rank one. If the SDP optimizer has rank greater than one, \emph{rounding} is required to recover spins, though higher-rank optimal matrices may coexist with rank-one optimal matrices as in the complete graph $K_4$.
+
+\section{Rank-restricted SDPs are not the same feasible set}
+A rank bound such as $p\approx\sqrt{2n}$ has an existential interpretation: for an SDP with $n$ affine equality constraints there is an \emph{optimal solution} of sufficiently low rank. It does not imply every $X\in\mathcal E_n$ admits a $p$-column factor. For example, $I_n\in\mathcal E_n$ has rank $n$. See \cref{ch:rank} for precise rank claims and algorithmic cautions.
