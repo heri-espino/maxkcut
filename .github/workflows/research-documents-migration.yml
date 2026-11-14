@@ -1,9 +1,8 @@
 name: One-time research document reorganization (hosted only)
 
 on:
-  push:
-    branches:
-      - docs/organize-research-documents
+  pull_request:
+    types: [opened, synchronize, reopened]
     paths:
       - scripts/maintenance/organize_research_documents.py
       - .github/workflows/research-documents-migration.yml
@@ -13,7 +12,7 @@ permissions:
 
 jobs:
   organize:
-    if: github.ref == 'refs/heads/docs/organize-research-documents'
+    if: github.head_ref == 'docs/organize-research-documents'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
