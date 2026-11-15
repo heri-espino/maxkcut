@@ -1,10 +1,10 @@
-**NEW — completed Experiment025 presentation (2026-11-03):** The original 74-slide Experiments001–023 Marp/PDF stays archived. The new [Experiment001–025 edition](maxkcut_full_research_001_025.marp.md) (94 slides) incorporates 12 committed reproducible SVG charts comparing 18 methods by graph, generator family, weight type, and original-edge structural metrics from Experiment022. Its hosted [GitHub Actions workflow](../.github/workflows/experiment025-marp-presentation.yml) regenerates figures and exports PDF/HTML. [Full build and scientific caveats](EXPERIMENT025_PRESENTATION.md). Complete computation does not imply independently audited reference records, equal-compute superiority, per-seed paired significance, or off-VM backup.
+**NEW — completed Experiment025 presentation (2026-11-03):** The original 74-slide Experiments001–023 Marp/PDF stays archived. The new [Experiment001–025 edition](maxkcut_full_research_001_025.marp.md) (94 slides) incorporates 12 committed reproducible SVG charts comparing 18 methods by graph, generator family, weight type, and original-edge structural metrics from Experiment022. Its hosted [GitHub Actions workflow](../../.github/workflows/experiment025-marp-presentation.yml) regenerates figures and exports PDF/HTML. [Full build and scientific caveats](EXPERIMENT025_PRESENTATION.md). Complete computation does not imply independently audited reference records, equal-compute superiority, per-seed paired significance, or off-VM backup.
 
 # Full Max-Cut research seminar — Marp edition
 
 **Audience:** Professor Ángel E. Rodríguez Fernández. **Date:** 29 October 2026.
 
-This is a **separate 74-slide deck**, derived from the repository’s original `presentations/maxkcut_research_journey.marp.md`. That 44-slide historical deck remains unchanged.
+This is a **separate 74-slide deck**, derived from the repository’s original `documents/presentations/maxkcut_research_journey.marp.md`. That 44-slide historical deck remains unchanged.
 
 ## Contents
 
@@ -23,7 +23,7 @@ This is a **separate 74-slide deck**, derived from the repository’s original `
 From the repository root, with Node.js installed:
 
 ```powershell
-npx @marp-team/marp-cli presentations/maxkcut_full_research_001_023.marp.md --allow-local-files -o maxkcut_full_research.pdf
+npx @marp-team/marp-cli documents/presentations/maxkcut_full_research_001_023.marp.md --allow-local-files -o maxkcut_full_research.pdf
 ```
 
 Or open the Markdown in VS Code with the **Marp for VS Code** extension and use Preview/Export. The `assets/` directory resolves relative to the Markdown source.
@@ -33,10 +33,10 @@ The pre-rendered PDF companion is `MaxCut_Full_Research_Experiments_001_023_Ange
 ## Rebuild new SVG diagrams
 
 ```powershell
-python presentations/build_full_research_figures.py
+python documents/presentations/build_full_research_figures.py
 ```
 
-The script uses Python's standard library. The older scientific SVGs remain under `presentations/assets/`; the new diagrams were designed from source-audited Experiment021/022 statistics. **Illustrative graph drawings are not benchmark node coordinates.**
+The script uses Python's standard library. The older scientific SVGs remain under `documents/presentations/assets/`; the new diagrams were designed from source-audited Experiment021/022 statistics. **Illustrative graph drawings are not benchmark node coordinates.**
 
 ## Evidence boundaries
 

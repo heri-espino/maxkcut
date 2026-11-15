@@ -1,9 +1,10 @@
 ---
 marp: true
+math: mathjax
 theme: default
 size: "16:9"
 paginate: true
-footer: 'maxkcut · Experiments 001–023 · 29 October 2026'
+footer: 'maxkcut · Experiments 001–025 · 3 November 2026'
 style: |
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
   section { font-family: 'Inter', 'Aptos', 'Segoe UI', sans-serif; background: #f8fafc; color: #14213b; padding: 52px 64px; font-size: 25px; line-height: 1.32; }
@@ -48,17 +49,37 @@ style: |
 
 # From K-Means Initialization to Topology-Aware Max-Cut
 
-### Complete research journey · methods, experiments, evidence and next tests
+### A reproducible graph-structure-aware comparison across 71 G-set instances
 
 **SDP-inspired vector factors · spherical clustering · local search · G-set**
 
-Experiments 001–023 · 29 October 2026
+Experiments 001–025 · 3 November 2026
 
 **Prepared for Professor Ángel E. Rodríguez Fernández**
 
 ---
 
-## Verified result at a glance — Experiment021
+<!-- _class: compact -->
+
+## New result — Experiment025 has finished its numerical sweep
+
+| Metric | Full-quality Experiment025 result |
+|---|---:|
+| G-set graphs | **71 / 71** |
+| Initialization/refinement protocols | **18 / 18** |
+| Shared GW directions per graph and protocol | **16 / 16** |
+| Complete graph–method combinations | **1,278 / 1,278** |
+| Full refinements recorded as completed | **20,448 / 20,448** |
+
+**Primary comparison:** highest verified original signed Max-Cut encountered at any initializer, Flip, KL or ILS iteration — not the last walking state.
+
+**Status boundary:** computation is complete; independent full-archive verification, off-VM backup and paired individual-seed inference are still pending.
+
+Source: Experiment025 local completion note and uploaded full 1,278-row aggregate CSV. No EVA/SDP was recomputed.
+
+---
+
+## Historical milestone — Experiment021
 
 | Scope | Verified result |
 |---|---:|
@@ -69,7 +90,7 @@ Experiments 001–023 · 29 October 2026
 | Missing factors / incomplete graphs | **0 / 0** |
 | Graphs where best-of-nine beats best-of-control | **58 / 71** |
 
-**Important:** these are feasible **binary Max-Cut** results, **not** certified global optima or a general Max-\(k\)-Cut result for \(k>2\).
+**Important:** these are feasible **binary Max-Cut** results, **not** certified global optima or a general Max-$k$-Cut result for $k>2$.
 
 Source: [Experiment021 report](https://github.com/heri-espino/maxkcut/blob/main/results/gset/experiment021-complete-71-gset/statistics/report.json).
 
@@ -95,15 +116,15 @@ From a discrete graph partition to a geometric representation.
 
 ## Formal objective: signed Max-Cut
 
-For an undirected graph \(G=(V,E,w)\), choose binary labels \(c_i\in\{0,1\}\):
+For an undirected graph $G=(V,E,w)$, choose binary labels $c_i\in\{0,1\}$:
 
-\[
+$$
 \max_{c\in\{0,1\}^{|V|}} C(c),\qquad
 C(c)=\sum_{\{i,j\}\in E}w_{ij}\,\mathbf 1[c_i\ne c_j].
-\]
+$$
 
-- **Positive** \(w_{ij}\): rewards placing endpoints on opposite sides.
-- **Negative** \(w_{ij}\): penalizes separating the endpoints.
+- **Positive** $w_{ij}$: rewards placing endpoints on opposite sides.
+- **Negative** $w_{ij}$: penalizes separating the endpoints.
 - All reported cut scores use the **original signed weights**.
 
 The clustering objective is **not** the cut objective: it proposes a partition that must subsequently be evaluated on the graph.
@@ -112,14 +133,14 @@ The clustering objective is **not** the cut objective: it proposes a partition t
 
 ## Classical SDP relaxation (the theoretical reference)
 
-Let \(L=D-W\) and \(X=VV^\top\) be a Gram matrix. For general \(k\ge2\):
+Let $L=D-W$ and $X=VV^\top$ be a Gram matrix. For general $k\ge2$:
 
-\[
+$$
 \max_{X\succeq0,\,X_{ii}=1}\frac{k-1}{2k}\operatorname{Tr}(LX),
 \qquad X_{ij}\ge-\frac{1}{k-1}\quad(k>2).
-\]
+$$
 
-At \(k=2\), the pairwise lower bound is redundant. Factorization represents each vertex \(i\) by a unit vector \(v_i\).
+At $k=2$, the pairwise lower bound is redundant. Factorization represents each vertex $i$ by a unit vector $v_i$.
 
 **Crucial distinction:** the large-scale campaign used **rank-restricted nonconvex EVA factors**; these are not proven solutions or certified bounds for the full convex SDP.
 
@@ -129,13 +150,13 @@ Source: repository `AGENTS.md`, `RESEARCH_HANDOFF.md` and Rodríguez Fernández 
 
 ## Goemans–Williamson: random hyperplane rounding
 
-Draw \(r\sim N(0,I_p)\) and set
+Draw $r\sim N(0,I_p)$ and set
 
-\[
+$$
 c_i=\mathbf 1[v_i^\top r<0].
-\]
+$$
 
-The hyperplane \(v^\top r=0\) separates embedded vertices into two sides.
+The hyperplane $v^\top r=0$ separates embedded vertices into two sides.
 
 **The starting question:** why choose an arbitrary hyperplane if the vector embedding already contains structure from an optimization problem?
 
@@ -149,11 +170,11 @@ Source: Rodríguez-Fernández et al. (2020), Sections 1–3.
 
 ## How spherical K-means enters Max-Cut rounding
 
-**Original K-MeansNM** initializes two unit centroids as \(u\) and \(-u\). Its first assignment is the GW hyperplane partition.
+**Original K-MeansNM** initializes two unit centroids as $u$ and $-u$. Its first assignment is the GW hyperplane partition.
 
 Then alternate:
 
-1. Assign each \(v_i\) to the centroid with maximum dot product.
+1. Assign each $v_i$ to the centroid with maximum dot product.
 2. Normalize each cluster's mean to update its centroid.
 3. Keep the **best original-graph cut observed along the trajectory**.
 
@@ -167,9 +188,9 @@ Source: Rodríguez-Fernández et al. (2020), Eq. (4), Lemma 1 and Section 3.1.
 
 | Work | What it contributed to our design |
 |---|---|
-| Rodríguez Fernández (2021), thesis | Max-Cut / Max-\(k\)-Cut, SDP geometry, fitness landscapes, clustering rounding |
+| Rodríguez Fernández (2021), thesis | Max-Cut / Max-$k$-Cut, SDP geometry, fitness landscapes, clustering rounding |
 | Rodríguez-Fernández et al. (2020) | K-MeansNM, K-Means2N and comparison with GW on G-set |
-| Felzenszwalb, Klivans & Paul (2022) | Convex geometry of the \(k\)-way elliptope and iterative fixed-point rounding |
+| Felzenszwalb, Klivans & Paul (2022) | Convex geometry of the $k$-way elliptope and iterative fixed-point rounding |
 
 The 2022 fixed-point method is **related prior art**, not a claimed component of our Experiment021 implementation.
 
@@ -220,13 +241,13 @@ Repo: `src/maxkcut/{objective.py,sdp.py,eva.py,archive.py}`; Experiments001–00
 
 ## Step 2 — Obtain geometry with EVA
 
-EVA optimizes a **rank-restricted vector relaxation** over row-unit embeddings \(Y\in\mathbb R^{n\times p}\), with \(Y_i\) representing vertex \(i\).
+EVA optimizes a **rank-restricted vector relaxation** over row-unit embeddings $Y\in\mathbb R^{n\times p}$, with $Y_i$ representing vertex $i$.
 
 For the three final missing instances:
 
-\[
+$$
 p=\lceil\sqrt{2(n+1)}\rceil=119\quad\text{for }n=7000.
-\]
+$$
 
 - Sequential Numba updates; one BLAS thread.
 - Maximum 10,000 sweeps; angular tolerance **0.001 radians**.
@@ -243,7 +264,7 @@ Source: Experiment021 note and `.github/workflows/experiment021-complete-gset.ym
 
 **Reason for moving on:** rigid geometric clusters could miss good signed-graph cuts; G63's one-edge MST result was far below the later K-MeansNM + refinement baseline.
 
-**Critical invariant:** when \(q\) MST edges are removed, the \(q+1\) components are subsequently assigned back to **two** Max-Cut sides, not treated as \(q+1\)-Cut solutions.
+**Critical invariant:** when $q$ MST edges are removed, the $q+1$ components are subsequently assigned back to **two** Max-Cut sides, not treated as $q+1$-Cut solutions.
 
 Source: Experiment005 and Experiment009 notes.
 
@@ -251,15 +272,15 @@ Source: Experiment005 and Experiment009 notes.
 
 ## Step 4 — Improve a cut with exact vertex gains
 
-Represent side labels by spins \(s_i\in\{-1,+1\}\):
+Represent side labels by spins $s_i\in\{-1,+1\}$:
 
-\[
+$$
 C(s)=\frac12\sum_{\{i,j\}\in E} w_{ij}(1-s_is_j),
 \qquad
 \Delta_i=s_i\sum_{j:\{i,j\}\in E}w_{ij}s_j.
-\]
+$$
 
-Here \(\Delta_i\) is the **exact change in cut** produced by flipping vertex \(i\).
+Here $\Delta_i$ is the **exact change in cut** produced by flipping vertex $i$.
 
 - **Flips:** accept positive-gain moves until locally stable or out of sweeps.
 - Use the original signed sparse graph; update neighboring gains efficiently.
@@ -319,7 +340,7 @@ Source: `configs/experiment013-grid.json`, Experiment013 note.
 | 017 | More than two clusters may reveal useful latent structure | 2/4/6/8/10 groups, **exact** merge back to binary cuts |
 | 018 | Initialization of two centers may be the main lever | Nine systematic initializer families |
 
-For Experiment017, \(q\) geometric groups can be merged to two labels by enumerating \(2^{q-1}-1\) nontrivial complements; at \(q=10\), **511** mergers.
+For Experiment017, $q$ geometric groups can be merged to two labels by enumerating $2^{q-1}-1$ nontrivial complements; at $q=10$, **511** mergers.
 
 These experiments motivate **controlled initialization comparisons**, not a claim that every exploratory strategy improved the G63 record.
 
@@ -339,9 +360,9 @@ Nine initializers, one embedding per graph, identical downstream budgets.
 
 | Name | How the initial centroids were selected |
 |---|---|
-| **Original paired K-MeansNM** | Random unit vector \(u\) and antipode \(-u\) |
+| **Original paired K-MeansNM** | Random unit vector $u$ and antipode $-u$ |
 | **Independent centers** | Two independently drawn random unit directions |
-| **Sample antipodal** | An actual embedding row \(Y_i\) and \(-Y_i\) |
+| **Sample antipodal** | An actual embedding row $Y_i$ and $-Y_i$ |
 | **Sample pair** | Two different randomly chosen embedding rows |
 | **Farthest pair** | One sampled row and a row maximally distant by cosine |
 
@@ -372,7 +393,7 @@ Source: Experiment018 note.
 
 | Stage | Frozen setting |
 |---|---|
-| Spherical Lloyd | \(k=2\), up to **100** iterations; keep best actual cut |
+| Spherical Lloyd | $k=2$, up to **100** iterations; keep best actual cut |
 | Positive vertex flips | Up to **20** sweeps |
 | Generalized KL | Up to **30** passes |
 | KL-based ILS | **80** cycles; **8** inner KL passes |
@@ -388,7 +409,7 @@ Source: Experiments019–021.
 
 ## Reproducible RNG design: matched downstream seeds
 
-Graph index \(g\), restart \(r\in\{0,\ldots,49\}\), seed base **2026**:
+Graph index $g$, restart $r\in\{0,\ldots,49\}$, seed base **2026**:
 
 ```python
 # Two-center rounding initialization
@@ -482,11 +503,11 @@ Source: [Experiment021 note](https://github.com/heri-espino/maxkcut/blob/experim
 
 ## Final completeness proof is a machine-checked ledger
 
-\[
+$$
 \underbrace{68\times9\times50}_{30{,}600\text{ reused}}
 +\underbrace{3\times9\times50}_{1{,}350\text{ new}}
 =\boxed{31{,}950}.
-\]
+$$
 
 The consolidated report requires:
 
@@ -536,7 +557,7 @@ Source: `statistics/per_instance_methods.csv`, recomputed from `best_final`.
 | 8 | Original K-MeansNM | 13 | 4 | 5.92 |
 | 9 | PCA antipodal | 16 | 3 | 5.91 |
 
-Fractional win = \(1/t_g\) for each best-scoring method on graph \(g\), where \(t_g\) is the number tied for best. The fractional wins sum to **71**.
+Fractional win = $1/t_g$ for each best-scoring method on graph $g$, where $t_g$ is the number tied for best. The fractional wins sum to **71**.
 
 ---
 
@@ -598,22 +619,20 @@ Also, GW screen-16 considers 16 additional initial hyperplanes per restart.
 
 ## What the statistics do—and do not—show
 
-**Paired comparison** at graph \(g\):
+**Paired comparison** at graph $g$:
 
-\[
+$$
 \Delta_{g,m}=\frac1{50}\sum_{r=0}^{49}
 \left[C^{\rm final}_{g,m,r}-C^{\rm final}_{g,\rm control,r}\right].
-\]
+$$
 
-- Report the mean of the **71** graph-level \(\Delta_{g,m}\) values.
+- Report the mean of the **71** graph-level $\Delta_{g,m}$ values.
 - Within graph, **4,000-replicate paired bootstrap** intervals examine restart variability.
 - Do **not** treat 31,950 correlated restarts as independent graphs.
 - Do **not** equate a best-of-50 score with expected performance.
 - No universal approximation ratio follows from these cut scores.
 
 Source: Experiment021 note; `paired_vs_original_kmeansnm.csv`.
-
----
 
 ---
 
@@ -661,7 +680,7 @@ Measure connectivity from the **original adjacency lists**, and independently me
 - **Transitivity** measures the fraction of connected triples closed into triangles.
 - **G11 and G48** are degree-four and triangle-free; short **four-cycles** and signed frustration may be more diagnostic.
 
-The published **planar-family** label is not a proof of mathematical planarity. G14 has more than \(3n-6\) edges.
+The published **planar-family** label is not a proof of mathematical planarity. G14 has more than $3n-6$ edges.
 
 ---
 
@@ -805,29 +824,29 @@ These are descriptive, graph-normalized **best-of-20** comparisons, not approxim
 
 ![bg right:43% contain](assets/multigroup.svg)
 
-1. Compute an exact MST over **all EVA vectors** in \(\mathbb R^p\); metric: L1, L2 or L∞.
+1. Compute an exact MST over **all EVA vectors** in $\mathbb R^p$; metric: L1, L2 or L∞.
 2. Remove one edge (**longest**, **balanced**, **diameter center** or **best original cut**) or several edges.
 3. Merge components into two **binary** cut sides.
 4. Evaluate signed cut and optionally refine original vertices.
 
 **Important:** the MST is built from **vector distances**, not the signed graph weights.
 
-Cost: roughly \(O(n^2p)\) for each exact full-space MST; large graphs need explicit feasibility checks.
+Cost: roughly $O(n^2p)$ for each exact full-space MST; large graphs need explicit feasibility checks.
 
 ---
 
 ## Why one MST edge is not always enough
 
-For a tree edge \(e\), the resulting cut can be written as
+For a tree edge $e$, the resulting cut can be written as
 
-\[
+$$
 C(e)=\sum_{\{i,j\}\in E}w_{ij}\,\mathbf 1[e\in P_T(i,j)],
-\]
+$$
 
-where \(P_T(i,j)\) is the unique path between \(i\) and \(j\) on the **geometric MST**.
+where $P_T(i,j)$ is the unique path between $i$ and $j$ on the **geometric MST**.
 
 - Longest edge optimizes **distance**, not signed cut.
-- **Best-cut edge** explicitly scores all \(n-1\) possible one-edge tree splits.
+- **Best-cut edge** explicitly scores all $n-1$ possible one-edge tree splits.
 - Multi-edge coarsening optimizes over a contracted **signed** graph.
 
 This suggests a structural hypothesis: **MST performance should depend on how EVA-space geometry aligns with graph-edge frustration**.
@@ -838,7 +857,7 @@ This suggests a structural hypothesis: **MST performance should depend on how EV
 
 ![bg right:42% contain](assets/spherical_centroids.svg)
 
-Instead of hard cluster membership, assign \(p_i\in[0,1]\) and optimize a **mean-field objective** combining:
+Instead of hard cluster membership, assign $p_i\in[0,1]$ and optimize a **mean-field objective** combining:
 
 - Expected **signed Max-Cut** under independent Bernoulli labels.
 - Geometric agreement with EVA centroids.
@@ -879,19 +898,19 @@ The strongest observed cut remains **26,917** (Experiment013).
 
 ---
 
-## Multigroup K-means: clustering \(k\) ≠ Max-\(k\)-Cut
+## Multigroup K-means: clustering $k$ ≠ Max-$k$-Cut
 
 ![bg right:47% contain](assets/multigroup.svg)
 
-For temporary \(k\)-way EVA clusters, aggregate original signed graph edges into \(W_{ab}\).
+For temporary $k$-way EVA clusters, aggregate original signed graph edges into $W_{ab}$.
 
 Then find the best **binary merge**:
 
-\[
+$$
 C(z)=\sum_{a<b}W_{ab}\mathbf1[z_a\ne z_b],\quad z_a\in\{0,1\}.
-\]
+$$
 
-With one merge side fixed to remove complement symmetry, there are \(2^{k-1}-1\) nontrivial merges.
+With one merge side fixed to remove complement symmetry, there are $2^{k-1}-1$ nontrivial merges.
 
 At **k=10**, that is **511** distinct nontrivial merges, *conditional on the cluster assignment*. Still only binary Max-Cut.
 
@@ -994,10 +1013,10 @@ The 240-second target is a **ceiling**, not a mathematically exact equal-work gu
 
 ---
 
-## Evidence status: separate proven data from the planned study
+## Historical Experiment023 evidence status (29 October 2026)
 
 ![w:1100](assets/evidence_boundary.svg)
-At preparation, the Experiment023 branch contained its workflow, methods and protocol but **no verified final coverage/report JSON**.
+At the earlier 29 October presentation, Experiment023 contained its workflow, methods and protocol but **no verified final coverage/report JSON**.
 
 **Therefore, this presentation gives no invented Experiment023 winner, score, speedup or topology-specific conclusion.**
 
@@ -1005,7 +1024,7 @@ Link: [Experiment023 protocol](https://github.com/heri-espino/maxkcut/blob/exper
 
 ---
 
-## How to analyze Experiment023 when results exist
+## Earlier registered analysis plan for Experiment023
 
 **Primary question:** within each original graph and a bounded budget, which method returns the best *verified feasible* cut?
 
@@ -1057,7 +1076,7 @@ These distinctions prevent choosing a champion by **changing the evaluation targ
 
 ---
 
-## What can be concluded rigorously from this record?
+## Findings of Experiments021–022 — historical snapshot
 
 **Supported statements:**
 
@@ -1068,7 +1087,7 @@ These distinctions prevent choosing a champion by **changing the evaluation targ
 - The simple topology selector did not beat global selection in held-out comparison.
 - Historical MST/EM results cannot justify all-graph ranking without wider runs.
 
-**Not supported:** new SDP optimality certificate, a Max-\(k\)-Cut (\(k>2\)) claim, equal-budget superiority, or final Experiment023 winners.
+**Not supported:** new SDP optimality certificate, a Max-$k$-Cut ($k>2$) claim, equal-budget superiority, or final Experiment023 winners.
 
 ---
 
@@ -1081,15 +1100,15 @@ These distinctions prevent choosing a champion by **changing the evaluation targ
 | Experiment022 labels/LOOCV/history | `results/gset/experiment022-graph-structure-methods/` |
 | Experiment023 registered protocol | `notes/experiments/experiment023-all-method-topology.md` |
 | Experimental implementation | `src/maxkcut/` |
-| Regenerable vector charts | `presentations/.../build_new_figures.py` |
+| Regenerable vector charts | `documents/presentations/.../build_new_figures.py` |
 
 Retain source factor SHA, graph SHA, verified partition, configuration ID and method-stage timing in all future reports.
 
 ---
 
-## Immediate next scientific checkpoints
+## Earlier next-step proposal, before Experiment025
 
-**After the Experiment023 pilot and sweep:**
+**Original prospective checklist (revisited by the now-complete Experiment025 sweep):**
 
 1. Audit complete graph-method **coverage and timeouts**.
 2. Re-score every archived cut and validate source-factor identity.
@@ -1098,7 +1117,265 @@ Retain source factor SHA, graph SHA, verified partition, configuration ID and me
 5. Evaluate structural method selectors on graph families withheld from training.
 6. Report effect size, graph-level uncertainty, multiplicity and negative results.
 
-The **method × topology** hypothesis remains open until the planned new outputs are verified.
+The method × topology hypothesis is revisited with completed Experiment025 best-of-16 results in Chapter 10.
+
+---
+
+
+<!-- _class: chapter -->
+
+# 10. Experiment025 — completed numerical study
+
+**What changes when we compare 18 methods across 71 graphs and measured graph structure?**
+
+71 graphs × 18 methods × 16 matched GW directions = **20,448 completed refinements**.
+
+---
+
+<!-- _class: compact -->
+
+## New protocol: complete coverage, a different scientific estimand
+
+- **Baseline:** each graph and seed uses the same GW direction; independently refined GW-RR provides the graph-specific reference.
+- **Methods:** GW threshold/sweep; paired/cut-aware K-Means; multigroup $k=4,8$; hard/CEM/Gibbs EM; seven MST hybrids; paired + Tabu.
+- **Each of 16 starts:** initializer → Flip → KL → ILS. Retain the **best encountered cut**, not only the last candidate.
+- **Across 71 graphs:** compare $100[C_{g,m}-C_{g,\mathrm{GW}}]/C_{g,\mathrm{GW}}$ to normalize score scales; each graph receives equal weight.
+
+**Limit:** shared GW directions are not equal CPU budgets. Graphwise best-of-16 summaries are **not** individual seed-level paired differences.
+
+Source: `results/gset/experiment025-gw16-bestcut-quality/analysis/full_best_final_by_graph.csv`.
+
+---
+
+<!-- _class: small -->
+
+## E025 — All 18 methods against refined GW-RR
+
+![w:970](assets/experiment025_method_ranking.svg)
+
+**Descriptive leader:** Hyperplane Sweep, +0.318% mean relative gain in best-of-16 cut quality.
+
+---
+
+<!-- _class: small -->
+
+## E025 — The top methods are close in performance
+
+![w:970](assets/experiment025_bootstrap_intervals.svg)
+
+Intervals resample **graphs**, not matching individual GW seeds; no unique champion is established.
+
+---
+
+<!-- _class: small -->
+
+## E025 — Gains depend on generator family
+
+![w:970](assets/experiment025_family_method_heatmap.svg)
+
+Random (30), planar-family (24), toroidal (17): these are **generator labels**, not planarity certificates.
+
+---
+
+<!-- _class: small -->
+
+## E025 — Edge-weight signs also change the pattern
+
+![w:970](assets/experiment025_sign_method_heatmap.svg)
+
+The 35 positive and 36 signed instances are **not independently randomized across families**.
+
+---
+
+<!-- _class: small -->
+
+## E025 — Graph-by-graph: fixed method versus oracle
+
+![w:970](assets/experiment025_graphwise_gains.svg)
+
+The graphwise best of 18 is chosen **after seeing the outcomes** and is at least as good as GW-RR by construction.
+
+---
+
+<!-- _class: small -->
+
+## E025 — The 71 × 10 quality heatmap
+
+![w:970](assets/experiment025_graph_method_heatmap.svg)
+
+Each tile represents the best-of-16 gain for one method on one graph.
+
+---
+
+<!-- _class: small -->
+
+## E025 — Fractional winner credit respects ties
+
+![w:970](assets/experiment025_family_fractional_winners.svg)
+
+Every graph contributes one unit of credit, divided equally among its tied best methods.
+
+---
+
+<!-- _class: chapter -->
+
+# 11. Which structural properties correlate with improvement?
+
+**Experiment022 measured original-edge topology; Experiment025 measured method quality.**
+
+The canonical graph ID, family and sign type link the two archived datasets.
+
+---
+
+<!-- _class: small -->
+
+## Structural axis A — Average degree
+
+![w:970](assets/experiment025_degree_association.svg)
+
+Density is strongly associated with generator design and can confound any cross-family explanation.
+
+---
+
+<!-- _class: small -->
+
+## Structural axis B — Global transitivity
+
+![w:970](assets/experiment025_transitivity_association.svg)
+
+Triangle clustering measures original edges, not positions in an illustrative drawing.
+
+---
+
+<!-- _class: small -->
+
+## Structural axis C — Negative-edge fraction
+
+![w:970](assets/experiment025_negative_edges_association.svg)
+
+This is an observed association; **do not infer a causal effect of negative weights**.
+
+---
+
+<!-- _class: compact -->
+
+## Three distinct levels of evidence
+
+| Level | Available evidence | Valid conclusion |
+|---|---|---|
+| **Graph-level census** | 1,278/1,278 complete cells | Descriptive all-graph rankings |
+| **Graph topology** | Degree CV, triangles, transitivity, sign fraction, $n,m$ | Observed structure–quality associations |
+| **Matched individual seeds** | 20,448 VM-local seed results | Not yet exported/independently audited for paired inference |
+
+The best method *conditional on family* was selected and evaluated on these **same** graphs. It is not a validated selector for unseen graphs.
+
+---
+
+<!-- _class: small -->
+
+## E025 — Best-of-16 versus mean-of-16
+
+![w:970](assets/experiment025_mean_vs_best.svg)
+
+A method may discover an exceptional cut without being best for the typical refined start.
+
+---
+
+<!-- _class: small -->
+
+## E025 — Eight candidate reference improvements
+
+![w:970](assets/experiment025_reference_candidates.svg)
+
+G1, G9, G28, G36, G40, G42, G44 and G53 exceed **archived feasible references** by 1–5 cut units. These are **not independently verified records**.
+
+---
+
+<!-- _class: small -->
+
+## E025 — Reference ratio: random graphs
+
+![w:970](assets/experiment025_benchmark_ratio_random.svg)
+
+For each graph, **best-of-16 cut / strongest listed external feasible reference**. Gray = refined GW; colored = graphwise best of 18; multi-colored = ties. Not a certified approximation ratio.
+
+---
+
+<!-- _class: small -->
+
+## E025 — Reference ratio: planar-family graphs
+
+![w:970](assets/experiment025_benchmark_ratio_planar.svg)
+
+For each graph, **best-of-16 cut / strongest listed external feasible reference**. Gray = refined GW; colored = graphwise best of 18; multi-colored = ties. Not a certified approximation ratio.
+
+---
+
+<!-- _class: small -->
+
+## E025 — Reference ratio: toroidal graphs
+
+![w:970](assets/experiment025_benchmark_ratio_toroidal.svg)
+
+For each graph, **best-of-16 cut / strongest listed external feasible reference**. Gray = refined GW; colored = graphwise best of 18; multi-colored = ties. Not a certified approximation ratio.
+
+---
+
+<!-- _class: compact -->
+
+## E025 — How decisive is the Hyperplane Sweep lead?
+
+| Compared with | Mean relative difference | Graphwise W/T/L | Wilcoxon $p$ |
+|---|---:|---:|---:|
+| Control Paired | +0.046 percentage points | 36/10/25 | 0.226 |
+| EM + Gibbs | +0.047 pp | 36/9/26 | 0.163 |
+| Cut-aware K-Means | +0.051 pp | 41/7/23 | 0.110 |
+| Refined GW-RR | +0.318 pp | 59/7/5 | $7.7\times10^{-11}$ |
+
+Hyperplane Sweep leads **one fixed metric**, but the closest alternatives are competitive.
+
+These tests pair **71 graph-specific best-of-16 cuts**, not 20,448 independent samples.
+
+---
+
+<!-- _class: compact -->
+
+## E025 — When common local refinement erases differences
+
+Six of the seven MST hybrids reproduce GW-RR's best-of-16 and mean-of-16 aggregates on every graph. The MST multicut arm differs by one unit on G54.
+
+EM-Hard and EM-CEM are likewise equal at the **aggregate** level.
+
+Possible explanations include convergence to similar local optima, method-design overlap or a code issue. **Only per-seed journals, raw candidates and stage partitions can distinguish them.**
+
+Identical aggregates **do not imply identical trajectories**.
+
+---
+
+<!-- _class: chapter -->
+
+# 12. Scientific conclusions and verification
+
+Completed: **comparative numerical search**. Still required: **independent archive audit**.
+
+---
+
+<!-- _class: compact -->
+
+## Evidence, limitations and next steps
+
+**Supported descriptively:** Hyperplane Sweep leads the equal-graph relative best-of-16 metric; top competitors are close; family, graph topology and weight signs are associated with performance differences; 71/71 graphs have full 18-method status coverage.
+
+**Not established:** a universally superior method, equal-compute superiority, a held-out topology-driven selector, independently verified public records or certified SDP optima.
+
+**Without rerunning EVA or refinement**, next:
+
+1. Back up the VM-local JSONL/NPZ archive off-VM and verify checksums.
+2. Re-score winning partitions independently on original signed edges.
+3. Export the 20,448 seed-level stage scores and compare matched GW starts.
+4. Test proposed structural policies with genuinely **held-out graph groups**.
+
+Source: Experiment025 completion milestone, the Experiment022 graph-feature audit and the aggregate-only analysis.
 
 ---
 
@@ -1106,7 +1383,7 @@ The **method × topology** hypothesis remains open until the planned new outputs
 
 # Final synthesis
 
-**There is no single universal winner yet.** We have a complete nine-initializer benchmark, new topology associations, an audited history of alternative algorithms, and a controlled plan to test them all.
+**Experiment025 completes the 18-method numerical comparison across 71 graphs.** Hyperplane Sweep leads the observed equal-graph best-of-16 metric (+0.318% relative to refined GW), but near-ranked alternatives remain competitive. Graph family, edge signs and measured structural properties matter descriptively; independent rescore, backup and held-out method selection remain open.
 
 ---
 
@@ -1126,4 +1403,8 @@ The **method × topology** hypothesis remains open until the planned new outputs
 - [Experiment022 note — topology and historical methods](https://github.com/heri-espino/maxkcut/blob/experiment022-graph-structure-methods/notes/experiments/experiment022-graph-structure-methods.md).
 - [Experiment023 note — future outcomes not verified](https://github.com/heri-espino/maxkcut/blob/experiment023-all-method-topology/notes/experiments/experiment023-all-method-topology.md).
 
-**Prepared for Professor Ángel E. Rodríguez Fernández · 29 October 2026.**
+**Updated for Professor Ángel E. Rodríguez Fernández · 3 November 2026.**
+
+- [Experiment025 completed local sweep](https://github.com/heri-espino/maxkcut/blob/main/notes/experiments/experiment025-full-local-computation-2026-11-03.md).
+- [Experiment025 aggregate analysis](https://github.com/heri-espino/maxkcut/pull/75) (provisional; archive audit pending).
+- Graph features: `results/gset/experiment022-graph-structure-methods/graph_features.csv`.
