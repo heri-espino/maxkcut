@@ -1464,9 +1464,9 @@ The five original seeds are **part of** the 100-seed sample, not an independent 
 
 ## E029 — Paired uncertainty across 100 starts
 
-![w:1010](assets/experiment029_rank_effect_ci.svg)
+![w:945](assets/experiment029_rank_effect_ci.svg)
 
-**Every nominal 95% paired-seed interval includes zero.** Intervals condition on each of these five selected graphs; they are not a confidence interval across graph families, nor adjusted for multiple testing.
+**Every nominal 95% paired-seed interval includes zero.** The resampling is within each selected graph, not across graph families.
 
 ---
 
