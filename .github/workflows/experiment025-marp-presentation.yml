@@ -1,4 +1,4 @@
-name: Build full Marp research presentation (Experiments 001–025)
+name: Build full Marp research presentation (Experiments 001–025 plus 028–029)
 
 on:
   workflow_dispatch:
@@ -10,12 +10,14 @@ on:
       - "documents/presentations/**"
       - "results/gset/experiment025-gw16-bestcut-quality/analysis/**"
       - "results/gset/experiment022-graph-structure-methods/graph_features.csv"
+      - "results/gset/experiment029-eva-kmeansnm-100seed/per_graph.csv"
       - ".github/workflows/experiment025-marp-presentation.yml"
   pull_request:
     paths:
       - "documents/presentations/**"
       - "results/gset/experiment025-gw16-bestcut-quality/analysis/**"
       - "results/gset/experiment022-graph-structure-methods/graph_features.csv"
+      - "results/gset/experiment029-eva-kmeansnm-100seed/per_graph.csv"
       - ".github/workflows/experiment025-marp-presentation.yml"
 
 permissions:
@@ -46,7 +48,7 @@ jobs:
 
       - name: Regenerate all historical and Experiment025 SVG figures
         run: |
-          python -m pip install --disable-pip-version-check "numpy>=1.26,<3" "matplotlib>=3.8,<4"
+          python -m pip install --disable-pip-version-check "numpy>=1.26,<3" "matplotlib>=3.8,<4" "pypdf>=5,<7"
           python documents/presentations/build_assets.py
           python documents/presentations/build_full_research_figures.py
           MPLBACKEND=Agg python documents/presentations/make_extra_graphics.py
@@ -54,10 +56,12 @@ jobs:
           node documents/presentations/build_experiment025_figures.mjs --check
           node documents/presentations/build_experiment025_reference_ratio_figures.mjs
           node documents/presentations/build_experiment025_reference_ratio_figures.mjs --check
+          node documents/presentations/build_experiment029_rank_figure.mjs
+          node documents/presentations/build_experiment029_rank_figure.mjs --check
 
       - name: Verify committed Experiment025 figures are deterministic
         run: |
-          git diff --exit-code -- documents/presentations/assets/experiment025_*.svg documents/presentations/experiment025-figure-manifest.json documents/presentations/experiment025-reference-ratio-manifest.json documents/presentations/data/experiment025_best_of16_method_ratios.csv
+          git diff --exit-code -- documents/presentations/assets/experiment025_*.svg documents/presentations/assets/experiment029_*.svg documents/presentations/experiment025-figure-manifest.json documents/presentations/experiment025-reference-ratio-manifest.json documents/presentations/data/experiment025_best_of16_method_ratios.csv
           node documents/presentations/verify_experiment025_presentation.mjs
 
       - name: Install pinned Marp CLI
@@ -96,17 +100,20 @@ jobs:
           set -euo pipefail
           root="documents/presentations/build/maxkcut_full_research_001_025"
           for ext in pdf html; do test -s "${root}.${ext}"; done
-          if command -v pdfinfo >/dev/null; then
-            pages="$(pdfinfo "${root}.pdf" | awk '/^Pages:/ {print $2}')"
-            test "$pages" -eq 97 || { echo "Expected 97 PDF pages, got $pages"; exit 1; }
-            echo "Verified PDF pages: $pages"
-          fi
+          python - <<'PY'
+          from pypdf import PdfReader
+          name="documents/presentations/build/maxkcut_full_research_001_025.pdf"
+          count=len(PdfReader(name).pages)
+          if count!=104:
+              raise SystemExit(f"Expected exactly 104 PDF pages; got {count}")
+          print(f"Verified PDF pages: {count}")
+          PY
           du -h "${root}.pdf" "${root}.html"
 
       - name: Upload PDF and standalone HTML
         uses: actions/upload-artifact@v4
         with:
-          name: maxkcut-experiment025-structure-marp
+          name: maxkcut-research-001-025-plus-029-marp
           path: |
             documents/presentations/build/maxkcut_full_research_001_025.pdf
             documents/presentations/build/maxkcut_full_research_001_025.html
