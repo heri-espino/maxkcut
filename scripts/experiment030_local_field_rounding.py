@@ -359,7 +359,7 @@ def summarize(root=ROOT,baseline=EX029,bootstrap=5000,require_all=True):
        'Raw-field and field-weighted-Y outcomes should be interpreted alongside their observed angular deviations; unnormalized rows affect centroid weighting.',
        '**Bias control**: absolute-weighted-degree-Y isolates a degree/weight-magnitude effect. Coherence weights are norm(H)/weighted-degree, bounded by one.',
        '**Caveat**: The six methods were studied on the same five graphs; any winner chosen after seeing these results is exploratory.','']
-    (root/'report.md').write_text('\n'.join(report)+'\n',encoding='utf8',newline='\n')
+    (root/'report.md').write_text('\n'.join(report).rstrip('\n')+'\n',encoding='utf8',newline='\n')
     return summary
 
 
