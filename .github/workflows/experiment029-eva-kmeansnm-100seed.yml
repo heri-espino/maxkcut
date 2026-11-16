@@ -3,9 +3,6 @@ name: Experiment029 - 100 EVA seeds, antipodal K-MeansNM only
 # A narrowly scoped one-shot trigger. Source, notes and results commits do not
 # rerun expensive EVA. Once complete, retain only workflow_dispatch.
 on:
-  push:
-    branches: [experiment029-eva-kmeansnm-100seed]
-    paths: [".github/workflows/experiment029-eva-kmeansnm-100seed.yml"]
   workflow_dispatch:
 
 permissions:
@@ -295,8 +292,12 @@ jobs:
           d='results/gset/experiment029-eva-kmeansnm-100seed'
           git add -- "$d/all_runs.csv" "$d/paired_differences.csv" "$d/per_graph.csv" "$d/summary.json" "$d/report.md"
           git diff --cached --check
-          git commit -m 'experiment029: publish audited 1000-cut paired K-MeansNM comparison'
-          git push origin HEAD:experiment029-eva-kmeansnm-100seed
+          if git diff --cached --quiet; then
+            echo 'Compact reports already committed; no changes made'
+          else
+            git commit -m 'experiment029: publish audited 1000-cut paired K-MeansNM comparison'
+            git push origin HEAD:experiment029-eva-kmeansnm-100seed
+          fi
       - name: Commit verified checkpoints and sweep histories to Git LFS per graph
         shell: bash
         run: |
@@ -306,10 +307,19 @@ jobs:
             dir="results/gset/experiment029-eva-kmeansnm-100seed/runs/$g"
             git add -- "$dir"
             git diff --cached --check
-            count="$(git lfs ls-files | grep -c "experiment029-eva-kmeansnm-100seed/runs/$g" || true)"
-            test "$count" -eq 380 || { echo "Expected 380 $g LFS factors/partitions, got $count"; exit 1; }
-            git commit -m "experiment029: archive $g 95 EVA factors, partitions and sweep traces"
-            git push origin HEAD:experiment029-eva-kmeansnm-100seed
+            tracked="$(git ls-files -- "$dir" | grep -cE '\.npz$' || true)"
+            test "$tracked" -eq 380 || { echo "Expected 380 staged binary FILE PATHS for $g, got $tracked"; exit 1; }
+            while IFS= read -r file; do
+              attr="$(git check-attr filter -- "$file")"
+              [[ "$attr" == *": filter: lfs" ]] || { echo "Expected LFS: $file"; exit 1; }
+            done < <(git ls-files -- "$dir" | grep -E '\.npz$')
+            echo "$g: 380 tracked binary paths, duplicate LFS object hashes allowed."
+            if git diff --cached --quiet; then
+              echo "$g archive already committed"
+            else
+              git commit -m "experiment029: archive $g 95 EVA factors, partitions and sweep traces"
+              git push origin HEAD:experiment029-eva-kmeansnm-100seed
+            fi
             echo "Archived all $g EVA artifacts with verified Git LFS storage"
           done
           echo 'PASS: all 1900 Git LFS binary archives published; no existing source modified'
