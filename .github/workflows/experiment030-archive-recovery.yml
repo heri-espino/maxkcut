@@ -1,0 +1,130 @@
+name: Experiment030 - recover already verified clustering outputs (hosted only)
+
+# Recovery never calls EVA or K-MeansNM. It downloads completed run 43965555603.
+on:
+  push:
+    branches: [experiment030-local-field-clustering]
+    paths: ['.github/workflows/experiment030-archive-recovery.yml']
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: experiment030-archive-recovery
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment030-local-field-clustering'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment030-local-field-clustering
+          fetch-depth: 0
+          lfs: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Hosted verification packages (no EVA solver)
+        run: python -m pip install --disable-pip-version-check 'numpy>=1.26,<3' 'scipy>=1.12,<2' 'numba>=0.67,<0.69' threadpoolctl
+      - uses: actions/download-artifact@v4
+        with:
+          name: experiment030-compact
+          run-id: 43965555603
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: results/gset/experiment030-local-field-clustering
+      - uses: actions/download-artifact@v4
+        with:
+          name: experiment030-G1-cases
+          run-id: 43965555603
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: results/gset/experiment030-local-field-clustering/graphs/G1
+      - uses: actions/download-artifact@v4
+        with:
+          name: experiment030-G6-cases
+          run-id: 43965555603
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: results/gset/experiment030-local-field-clustering/graphs/G6
+      - uses: actions/download-artifact@v4
+        with:
+          name: experiment030-G11-cases
+          run-id: 43965555603
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: results/gset/experiment030-local-field-clustering/graphs/G11
+      - uses: actions/download-artifact@v4
+        with:
+          name: experiment030-G14-cases
+          run-id: 43965555603
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: results/gset/experiment030-local-field-clustering/graphs/G14
+      - uses: actions/download-artifact@v4
+        with:
+          name: experiment030-G18-cases
+          run-id: 43965555603
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: results/gset/experiment030-local-field-clustering/graphs/G18
+      - name: Normalize Windows text files only; preserve exact binary partitions
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          for p in Path('results/gset/experiment030-local-field-clustering').rglob('*'):
+              if p.is_file() and p.suffix in ('.json','.jsonl','.md','.csv'):
+                  b=p.read_bytes(); fixed=b.replace(b'\r\n',b'\n')
+                  if fixed!=b:p.write_bytes(fixed)
+          PY
+      - name: Independently audit all 6000 hard-cut scores on original signed edges
+        shell: bash
+        env:
+          PYTHONPATH: src:scripts
+          OPENBLAS_NUM_THREADS: '1'
+        run: |
+          set -euo pipefail
+          python scripts/experiment030_local_field_rounding.py --verify-only
+          python - <<'PY'
+          import csv,hashlib,json
+          from pathlib import Path
+          import numpy as np
+          root=Path('results/gset/experiment030-local-field-clustering')
+          s=json.loads((root/'summary.json').read_text())
+          assert s['complete'] and s['new_eva_solves']==0 and s['input_factors_reused']==1000
+          assert s['rounded_records']==6000 and s['factor_cases']==1000
+          with (root/'all_rounds.csv').open(newline='') as f: allrows=list(csv.DictReader(f))
+          with (root/'paired_differences.csv').open(newline='') as f: paired=list(csv.DictReader(f))
+          assert len(allrows)==len(paired)==6000
+          for graph in ('G1','G6','G11','G14','G18'):
+              with (Path('data')/(graph+'.txt')).open() as fh:
+                  n,m=map(int,fh.readline().split());ed=[line.split() for line in fh]
+              assert n==800 and len(ed)==m
+              ii=np.array([int(e[0])-1 for e in ed]);jj=np.array([int(e[1])-1 for e in ed]);w=np.array([float(e[2]) for e in ed])
+              rootg=root/'graphs'/graph
+              with (rootg/'cases.csv').open(newline='') as f: cases=list(csv.DictReader(f))
+              assert len(cases)==1200
+              with np.load(rootg/'partitions.npz',allow_pickle=False) as arc:
+                  assert len(arc.files)==1200
+                  for z in cases:
+                      packed=arc[f"{z['rank_mode']}:{z['seed']}:{z['method']}"]
+                      assert hashlib.sha256(packed.tobytes()).hexdigest()==z['partition_sha256']
+                      labels=np.unpackbits(packed)[:n]
+                      score=float(w[labels[ii]!=labels[jj]].sum())
+                      assert abs(score-float(z['cut_weight']))<1e-9,(graph,z['seed'],z['method'])
+          print('PASS: second independent 6000-cut signed objective audit')
+          PY
+      - name: Publish all compact source-derived data and original iteration journals
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- results/gset/experiment030-local-field-clustering/
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo 'All verified files already committed'
+          else
+            git commit -m 'experiment030: publish 6000 signed cuts, 1000 frozen factor references and clustering traces'
+            git push origin HEAD:experiment030-local-field-clustering
+          fi
+          echo 'PASS: Experiment030 audit and repository publication complete'
