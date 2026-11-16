@@ -1,19 +1,14 @@
 name: Experiment029 - recover verified factor archives (hosted only)
-
-# This workflow never performs numerical optimization.
 on:
   push:
     branches: [experiment029-eva-kmeansnm-100seed]
     paths: [".github/workflows/experiment029-archive-recovery.yml"]
-
 permissions:
   contents: write
   actions: read
-
 concurrency:
   group: experiment029-archive-recovery
   cancel-in-progress: false
-
 jobs:
   archive:
     if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment029-eva-kmeansnm-100seed'
@@ -144,24 +139,14 @@ jobs:
             dir="results/gset/experiment029-eva-kmeansnm-100seed/runs/$g"
             git add -- "$dir"
             git diff --cached --check
-            tracked="$(git ls-files -- "$dir" | grep -cE '\.npz
-            git commit -m "experiment029: archive $g 95 EVA factors, partitions and sweep traces"
-            git push origin HEAD:experiment029-eva-kmeansnm-100seed
-            echo "Archived all $g EVA artifacts with verified Git LFS storage"
-          done
-          echo 'PASS: all 1900 Git LFS binary archives published; no existing source modified' || true)"
+            tracked="$(git ls-files -- "$dir" | grep -cE '\.npz$' || true)"
             test "$tracked" -eq 380 || { echo "Expected 380 $g binary FILE PATHS, got $tracked"; exit 1; }
             while IFS= read -r file; do
               attr="$(git check-attr filter -- "$file")"
               [[ "$attr" == *": filter: lfs" ]] || { echo "NOT tracked by Git LFS: $file"; exit 1; }
-            done < <(git ls-files -- "$dir" | grep -E '\.npz
-            git commit -m "experiment029: archive $g 95 EVA factors, partitions and sweep traces"
-            git push origin HEAD:experiment029-eva-kmeansnm-100seed
-            echo "Archived all $g EVA artifacts with verified Git LFS storage"
-          done
-          echo 'PASS: all 1900 Git LFS binary archives published; no existing source modified')
+            done < <(git ls-files -- "$dir" | grep -E '\.npz$')
             unique="$(git lfs ls-files | grep -c "experiment029-eva-kmeansnm-100seed/runs/$g" || true)"
-            echo "$g: $tracked paths, $unique unique LFS objects; duplicate partitions are expected."
+            echo "$g: $tracked paths, $unique unique LFS objects; exact duplicate partitions are expected."
             git commit -m "experiment029: archive $g 95 EVA factors, partitions and sweep traces"
             git push origin HEAD:experiment029-eva-kmeansnm-100seed
             echo "Archived all $g EVA artifacts with verified Git LFS storage"
