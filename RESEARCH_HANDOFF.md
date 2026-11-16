@@ -1,3 +1,9 @@
+## Experiment028 — Full rank EVA on five small G-set graphs (protocol staged)
+
+A separate pilot on `experiment028-eva-fullrank-5x5` tests n=800 G1/G6/G11/G14/G18 at EVA factor widths p=41 and p=800, five EVA starts each (seeds 2026–2030), followed by original GW, spherical K-Means2N and antipodal K-MeansNM. Source and reproducibility: [experiment028 protocol](notes/experiments/experiment028-eva-fullrank-pilot.md); `scripts/experiment028_fullrank_pilot.py`; `tests/test_experiment028_fullrank_pilot.py`. All new outputs are segregated under `results/gset/experiment028-eva-fullrank-pilot/`, with factors and partitions under scoped LFS, per-sweep objective histories, original signed-cut rescoring, paired rank comparisons and an SVG results figure. The dedicated Windows Actions workflow runs only when hosted tests pass. **As of this handoff update, no numerical result is claimed; verify Actions run, artifact and Git LFS publication before interpreting the study.** The existing VM-local Experiment025 archives and all frozen earlier EVA factors are untouched.
+
+---
+
 **Document collection migration (2026-11-14):** The archived presentation
 sources/PDFs/plots and 49-page modular EVA monograph were moved (not
 regenerated) to [`documents/`](documents/README.md) on an isolated branch.
