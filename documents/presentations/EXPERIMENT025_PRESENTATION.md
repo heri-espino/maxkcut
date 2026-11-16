@@ -1,3 +1,11 @@
+# Experiment028–029 rank-ablation appendix — 104-slide full research deck
+
+**Updated 16 November 2026.** The canonical `documents/presentations/maxkcut_full_research_001_025.marp.md` contains the original **97 historical research slides**, followed by **seven additional Experiment028–029 slides** on EVA embedding width (p=41 versus p=800), 100 seeds per width and graph, and *antipodal K-MeansNM only*. Original Experiment025 results/caveats remain intact. Each new numeric claim is grounded in [Experiment029's archived report](../../results/gset/experiment029-eva-kmeansnm-100seed/report.md) and [per-graph CSV](../../results/gset/experiment029-eva-kmeansnm-100seed/per_graph.csv), with [experimental protocol and audit](../../notes/experiments/experiment029-eva-kmeansnm-100seed.md).
+
+Reproduce the appended figure from the repository root with `node documents/presentations/build_experiment029_rank_figure.mjs`, then verify it using `node documents/presentations/build_experiment029_rank_figure.mjs --check`. The existing `verify_experiment025_presentation.mjs` additionally checks the 104-slide count, the seven appendix slides and the new figure. The [hosted export workflow](../../.github/workflows/experiment025-marp-presentation.yml) now builds a **104-page PDF and self-contained HTML**. It never reruns any EVA/SDP optimization, never accesses the university Windows runner, and keeps the older historical 001–023 decks unchanged. **No evidence of general equivalence or SDP global optimality is claimed.**
+
+---
+
 # Experiment025 completed-results seminar — Marp 001–025 edition
 
 **Slide source:** `documents/presentations/maxkcut_full_research_001_025.marp.md`, 97 slides after removing a blank slide from the historical deck. **Original 001–023 Marp and PDF remain intact** as archived October 29 evidence.
