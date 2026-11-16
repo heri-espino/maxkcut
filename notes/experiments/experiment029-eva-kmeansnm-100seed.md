@@ -1,8 +1,67 @@
 # Experiment029 — Antipodal K-MeansNM rank comparison with 100 EVA seeds
 
-**Status:** Pre-registered, execution pending. Do not report numerical results until the
-numerical run, 1000 signed partitions, LFS object preservation, and independent archive
-checks complete. No existing experiment is modified or recomputed.
+**Status: COMPLETE, archived and independently verified (2026-11-16 UTC).**
+All 950 new EVA initializations on the dedicated university Windows runner succeeded,
+alongside 50 reused checksum-verified factors from Experiment028; every one of the
+1,000 factors met EVA's internal 0.001-radian angular criterion. All 1,000
+K-MeansNM binary labels and original signed cut scores were saved and compared
+in 500 rank-paired rows. This is **not** a certificate of SDP global optimality.
+
+## Observed 100-seed numerical results
+
+| Graph | Mean p=41 | Mean p=800 | Paired delta | 95% bootstrap CI | Best p=41 | Best p=800 |
+|---|---:|---:|---:|---|---:|---:|
+| G1 | 11443.20 | 11442.01 | −1.19 | [−4.48, +2.17] | 11471 | 11469 |
+| G6 | 1967.98 | 1968.46 | +0.48 | [−1.73, +2.94] | 2001 | 1992 |
+| G11 | 521.76 | 521.86 | +0.10 | [−1.80, +1.98] | 534 | 536 |
+| G14 | 2970.94 | 2970.82 | −0.12 | [−2.68, +2.40] | 2985 | 2984 |
+| G18 | 908.35 | 905.92 | −2.43 | [−5.17, +0.35] | 927 | 926 |
+
+The equal-graph mean relative change at p=800 was **−0.0477%**, with no
+nominal 95% interval excluding zero. Full-rank EVA required **11–14×**
+the EVA runtime for nearly identical continuous relaxation objective values.
+The best-of-100 feasible cut was higher at p=41 on four of five graphs,
+while p=800 achieved a 2-unit better best cut on G11. Compared with the
+five-seed pilot, increasing the sample size markedly reduced apparent
+graph-specific full-rank advantages. These intervals are conditional on
+the five fixed graphs and do not support a universal superiority or equivalence
+claim for all G-set instances.
+
+For the 100 retained partitions per graph/rank, the number of distinct
+*bit-packed labeled* solutions (without complement identification) was:
+G1 (75, 76), G6 (92, 94), G11 (100, 100), G14 (94, 93),
+and G18 (75, 78), where each pair is (p=41, p=800).
+Repeated labels are legitimate outcomes of independent seeded runs.
+
+### Execution, checks and archive publication
+
+- [Original compute run #43812691400](https://github.com/heri-espino/maxkcut/actions/runs/43812691400):
+  hosted tests and Windows computation **passed**; the overall workflow
+  subsequently failed in the LFS stage because a count of unique LFS
+  object identifiers was incorrectly equated with the number of factor
+  and partition file paths. Earlier statistical publication was successful.
+- [Successful LFS recovery run #43814521921](https://github.com/heri-espino/maxkcut/actions/runs/43814521921):
+  independent Linux-hosted verification checked **all 950 new factor SHA-256
+  values**, all 950 original-graph signed hard cut scores and packed
+  partitions, 1,000 CSV records and 500 paired comparisons, **without
+  rerunning EVA or clustering**.
+  The recovery committed 380 binary paths per graph and uploaded all
+  **1,900 LFS-tracked factor/partition file paths (~2.45 GB before
+  deduplication)**, plus 950 exact per-sweep JSONL histories and case
+  metadata records. The distinct Git LFS object count is lower than 1,900
+  because identical binary partitions are content-addressed.
+- [Full report](../../results/gset/experiment029-eva-kmeansnm-100seed/report.md),
+  [all 1,000 runs](../../results/gset/experiment029-eva-kmeansnm-100seed/all_runs.csv),
+  [500 paired contrasts](../../results/gset/experiment029-eva-kmeansnm-100seed/paired_differences.csv),
+  [graph summaries](../../results/gset/experiment029-eva-kmeansnm-100seed/per_graph.csv),
+  and [saved checkpoints](../../results/gset/experiment029-eva-kmeansnm-100seed/runs/).
+- The one-time recovery workflow was removed. The primary experiment
+  workflow was changed to **manual-only** with idempotent archive checks;
+  future agents must not rerun completed numerical work merely to update
+  documentation, tables or figures.
+- All records live on PR #86, stacked on still-unmerged Experiment028 PR #85.
+  No Experiment025 data or historic EVA factors changed. **Do not merge
+  without explicit user authorization.**
 
 ## Research question
 
