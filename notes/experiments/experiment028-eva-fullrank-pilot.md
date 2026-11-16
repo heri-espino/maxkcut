@@ -5,7 +5,23 @@
 continuous vector-relaxation objective and the original signed Max-Cut scores
 obtained by the **same** spherical clustering/rounding implementations?
 
-**Status:** Protocol prepared. Numeric conclusions require a successfully
+**Status: COMPLETE (2026-11-16 UTC).** Numeric compute succeeded in [Actions run 43807215661](https://github.com/heri-espino/maxkcut/actions/runs/43807215661): all 50 compiled EVA solves and 150 original signed Max-Cut rounding scores were recorded. The parent workflow later **failed only at the compact publishing step** because `git diff --check` rejected CRLF line endings from Windows-generated CSV/JSON. Its numerical job and both uploaded artifacts succeeded. Compact results were published after newline normalization; a separate [hosted archive recovery](https://github.com/heri-espino/maxkcut/actions/runs/43807897402) succeeded, independently checked all 50 factor and partition SHA-256 values, and uploaded **100 Git LFS objects (~129 MB)** plus all case records and per-sweep traces. No second EVA run was performed.
+
+## Verified results
+
+All **50/50 factors converged** by the prescribed internal angular threshold (not a global SDP certificate). For the 25 paired seeds per method, the following sign counts and mean graph-normalized effects summarize the feasible original-graph cut changes for `p=n` relative to `p=41`:
+
+| Rounding | Full wins | Ties | Full losses | Equal-graph mean relative change |
+|---|---:|---:|---:|---:|
+| GW / FJ_EVA | 10 | 0 | 15 | −0.4303% |
+| K-Means2N_EVA | 10 | 3 | 12 | −0.2197% |
+| K-MeansNM_EVA | 14 | 2 | 9 | −0.1046% |
+
+For K-MeansNM, graphwise mean improvements (`full minus default`) were **G1 −5.4**, **G6 +11.6**, **G11 +0.8**, **G14 +0.2**, **G18 −11.2** original signed cut units. Best-of-five G6 improved **1,966→1,983** and G14 **2,978→2,981**; G1 fell **11,471→11,464** and G18 **922→908**. The EVA continuous objective averages were nearly identical between ranks (G11: 629.083699 for p=41, 629.081683 for p=800, reflecting attained nonconvex values). Full-rank optimization took roughly **11–14× longer** in the recorded individual EVA runtimes, excluding JIT startup.
+
+**Interpretation:** On these five 800-node cases, full rank does not yield a systematic cut-quality gain. The default low-rank factor is very efficient at representing comparably strong *achieved* solutions. Five graphs and five seeds are insufficient for a general theorem or robust population-level significance conclusion. The rank labels indicate factor width, not necessarily numerical effective rank.
+
+**Source-of-truth results:** [all_runs.csv](../../results/gset/experiment028-eva-fullrank-pilot/all_runs.csv), [paired_differences.csv](../../results/gset/experiment028-eva-fullrank-pilot/paired_differences.csv), [report.md](../../results/gset/experiment028-eva-fullrank-pilot/report.md), and the [entire checkpoint collection](../../results/gset/experiment028-eva-fullrank-pilot/runs/). Reference implementation/source remains frozen at the branch's parent; no historical factor, G-set or Experiment025 result was modified.
 completed, archived runner job and the generated `report.md`. Do not interpret
 this document as an executed experiment.
 
