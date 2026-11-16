@@ -4,7 +4,7 @@ math: mathjax
 theme: default
 size: "16:9"
 paginate: true
-footer: 'maxkcut · Experiments 001–025 · 3 November 2026'
+footer: 'maxkcut · Experiments 001–025 and 028–029 · 16 November 2026'
 style: |
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
   section { font-family: 'Inter', 'Aptos', 'Segoe UI', sans-serif; background: #f8fafc; color: #14213b; padding: 52px 64px; font-size: 25px; line-height: 1.32; }
@@ -53,7 +53,7 @@ style: |
 
 **SDP-inspired vector factors · spherical clustering · local search · G-set**
 
-Experiments 001–025 · 3 November 2026
+Experiments 001–025 · 3 November 2026 · Addendum 028–029: 16 November 2026
 
 **Prepared for Professor Ángel E. Rodríguez Fernández**
 
@@ -1408,3 +1408,110 @@ Source: Experiment025 completion milestone, the Experiment022 graph-feature audi
 - [Experiment025 completed local sweep](https://github.com/heri-espino/maxkcut/blob/main/notes/experiments/experiment025-full-local-computation-2026-11-03.md).
 - [Experiment025 aggregate analysis](https://github.com/heri-espino/maxkcut/pull/75) (provisional; archive audit pending).
 - Graph features: `results/gset/experiment022-graph-structure-methods/graph_features.csv`.
+
+---
+
+<!-- _class: chapter -->
+
+# 13. Does a full-dimensional EVA embedding improve clustering?
+
+**Experiment028 (5 seeds) → Experiment029 (100 seeds)**
+
+A controlled comparison of $p=41$ versus $p=n=800$, using **antipodal spherical K-MeansNM** on the same five G-set graphs.
+
+*Independent new EVA runs; no SDP solver or Experiment025 refinements were repeated.*
+
+---
+
+<!-- _class: compact -->
+
+## E029 — Experimental design: isolate embedding width
+
+| Fixed choice | Reproducible specification |
+|---|---|
+| Graphs | G1, G6, G11, G14, G18; **800 vertices each** |
+| Factor width | Default $p=\lceil\sqrt{2(n+1)}\rceil=41$ vs. full $p=n=800$ |
+| Independent initializations | **100 EVA seeds per graph and width**, 2026–2125 |
+| Rounding | **One antipodal K-MeansNM run** per factor, no Flip/KL/ILS |
+| Work performed | **950 new EVA solves**; 50 earlier E028 factors reused by checksum |
+| Measured endpoint | **1,000 feasible cuts** scored on original signed edges; 500 paired contrasts |
+
+The comparison is $\Delta_{g,s}=C_{g,s}(800)-C_{g,s}(41)$. Identical seed **labels** across ranks do not imply identical initial geometric embeddings.
+
+**Evidence:** E029 independently rescored all 950 new partitions; every factor met the EVA *internal angular tolerance*, not a global SDP certificate.
+
+---
+
+<!-- _class: compact -->
+
+## E028 → E029 — Apparent five-seed gains mostly vanish
+
+**K-MeansNM mean cut change (full $p=800$ minus default $p=41$):**
+
+| Graph | First 5 seeds (E028) | 100 seeds (E029) | Change in inference |
+|---|---:|---:|---|
+| G1 | −5.4 | **−1.19** | Much smaller |
+| G6 | +11.6 | **+0.48** | Apparent advantage vanishes |
+| G11 | +0.8 | **+0.10** | Nearly zero |
+| G14 | +0.2 | **−0.12** | Nearly zero |
+| G18 | −11.2 | **−2.43** | Much smaller |
+
+The five original seeds are **part of** the 100-seed sample, not an independent validation set. Larger seed coverage reduces Monte Carlo variability; this is not evidence that either rank is globally optimal.
+
+---
+
+<!-- _class: small -->
+
+## E029 — Paired uncertainty across 100 starts
+
+![w:1010](assets/experiment029_rank_effect_ci.svg)
+
+**Every nominal 95% paired-seed interval includes zero.** Intervals condition on each of these five selected graphs; they are not a confidence interval across graph families, nor adjusted for multiple testing.
+
+---
+
+<!-- _class: compact -->
+
+## E029 — Original signed Max-Cut, mean over 100 seeds
+
+| Graph | Mean $p=41$ | Mean $p=800$ | $\Delta$ | Paired bootstrap 95% CI |
+|---|---:|---:|---:|---|
+| G1 | 11,443.20 | 11,442.01 | −1.19 | [−4.48, +2.17] |
+| G6 | 1,967.98 | 1,968.46 | +0.48 | [−1.73, +2.94] |
+| G11 | 521.76 | 521.86 | +0.10 | [−1.80, +1.98] |
+| G14 | 2,970.94 | 2,970.82 | −0.12 | [−2.68, +2.40] |
+| G18 | 908.35 | 905.92 | −2.43 | [−5.17, +0.35] |
+
+**Equal-graph mean relative change: −0.0477%.** The 5,000-resample percentile intervals use 100 paired seed identifiers **within each graph**. We cannot claim statistical equivalence simply because intervals include zero.
+
+---
+
+<!-- _class: compact -->
+
+## E029 — Best-of-100 cuts and EVA computational cost
+
+| Graph | Best $p=41$ | Best $p=800$ | Full minus default | EVA time ratio |
+|---|---:|---:|---:|---:|
+| G1 | **11,471** | 11,469 | −2 | 13.5× |
+| G6 | **2,001** | 1,992 | −9 | 13.9× |
+| G11 | 534 | **536** | +2 | 11.1× |
+| G14 | **2,985** | 2,984 | −1 | 11.6× |
+| G18 | **927** | 926 | −1 | 12.4× |
+
+**Default rank achieves the higher observed best cut on four of five graphs.**
+
+The *achieved continuous EVA objective* is nearly unchanged between widths. Runtimes are measured EVA solve times on the same runner and **exclude JIT compilation and archival I/O**. Best-of-100 is a search-budget statistic, not an estimate of the optimal Max-Cut.
+
+---
+
+<!-- _class: chapter -->
+
+# E029 — Scientific takeaway
+
+**For these five 800-vertex graphs, increasing EVA's factor width from 41 to 800 did not yield a consistent improvement in antipodal K-MeansNM cuts.**
+
+Full rank cost **11–14×** more EVA time, with a graph-equal mean cut difference of just **−0.0477%**. This is empirical, not a theorem about all graphs or all rounding algorithms.
+
+**Verified source:** [100-seed report](https://github.com/heri-espino/maxkcut/blob/main/results/gset/experiment029-eva-kmeansnm-100seed/report.md) · [all 1,000 scores](https://github.com/heri-espino/maxkcut/blob/main/results/gset/experiment029-eva-kmeansnm-100seed/all_runs.csv) · [500 paired contrasts](https://github.com/heri-espino/maxkcut/blob/main/results/gset/experiment029-eva-kmeansnm-100seed/paired_differences.csv) · [protocol](https://github.com/heri-espino/maxkcut/blob/main/notes/experiments/experiment029-eva-kmeansnm-100seed.md).
+
+*Historical Experiment025 conclusions on the preceding slides retain their own archive-audit caveats.*
