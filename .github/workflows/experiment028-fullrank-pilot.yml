@@ -5,10 +5,8 @@ on:
     branches:
       - experiment028-eva-fullrank-5x5
     paths:
-      - "scripts/experiment028_fullrank_pilot.py"
-      - "tests/test_experiment028_fullrank_pilot.py"
+      # One-shot run; source/test follow-up commits must not recompute EVA.
       - ".github/workflows/experiment028-fullrank-pilot.yml"
-      - "notes/experiments/experiment028-eva-fullrank-pilot.md"
   workflow_dispatch:
 
 permissions:
@@ -16,7 +14,7 @@ permissions:
 
 concurrency:
   group: experiment028-fullrank-pilot
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   validate:
