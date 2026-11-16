@@ -1,6 +1,27 @@
 # Experiment030 — Weighted local-field clustering on frozen EVA embeddings
 
-**Status:** Protocol and source staged; numerical results must be verified from a completed workflow before publication. **Do not run EVA or SDP.**
+**Status: COMPLETE, independently verified and archived (2026-11-16 UTC).** The Windows experiment processed **all 1,000 archived EVA factors** and evaluated **6,000 hard Max-Cut partitions**, including exact SHA-matched reproduction of every Experiment029 baseline. There were **no new EVA or SDP solves**. The original compute [Actions #43965555603](https://github.com/heri-espino/maxkcut/actions/runs/43965555603) passed hosted synthetic tests and Windows numeric work, but its final hosted git publication failed on a single trailing blank Markdown line. The [hosted-only recovery #43966589165](https://github.com/heri-espino/maxkcut/actions/runs/43966589165) independently verified all **6,000 signed partitions**, all **104,242 clustering iteration records**, complete per-graph manifest checksums, and committed the archive **without rerunning clustering or EVA**.
+
+## Results and interpretation
+
+The primary raw field `-H` versus original `Y`, using 100 paired seeds **within each graph and dimension**, gave the following signed-cut mean differences and nominal 95% paired percentile bootstrap intervals (5,000 resamples):
+
+| Graph | p=41: mean Δ [95% CI] | p=800: mean Δ [95% CI] | Best raw-field vs Y at p=41 | Best raw-field vs Y at p=800 |
+| --- | --- | --- | --- | --- |
+| G1 | −0.43 [−1.96, +0.94] | −1.41 [−3.56, +0.36] | 11,471 vs 11,471 | 11,474 vs 11,469 |
+| G6 | −0.92 [−2.08, +0.19] | −1.35 [−3.39, +0.33] | 1,994 vs 2,001 | 1,994 vs 1,992 |
+| G11 | +0.90 [+0.18, +1.68] | +0.90 [+0.04, +1.76] | 534 vs 534 | 536 vs 536 |
+| G14 | −2.56 [−4.10, −0.96] | −2.92 [−4.43, −1.32] | 2,988 vs 2,985 | 2,988 vs 2,984 |
+| G18 | +2.41 [+0.79, +4.03] | +1.64 [+0.09, +3.25] | 933 vs 927 | 933 vs 926 |
+
+The equal-graph mean relative improvement was **+0.0602% at p=41** and **+0.0349% at p=800**. This differs from the unnormalized mean of raw cut-unit differences (−0.120 and −0.628) because graph cut scales differ. Gains at G11/G18 and losses at G14 are **heterogeneous**: there is no uniform improvement across five graphs. The CIs are conditional on the selected graphs, do not cover graph-population variation, and are **not corrected for comparing multiple methods/graphs**. Some best-of-100 cuts improve even where mean quality declines; best-of-100 is a secondary descriptive metric, not the primary evidence.
+
+**Mechanism confirmed numerically.** For nonzero fields at a true EVA fixed point \(h_i=-d_i y_i\) with \(d_i=\|h_i\|\). The minimum observed cosine between \(y_i\) and \(-h_i/d_i\) across 1,000 factors was **0.999999611** (default width) and **0.999999636** (full width), with **zero null-field vertices**. Clustering normalized \(-H\) nearly reproduces the exact original baseline; raw \(-H\) and \(d_iY\) gave nearly identical graphwise means, as predicted by the fixed-point identity. Their different outcomes from the original \(Y\) arise predominantly from **vertex-specific weighting inside the centroid update**, not a novel angular embedding.
+
+**Controls.** Graph G18's raw-field mean improves over the abs-degree-only representation by **+4.97 signed cut units at p=41** and **+4.03 at p=800** (exploratory comparisons), while the abs-degree-only mean itself is below the original baseline. This is evidence that weighted local-field magnitude may convey signal beyond absolute weighted degree for this fixed graph. Coherence-only \(q_iY\) does not reproduce raw-field gains there. Conversely, the raw field degrades G14's mean. No general algorithmic performance dominance or global SDP optimality follows.
+
+**Complete archive:** [all 6,000 rounds](../../results/gset/experiment030-local-field-clustering/all_rounds.csv), [paired contrasts](../../results/gset/experiment030-local-field-clustering/paired_differences.csv), [paired/bootstrap table](../../results/gset/experiment030-local-field-clustering/per_graph_method.csv), [full scientific report](../../results/gset/experiment030-local-field-clustering/report.md), [deterministic normalized-effect figure](../../results/gset/experiment030-local-field-clustering/raw_field_relative_effects.svg), [case manifests, packed labels and full traces](../../results/gset/experiment030-local-field-clustering/graphs/). Figure regenerated with `python scripts/experiment030_plot_effects.py` and verified using `--check`. Binary EVA factor files remain in Experiments028/029 and are referenced by SHA, not recopied.
+
 
 ## Question and theory
 
