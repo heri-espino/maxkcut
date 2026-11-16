@@ -1,3 +1,10 @@
+## Experiment028 — Five-graph p=41 versus p=800 pilot COMPLETE (2026-11-16 UTC)
+
+[Protocol, derivation and results](notes/experiments/experiment028-eva-fullrank-pilot.md). Original signed 800-node G-set G1/G6/G11/G14/G18, EVA seeds 2026–2030, both default and full p, exactly 50 sequential-Numba factors, followed by GW/K-Means2N/K-MeansNM (150 signed cuts). [Compact report](results/gset/experiment028-eva-fullrank-pilot/report.md), [raw paired comparisons](results/gset/experiment028-eva-fullrank-pilot/paired_differences.csv), [sweep journals and 100 LFS factor/partition objects](results/gset/experiment028-eva-fullrank-pilot/runs/). Compute [run 43807215661](https://github.com/heri-espino/maxkcut/actions/runs/43807215661) succeeded, but its main workflow **failed in publication due Windows CRLF text diff**; publishing was recovered without numerical recompute by [hosted run 43807897402](https://github.com/heri-espino/maxkcut/actions/runs/43807897402), which independently audited the checkpoint SHA-256 values and pushed all 100 LFS objects. All 50 factors internally converged; factor p=800 produced virtually the same continuous relaxation value, with about 11–14× more EVA time. Across five equally weighted graphs, paired mean relative signed-cut effects (p800 minus p41) were GW −0.4303%, K-Means2N −0.2197%, K-MeansNM −0.1046%. There are meaningful graph-specific exceptions (especially G6 K-MeansNM +11.6 raw mean cut units), so do not generalize to every graph. Existing Experiment002/021 EVA, Experiment025 local-only results, and the VM's active directory were not changed. **Treat this as a finished small pilot, no reruns, no certified SDP optimum, do not merge the results PR without authorization.**
+
+
+---
+
 **Document collection migration (2026-11-14):** The archived presentation
 sources/PDFs/plots and 49-page modular EVA monograph were moved (not
 regenerated) to [`documents/`](documents/README.md) on an isolated branch.
