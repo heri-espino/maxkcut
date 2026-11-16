@@ -15,7 +15,7 @@ const displayMarkers = [...deck.matchAll(/^\$\$/gm)].length;
 if (displayMarkers !== 18) throw Error("Expected exactly 9 display math environments");
 const sections = deck.split(/^---\s*$/m);
 const bodies = sections.slice(2);
-if(bodies.length !== 97) throw Error("Experiment025 extension is absent: "+bodies.length+" slides");
+if(bodies.length !== 104) throw Error("Experiment029 seven-slide appendix is absent: "+bodies.length+" slides");
 for(const [index,slide] of bodies.entries()){
   const nonDisplay = slide.replace(/^\$\$/gm, "");
   if ([...nonDisplay.matchAll(/(?<!\\)\$/g)].length % 2) throw Error("Unbalanced inline math on slide " + (index+1));
@@ -26,6 +26,23 @@ for(const [index,slide] of bodies.entries()){
 const references=[...deck.matchAll(/!\[[^\]]*]\(([^)]+)\)/g)].map(x=>x[1]);
 const missing=references.filter(ref=>!fs.existsSync(path.resolve(directory,ref)));
 if(missing.length)throw Error("Broken slide figure paths: "+missing.join(", "));
+// The seven appended slides are a distinct, independently audited 100-seed study.
+const addendum = bodies.slice(-7).join("\n---\n");
+if (!bodies.at(-7).includes("# 13. Does a full-dimensional EVA embedding improve clustering?") ||
+    !addendum.includes("## E029 — Paired uncertainty across 100 starts") ||
+    !addendum.includes("## E029 — Best-of-100 cuts and EVA computational cost") ||
+    !addendum.includes("−0.0477%") ||
+    !addendum.includes("all 950 new partitions") && !addendum.includes("all 950 new")) {
+  throw Error("Experiment029 final scientific appendix missing or incomplete");
+}
+const rankFigure = "assets/experiment029_rank_effect_ci.svg";
+if (references.filter(ref => ref === rankFigure).length !== 1)
+  throw Error("Expected exactly one Experiment029 rank-confidence figure");
+const e029Csv=fs.readFileSync(path.resolve(root,"results/gset/experiment029-eva-kmeansnm-100seed/per_graph.csv"),"utf8");
+const e029Rows=e029Csv.trim().split(/\r?\n/).slice(1);
+if (e029Rows.length!==5 || !e029Rows.every(row => row.split(",")[1]==="100"))
+  throw Error("Experiment029 source must contain 5 graphs and 100 seeds each");
+
 const extra=JSON.parse(fs.readFileSync(path.join(directory,"experiment025-reference-ratio-manifest.json"),"utf8"));
 const ratioRefs=references.filter(x=>x.startsWith("assets/experiment025_benchmark_ratio_"));
 if(ratioRefs.length!==3||new Set(ratioRefs).size!==3||extra.nGraphs!==71||extra.nMethods!==18||extra.quicoptGraded!==52)throw Error("External reference ratio graphs missing");
@@ -37,4 +54,4 @@ for(const ref of expected)if(!e025.includes(ref))throw Error("Missing Experiment
 if(manifest.nCells!==1278 || manifest.nGraphs!==71 || manifest.nMethods!==18)throw Error("Invalid full coverage metadata");
 if(manifest.csvSha256!=="8a9d84cfc35f1d424519b862676facc288a6366bc1820e52975a2bf76678de6c")throw Error("Unexpected aggregate source hash");
 if(!deck.includes("independent") || !deck.includes("off-VM") || !deck.includes("generator"))throw Error("Scientific caveats missing");
-console.log(JSON.stringify({slides:bodies.length,referencedImages:references.length,experiment025Charts:e025.length,externalCharts:ratioRefs.length,manifestComplete:true},null,2));
+console.log(JSON.stringify({slides:bodies.length,referencedImages:references.length,experiment025Charts:e025.length,experiment029Charts:1,externalCharts:ratioRefs.length,manifestComplete:true},null,2));
