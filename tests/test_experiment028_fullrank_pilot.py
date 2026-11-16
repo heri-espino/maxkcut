@@ -27,6 +27,15 @@ def test_seed_stream_pairing_and_rank_definition():
     assert int(np.ceil(np.sqrt(2*(800+1)))) == 41
 
 
+def test_windows_linux_line_ending_identity(tmp_path: Path):
+    p = tmp_path / "graph.txt"
+    p.write_bytes(b"3 2\n1 2 1\n2 3 -1\n")
+    hashes = mod.graph_byte_hashes(p)
+    assert hashes["lf"] == hashes["raw"]
+    assert hashes["crlf"] == hashlib.sha256(b"3 2\r\n1 2 1\r\n2 3 -1\r\n").hexdigest()
+    assert hashes["crlf"] != hashes["lf"]
+
+
 def test_synthetic_factor_and_cluster_protocol(tmp_path: Path):
     graphdir = tmp_path / "graphs"
     graphdir.mkdir()
