@@ -45,6 +45,24 @@ def sha256(path: Path) -> str:
     return d.hexdigest()
 
 
+def graph_byte_hashes(path: Path) -> dict[str, str]:
+    """Preserve raw file fingerprint and handle Git Windows/Linux EOL checkout.
+
+    Historical Experiment022 hashes were generated on Windows. The same
+    logical G-set edge list can be checked out with LF or CRLF; accepting
+    only these three byte-identical-after-EOL-normalization forms does not
+    relax the edge/weight-content integrity requirement.
+    """
+    data = path.read_bytes()
+    lf = data.replace(b"\r\n", b"\n")
+    return {
+        "raw": hashlib.sha256(data).hexdigest(),
+        "lf": hashlib.sha256(lf).hexdigest(),
+        "crlf": hashlib.sha256(lf.replace(b"\n", b"\r\n")).hexdigest(),
+    }
+
+
+
 def metadata_from_csv(path: Path) -> dict[str, dict[str, str]]:
     with path.open(newline="", encoding="utf-8") as stream:
         return {row["graph"]: row for row in csv.DictReader(stream)}
@@ -109,7 +127,9 @@ def one_case(graph_name: str, a, edges, info: dict[str, str], rank_mode: str,
             source_digest.update(source_path.read_bytes())
     setting = {
         "implementation_sha256": source_digest.hexdigest(),
-        "graph": graph_name, "graph_sha256": graph_hash, "n": n,
+        "graph": graph_name, "graph_sha256": graph_hash,
+        "raw_checkout_sha256": info.get("raw_checkout_sha256"),
+        "matching_line_ending": info.get("matching_line_ending"), "n": n,
         "p": p, "rank_mode": rank_mode, "seed": seed,
         "tolerance": tolerance, "max_sweeps": max_sweeps,
         "checkpoint_every": checkpoint_every, "methods": list(METHODS),
@@ -382,10 +402,14 @@ def main(argv=None):
             raise ValueError(f"Pilot graph {g} expected 800 vertices, found {a.shape}")
         if g not in features:
             raise ValueError(f"Missing feature provenance for {g}")
-        current_hash = sha256(path)
+        hashes = graph_byte_hashes(path)
         info = dict(features[g])
-        if info["graph_sha256"] != current_hash:
-            raise RuntimeError(f"Graph SHA mismatch for {g}: {current_hash} vs {info['graph_sha256']}")
+        matches = [style for style, digest in hashes.items() if digest == info["graph_sha256"]]
+        if not matches:
+            raise RuntimeError(f"Graph SHA mismatch for {g}: {hashes} vs archived {info['graph_sha256']}")
+        info["raw_checkout_sha256"] = hashes["raw"]
+        info["matching_line_ending"] = matches[0]
+        print(f"{g}: graph file identity confirmed as {matches[0]} hash",flush=True)
         if int(info["n"]) != a.shape[0]:
             raise RuntimeError(f"Graph size metadata mismatch for {g}")
         graph_cache[g] = (a, edge_arrays(a), info)
