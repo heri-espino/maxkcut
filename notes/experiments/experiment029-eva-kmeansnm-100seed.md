@@ -59,9 +59,10 @@ Repeated labels are legitimate outcomes of independent seeded runs.
   workflow was changed to **manual-only** with idempotent archive checks;
   future agents must not rerun completed numerical work merely to update
   documentation, tables or figures.
-- All records live on PR #86, stacked on still-unmerged Experiment028 PR #85.
-  No Experiment025 data or historic EVA factors changed. **Do not merge
-  without explicit user authorization.**
+- Experiment028 was merged into `main` through PR #85 on 2026-11-16;
+  Experiment029 is integrated through PR #86, which also adds seven slides
+  to the full-research Marp presentation. No Experiment025 data or historic
+  EVA factors changed. The requested PR merge was explicitly authorized.
 
 ## Research question
 
