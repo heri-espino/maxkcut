@@ -1,12 +1,7 @@
 name: Experiment028 - EVA full embedding versus default, five-graph pilot
 
+# Experiment028 is complete. Re-execution requires an explicit manual dispatch.
 on:
-  push:
-    branches:
-      - experiment028-eva-fullrank-5x5
-    paths:
-      # One-shot run; source/test follow-up commits must not recompute EVA.
-      - ".github/workflows/experiment028-fullrank-pilot.yml"
   workflow_dispatch:
 
 permissions:
@@ -164,6 +159,17 @@ jobs:
           assert {int(r['p']) for r in rows}=={41,800}
           assert len(list((d/'runs').glob('*/**/factor.npz')))==50
           print('PASS: all 50 factors and 150 original signed cut results found')
+          PY
+          # Windows checkout writes CRLF CSV/JSON; normalize text for Git,
+          # preserving binary EVA factor and partition bytes unchanged.
+          python - <<'PY'
+          from pathlib import Path
+          root=Path('results/gset/experiment028-eva-fullrank-pilot')
+          for file in root.rglob('*'):
+              if file.is_file() and file.suffix in {'.json','.jsonl','.md','.csv','.svg'}:
+                  data=file.read_bytes()
+                  fixed=data.replace(b'\\r\\n',b'\\n')
+                  if fixed!=data: file.write_bytes(fixed)
           PY
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
