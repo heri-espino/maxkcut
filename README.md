@@ -1,4 +1,8 @@
 # maxkcut
+## Experiment028: Does full-dimensional EVA improve spherical clustering?
+
+A scoped [five-graph, five-seed, two-rank experiment](notes/experiments/experiment028-eva-fullrank-pilot.md) compares p=41 with p=n=800 for G1/G6/G11/G14/G18, followed by GW, K-Means2N and K-MeansNM on the *original signed Max-Cut objective*. The reproducible [driver](scripts/experiment028_fullrank_pilot.py) and [self-hosted workflow](.github/workflows/experiment028-fullrank-pilot.yml) write new, checkpointed results under `results/gset/experiment028-eva-fullrank-pilot/`, without changing historical factors or Experiment025. This is a test protocol: check the scoped results branch and verified final report before making performance claims.
+
 ## Research documents
 
 [Browse presentations, the mathematical monograph, and research deliverables](documents/README.md).
