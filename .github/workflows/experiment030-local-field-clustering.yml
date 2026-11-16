@@ -2,10 +2,9 @@ name: Experiment030 - local-field weighted K-MeansNM on archived EVA factors
 
 # One-shot workflow. Only editing THIS workflow on this branch will dispatch a
 # second numerical job; source and reporting commits never do so.
+# Experiment030 is complete; any future execution must be explicitly dispatched.
 on:
-  push:
-    branches: [experiment030-local-field-clustering]
-    paths: ['.github/workflows/experiment030-local-field-clustering.yml']
+  workflow_dispatch:
 
 permissions:
   contents: write
