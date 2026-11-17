@@ -2,10 +2,9 @@ name: Experiment031 - signed-edge geometry and GW hyperplane invariance
 
 # One-shot: only workflow edits start an Actions run; source/data commits do not
 # accidentally resubmit the 1000-case experiment. Set manual-only after audit.
+# Experiment031 completed and independently audited; re-execution requires explicit dispatch.
 on:
-  push:
-    branches: [experiment031-signed-gw-geometry]
-    paths: ['.github/workflows/experiment031-signed-gw-geometry.yml']
+  workflow_dispatch:
 
 permissions:
   contents: write
