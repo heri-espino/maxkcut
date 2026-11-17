@@ -1,3 +1,9 @@
+# Experiment032 all-71 graph-field rounding appendix — verified 111-slide deck
+
+**Updated 2026-11-16.** The canonical [Marp source](maxkcut_full_research_001_025.marp.md) retains all 104 previously verified slides (including E029), with **seven new Experiment032 slides at the end**. New findings are grounded in [independently audited 14,200 original signed cuts](../../results/gset/experiment032-all-gset-field-rounding/all_runs.csv), [71 graphwise paired results](../../results/gset/experiment032-all-gset-field-rounding/per_graph.csv), and [the completed protocol](../../notes/experiments/experiment032-all-gset-field-rounding.md). Each graph uses one original EVA factor and 50 common rounding directions; do not conflate that with 50 new EVA solves. Figure reproduction: `python scripts/experiment032_plot_field_rounding.py`, then `python scripts/experiment032_plot_field_rounding.py --check`. The [hosted Marp export](../../.github/workflows/experiment025-marp-presentation.yml) enforces **111 PDF pages**, a self-contained HTML, and a source reproducibility check. No Windows runner or numerical optimizer is used in that slide-rendering workflow.
+
+---
+
 # Experiment028–029 rank-ablation appendix — 104-slide full research deck
 
 **Updated 16 November 2026.** The canonical `documents/presentations/maxkcut_full_research_001_025.marp.md` contains the original **97 historical research slides**, followed by **seven additional Experiment028–029 slides** on EVA embedding width (p=41 versus p=800), 100 seeds per width and graph, and *antipodal K-MeansNM only*. Original Experiment025 results/caveats remain intact. Each new numeric claim is grounded in [Experiment029's archived report](../../results/gset/experiment029-eva-kmeansnm-100seed/report.md) and [per-graph CSV](../../results/gset/experiment029-eva-kmeansnm-100seed/per_graph.csv), with [experimental protocol and audit](../../notes/experiments/experiment029-eva-kmeansnm-100seed.md).
