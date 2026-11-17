@@ -1,0 +1,217 @@
+name: Experiment032 - all-71 matched GW and K-MeansNM on Y versus negative field
+
+# A one-shot initial push trigger only. No output or reporting commit re-dispatches computation.
+on:
+  push:
+    branches: [experiment032-all-gset-field-rounding]
+    paths: ['.github/workflows/experiment032-all-gset-field-rounding.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: experiment032-all-gset-frozen-eva
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment032-all-gset-field-rounding'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install hosted synthetic-test dependencies
+        run: python -m pip install --disable-pip-version-check 'numpy>=1.26,<3' 'scipy>=1.12,<2' pytest
+      - name: Run six source-rounder and signed-weight synthetic tests
+        env:
+          PYTHONPATH: src:scripts
+          OPENBLAS_NUM_THREADS: '1'
+        run: python -m pytest -q tests/test_experiment032_all_gset_field_rounding.py
+      - name: Validate every immutable original case and G-set SHA identity
+        env:
+          PYTHONPATH: src:scripts
+        run: python scripts/experiment032_all_gset_field_rounding.py --phase validate
+
+  compute:
+    needs: validate
+    if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment032-all-gset-field-rounding'
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 240
+    steps:
+      - name: Refuse wrong runner or university VM active worktree
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          if ($env:RUNNER_NAME -ne 'PCAG103A-13') { throw 'Wrong Windows runner identity' }
+          if ($env:GITHUB_WORKSPACE -eq 'C:\Users\175199\maxkcut') { throw 'Refuse active Experiment025 research worktree' }
+          Write-Host "Experiment032 isolated checkout: $env:GITHUB_WORKSPACE"
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment032-all-gset-field-rounding
+          lfs: false  # legacy Ex002/003/021 EVA factors were committed as normal Git blobs
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Find existing maxkcut Conda environment without modifying packages
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $prefix=$null
+          if ($env:MAXKCUT_CONDA_PREFIX -and (Split-Path $env:MAXKCUT_CONDA_PREFIX -Leaf) -ieq 'maxkcut') { $prefix=$env:MAXKCUT_CONDA_PREFIX }
+          if (-not $prefix -and $env:CONDA_PREFIX -and (Split-Path $env:CONDA_PREFIX -Leaf) -ieq 'maxkcut') { $prefix=$env:CONDA_PREFIX }
+          if (-not $prefix -and (Get-Command conda -ErrorAction SilentlyContinue)) {
+            $json=(& conda env list --json | Out-String | ConvertFrom-Json)
+            foreach ($e in @($json.envs)) {
+              if ((Split-Path $e -Leaf) -ieq 'maxkcut' -and (Test-Path (Join-Path $e 'python.exe'))) { $prefix=$e; break }
+            }
+          }
+          if (-not $prefix) {
+            foreach ($candidate in @("$env:LOCALAPPDATA\miniconda3\envs\maxkcut", "$env:USERPROFILE\miniconda3\envs\maxkcut", 'C:\ProgramData\miniconda3\envs\maxkcut')) {
+              if (Test-Path (Join-Path $candidate 'python.exe')) { $prefix=$candidate; break }
+            }
+          }
+          if (-not $prefix -or -not (Test-Path (Join-Path $prefix 'python.exe'))) { throw 'Existing maxkcut Conda environment unavailable' }
+          Add-Content $env:GITHUB_ENV "EX032_PREFIX=$prefix"
+          Add-Content $env:GITHUB_ENV "EX032_PYTHON=$(Join-Path $prefix 'python.exe')"
+      - name: Run 71 graphs times 50 matched normals without EVA/SDP/Flip/KL/ILS
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $env:PYTHONPATH=(Join-Path (Get-Location).Path 'src')+';'+(Join-Path (Get-Location).Path 'scripts')
+          $env:CONDA_PREFIX=$env:EX032_PREFIX
+          $env:CONDA_DEFAULT_ENV='maxkcut'
+          foreach ($part in @('Library\mingw-w64\bin','Library\usr\bin','Library\bin','Scripts','')) {
+            $p=Join-Path $env:EX032_PREFIX $part
+            if (Test-Path $p) { $env:PATH="$p;$env:PATH" }
+          }
+          $env:NUMBA_NUM_THREADS='1'
+          $env:OPENBLAS_NUM_THREADS='1'
+          $env:MKL_NUM_THREADS='1'
+          $env:OMP_NUM_THREADS='1'
+          & $env:EX032_PYTHON -u scripts/experiment032_all_gset_field_rounding.py --phase compute --workers 5
+          if ($LASTEXITCODE -ne 0) { throw "All-graph independent rounding comparison failed $LASTEXITCODE" }
+          & $env:EX032_PYTHON -u scripts/experiment032_all_gset_field_rounding.py --phase verify
+          if ($LASTEXITCODE -ne 0) { throw 'Independent signed cut verification failed on Windows' }
+      - name: Upload graphwise exact cuts, bit-packed partitions and Lloyd traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: experiment032-all-71-graphs
+          path: results/gset/experiment032-all-gset-field-rounding/graphs/
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Upload complete graphwise statistics
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: experiment032-compact
+          path: |
+            results/gset/experiment032-all-gset-field-rounding/all_runs.csv
+            results/gset/experiment032-all-gset-field-rounding/per_graph.csv
+            results/gset/experiment032-all-gset-field-rounding/summary.json
+            results/gset/experiment032-all-gset-field-rounding/report.md
+          if-no-files-found: error
+          retention-days: 90
+
+  publish:
+    needs: compute
+    if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment032-all-gset-field-rounding'
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment032-all-gset-field-rounding
+          fetch-depth: 0
+          lfs: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Hosted independent audit dependencies only
+        run: python -m pip install --disable-pip-version-check 'numpy>=1.26,<3' 'scipy>=1.12,<2'
+      - uses: actions/download-artifact@v4
+        with:
+          name: experiment032-all-71-graphs
+          path: results/gset/experiment032-all-gset-field-rounding/graphs/
+      - uses: actions/download-artifact@v4
+        with:
+          name: experiment032-compact
+          path: results/gset/experiment032-all-gset-field-rounding/
+      - name: Normalize only Windows text files; never change packed partitions
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          for p in Path('results/gset/experiment032-all-gset-field-rounding').rglob('*'):
+              if p.is_file() and p.suffix in ('.csv','.json','.jsonl','.md'):
+                  raw=p.read_bytes();normalized=raw.replace(b'\r\n',b'\n')
+                  if raw!=normalized:p.write_bytes(normalized)
+          PY
+      - name: First SHA/trajectory and 14200 original signed cuts audit
+        env:
+          PYTHONPATH: src:scripts
+          OPENBLAS_NUM_THREADS: '1'
+          MKL_NUM_THREADS: '1'
+        run: |
+          set -euo pipefail
+          python scripts/experiment032_all_gset_field_rounding.py --phase verify
+      - name: Independently rescore all 14200 cuts directly from original signed text edges
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import csv,hashlib,json
+          import numpy as np
+          root=Path('results/gset/experiment032-all-gset-field-rounding')
+          summary=json.loads((root/'summary.json').read_text())
+          assert summary['complete'] and summary['graphs']==71 and summary['source_eva_factors_reused']==71
+          assert summary['new_eva_solves']==0 and summary['total_cut_records']==14200
+          with (root/'per_graph.csv').open(newline='') as f: stats=list(csv.DictReader(f))
+          with (root/'all_runs.csv').open(newline='') as f: allrows=list(csv.DictReader(f))
+          assert len(stats)==71 and len(allrows)==14200
+          total=0
+          for row in stats:
+              graph=row['graph']
+              with (Path('data')/(graph+'.txt')).open() as f:
+                  n,m=map(int,f.readline().split()); edges=[line.split() for line in f]
+              assert len(edges)==m
+              i=np.array([int(x[0])-1 for x in edges]);j=np.array([int(x[1])-1 for x in edges]);w=np.array([float(x[2]) for x in edges])
+              d=root/'graphs'/graph
+              with (d/'cases.csv').open(newline='') as f:cases=list(csv.DictReader(f))
+              assert len(cases)==200
+              manifest=json.loads((d/'manifest.json').read_text())
+              for name,expected in manifest['hashes'].items():
+                  assert hashlib.sha256((d/name).read_bytes()).hexdigest()==expected
+              with np.load(d/'partitions.npz',allow_pickle=False) as archive:
+                  assert len(archive.files)==200
+                  for c in cases:
+                      key=f"{c['method']}_r{int(c['restart']):03d}"
+                      raw=archive[key]
+                      assert hashlib.sha256(raw.tobytes()).hexdigest()==c['partition_sha256']
+                      label=np.unpackbits(raw)[:n]
+                      score=float(np.sum(w[label[i]!=label[j]]))
+                      assert abs(score-float(c['cut_weight']))<1e-7,(graph,key,score,c['cut_weight'])
+                      total+=1
+          assert total==14200
+          print('PASS independent original-signed cut re-score 14200/14200 for 71/71 graphs')
+          PY
+      - name: Publish all verified results, no factor modifications
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- results/gset/experiment032-all-gset-field-rounding/
+          git diff --cached --check
+          if git diff --cached --quiet; then echo 'Results already committed'; else
+            git commit -m 'experiment032: archive 14200 independently audited signed cuts across 71 graphs'
+            git push origin HEAD:experiment032-all-gset-field-rounding
+          fi
+          echo 'PASS Experiment032 71 graph publication'
