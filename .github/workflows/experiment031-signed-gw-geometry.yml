@@ -1,0 +1,208 @@
+name: Experiment031 - signed-edge geometry and GW hyperplane invariance
+
+# One-shot: only workflow edits start an Actions run; source/data commits do not
+# accidentally resubmit the 1000-case experiment. Set manual-only after audit.
+on:
+  push:
+    branches: [experiment031-signed-gw-geometry]
+    paths: ['.github/workflows/experiment031-signed-gw-geometry.yml']
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: experiment031-signed-gw-geometry
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment031-signed-gw-geometry'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install lightweight hosted test dependencies only
+        run: python -m pip install --disable-pip-version-check 'numpy>=1.26,<3' 'scipy>=1.12,<2' 'numba>=0.67,<0.69' threadpoolctl pytest
+      - name: Test signed geometry, exact GW angular law, field invariance and RNG
+        env:
+          PYTHONPATH: src:scripts
+          OPENBLAS_NUM_THREADS: '1'
+          MKL_NUM_THREADS: '1'
+        run: python -m pytest tests/test_experiment031_signed_gw_geometry.py -q
+      - name: Validate five original G-set hashes and exact 1000 factor references
+        env:
+          PYTHONPATH: src:scripts
+        run: python scripts/experiment031_signed_gw_geometry.py --validate-only
+
+  compute:
+    needs: validate
+    if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment031-signed-gw-geometry'
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 240
+    steps:
+      - name: Verify named Windows runner and refuse Experiment025 active worktree
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          if ($env:RUNNER_NAME -ne 'PCAG103A-13') { throw 'Wrong university runner' }
+          if ($env:GITHUB_WORKSPACE -eq 'C:\Users\175199\maxkcut') { throw 'Refuse active VM research checkout' }
+          Write-Host "Dedicated Actions checkout: $env:RUNNER_NAME / $env:GITHUB_WORKSPACE"
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment031-signed-gw-geometry
+          lfs: true
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Verify original SHA-archived EVA factors are real LFS binaries
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          foreach ($g in @('G1','G6','G11','G14','G18')) {
+            foreach ($mode in @('default','full')) {
+              foreach ($seed in @(2026,2030,2031,2088,2125)) {
+                $base = if ($seed -le 2030) { 'results/gset/experiment028-eva-fullrank-pilot' } else { 'results/gset/experiment029-eva-kmeansnm-100seed' }
+                $f=Join-Path $base "runs/$g/$mode/seed-$seed/factor.npz"
+                if (-not (Test-Path $f)) { throw "Missing frozen EVA factor: $f" }
+                if ((Get-Item $f).Length -lt 1024) { throw "LFS pointer unresolved: $f" }
+              }
+            }
+          }
+          Write-Host 'Frozen factor archives present. No EVA solve will run.'
+      - name: Find already-installed maxkcut Conda Python without changing VM packages
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $prefix=$null
+          if ($env:MAXKCUT_CONDA_PREFIX -and (Split-Path $env:MAXKCUT_CONDA_PREFIX -Leaf) -ieq 'maxkcut') { $prefix=$env:MAXKCUT_CONDA_PREFIX }
+          if (-not $prefix -and $env:CONDA_PREFIX -and (Split-Path $env:CONDA_PREFIX -Leaf) -ieq 'maxkcut') { $prefix=$env:CONDA_PREFIX }
+          if (-not $prefix -and (Get-Command conda -ErrorAction SilentlyContinue)) {
+            $json=(& conda env list --json | Out-String | ConvertFrom-Json)
+            foreach ($e in @($json.envs)) {
+              if ((Split-Path $e -Leaf) -ieq 'maxkcut' -and (Test-Path (Join-Path $e 'python.exe'))) { $prefix=$e; break }
+            }
+          }
+          if (-not $prefix) {
+            foreach ($candidate in @("$env:LOCALAPPDATA\miniconda3\envs\maxkcut", "$env:USERPROFILE\miniconda3\envs\maxkcut", 'C:\ProgramData\miniconda3\envs\maxkcut')) {
+              if (Test-Path (Join-Path $candidate 'python.exe')) { $prefix=$candidate; break }
+            }
+          }
+          if (-not $prefix -or -not (Test-Path (Join-Path $prefix 'python.exe'))) { throw 'Existing maxkcut Conda Python unavailable' }
+          Add-Content $env:GITHUB_ENV "EX031_PREFIX=$prefix"
+          Add-Content $env:GITHUB_ENV "EX031_PYTHON=$(Join-Path $prefix 'python.exe')"
+      - name: Evaluate 100 EVA seeds by rank and five graphs using matched GW normals
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $env:PYTHONPATH=(Join-Path (Get-Location).Path 'src')+';'+(Join-Path (Get-Location).Path 'scripts')
+          $env:CONDA_PREFIX=$env:EX031_PREFIX
+          $env:CONDA_DEFAULT_ENV='maxkcut'
+          foreach ($part in @('Library\mingw-w64\bin','Library\usr\bin','Library\bin','Scripts','')) {
+            $p=Join-Path $env:EX031_PREFIX $part
+            if (Test-Path $p) { $env:PATH="$p;$env:PATH" }
+          }
+          $env:NUMBA_NUM_THREADS='1'
+          $env:OPENBLAS_NUM_THREADS='1'
+          $env:MKL_NUM_THREADS='1'
+          $env:OMP_NUM_THREADS='1'
+          & $env:EX031_PYTHON -u scripts/experiment031_signed_gw_geometry.py --workers 5
+          if ($LASTEXITCODE -ne 0) { throw "Experiment031 GW geometry failed ($LASTEXITCODE)" }
+          & $env:EX031_PYTHON -u scripts/experiment031_signed_gw_geometry.py --check-only
+          if ($LASTEXITCODE -ne 0) { throw "Experiment031 original signed-cut archive validation failed ($LASTEXITCODE)" }
+      - name: Save graphwise exact GW archives even on partial compute failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: experiment031-all-graph-archives
+          path: results/gset/experiment031-signed-gw-geometry/graphs/
+          retention-days: 90
+          if-no-files-found: warn
+      - name: Save compact complete results
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: experiment031-compact
+          path: |
+            results/gset/experiment031-signed-gw-geometry/all_cases.csv
+            results/gset/experiment031-signed-gw-geometry/all_gw_trials.csv
+            results/gset/experiment031-signed-gw-geometry/per_graph_rank.csv
+            results/gset/experiment031-signed-gw-geometry/summary.json
+            results/gset/experiment031-signed-gw-geometry/report.md
+          retention-days: 90
+          if-no-files-found: error
+
+  publish:
+    needs: compute
+    if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment031-signed-gw-geometry'
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment031-signed-gw-geometry
+          fetch-depth: 0
+          lfs: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install hosted verification dependencies (no EVA compute)
+        run: python -m pip install --disable-pip-version-check 'numpy>=1.26,<3' 'scipy>=1.12,<2' 'numba>=0.67,<0.69' threadpoolctl
+      - uses: actions/download-artifact@v4
+        with:
+          name: experiment031-all-graph-archives
+          path: results/gset/experiment031-signed-gw-geometry/graphs
+      - uses: actions/download-artifact@v4
+        with:
+          name: experiment031-compact
+          path: results/gset/experiment031-signed-gw-geometry
+      - name: Normalize text line endings only
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          for f in Path('results/gset/experiment031-signed-gw-geometry').rglob('*'):
+              if f.is_file() and f.suffix in ('.csv','.json','.md'):
+                  b=f.read_bytes();z=b.replace(b'\r\n',b'\n')
+                  if z!=b:f.write_bytes(z)
+          PY
+      - name: Independently rescore 48000 packed signed cuts without EVA factors
+        shell: bash
+        env:
+          PYTHONPATH: src:scripts
+          OPENBLAS_NUM_THREADS: '1'
+        run: |
+          set -euo pipefail
+          python scripts/experiment031_signed_gw_geometry.py --check-only
+          python - <<'PY'
+          import csv,json
+          from pathlib import Path
+          p=Path('results/gset/experiment031-signed-gw-geometry')
+          s=json.loads((p/'summary.json').read_text())
+          assert s['complete'] and s['cases']==1000 and s['paired_hyperplanes']==16000
+          assert s['verified_hard_cuts']==48000 and s['new_eva_solves']==0
+          with (p/'all_cases.csv').open(newline='') as f: assert len(list(csv.DictReader(f)))==1000
+          with (p/'all_gw_trials.csv').open(newline='') as f: assert len(list(csv.DictReader(f)))==16000
+          assert len(s['graph_audits'])==5
+          print('PASS: 1000 exact source factors, 16000 matched GW normals, 48000 original signed cut audits')
+          PY
+      - name: Commit audited compact results and complete packed hyperplane labels
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- results/gset/experiment031-signed-gw-geometry/
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo 'Verified Experiment031 results already committed'
+          else
+            git commit -m 'experiment031: archive 16000 GW geometry comparisons and 48000 verified signed cuts'
+            git push origin HEAD:experiment031-signed-gw-geometry
+          fi
+          echo 'PASS: Experiment031 independent audit and complete repository publication'
