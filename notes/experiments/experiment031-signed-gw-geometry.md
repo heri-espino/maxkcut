@@ -1,6 +1,47 @@
 # Experiment031 — Signed-edge geometry and GW random-hyperplane diagnostics
 
-**Status: protocol and code staged.** Experiment030 (field-weighted K-MeansNM) is completed in unmerged PR #87. Experiment031 is a *different*, diagnostic-only continuation, using factors already merged from Experiments028/029; it makes no claims about data until the new workflow completes.
+**Status: COMPLETE, independently audited and archived (2026-11-16 Mexico City time).** Experiment030 (field-weighted K-MeansNM) remains in unmerged PR #87. This distinct diagnostic-only Experiment031 reused exactly **1,000** SHA-verified Experiment028/029 factor files (no EVA/SDP/K-Means/KL/ILS recomputation), applied **16,000** matched GW normals, and saved **48,000** independently re-scored original signed Max-Cut labels. [GitHub Actions run #44006548472](https://github.com/heri-espino/maxkcut/actions/runs/44006548472) passed all three jobs: hosted synthetic preflight/graph SHA validation, self-hosted PCAG103A-13 computation, and a separate hosted original-edge/packed-label/hash audit and GitHub archival publication. The source workflow is now **manual-only**, protecting the completed numerical study against accidental reruns.
+
+
+## Verified empirical findings
+
+### Weighted edge angles and signed GW probabilities
+
+Averages over the 100 EVA seeds per graph and embedding width; the edge-angle means are absolute-edge-weight weighted (not independent graph-level samples). G1 and G14 contain no negative-weight edges. The two widths give nearly indistinguishable angles (largest displayed change below 0.002 degrees).
+
+| Graph | p | Positive angle | Negative angle | GW positive-edge cut probability | GW negative-edge cut probability |
+|---|---:|---:|---:|---:|---:|
+| G1 | 41 | 105.791° | none | 58.773% | none |
+| G6 | 41 | 106.388° | 73.639° | 59.104% | 40.911% |
+| G11 | 41 | 144.638° | 35.692° | 80.355% | 19.829% |
+| G14 | 41 | 112.352° | none | 62.418% | none |
+| G18 | 41 | 120.269° | 57.759° | 66.816% | 32.088% |
+
+G11 is especially angularly polarized: 144.64° across positive edges versus 35.69° across negative edges. This supports *edgewise* geometric consistency of the final EVA embeddings with the signed Max-Cut objective. It does not certify that every individual edge is locally favorable or that the SDP is globally solved. The original signed GW expected cut from the exact edge-angle law closely matched the 1,600 empirical GW hyperplanes for each graph/rank; small discrepancies are finite hyperplane Monte Carlo error.
+
+### GW fixed-point invariance versus negative-field contributions
+
+Each percentage below averages 100 seeds × 16 hyperplanes × 800 vertices at p=41. The measured same-normal **Y versus -H** label mismatch remains below 0.01%, consistent with approximate EVA coordinate fixed points; the minimum observed cosine alignment of Y and normalized -H exceeded 0.9999996.
+
+| Graph | Y vs -H changed vertex signs | -H vs fixed-Y positive-only -H+ changed vertex signs | Mean signed Max-Cut delta, -H minus Y |
+|---|---:|---:|---:|
+| G1 | 0.00555% | 0.000% | +0.0175 |
+| G6 | 0.00391% | 14.900% | +0.0238 |
+| G11 | 0.00914% | 11.206% | +0.0063 |
+| G14 | 0.00523% | 0.000% | −0.0150 |
+| G18 | 0.00375% | 15.896% | −0.0056 |
+
+The same pattern held at p=800 (field-Y mismatch 0.00375–0.00938%, signed-graph negative ablation 11.24–15.88%, exactly zero negative ablation for positive-only G1/G14). Importantly, **GW on -H does not improve the original signed cut in any systematic way over GW on Y**, as predicted by the fixed-point identity. The negative-field ablation results are **fixed-Y diagnostics**, not cuts from reoptimizing a graph after removing negative edges. The large 11–16% counterfactual changes identify the role of negative contributions in the *local-field decomposition* even though -H and Y themselves are almost aligned.
+
+The share of vertices whose negative-weight projected field contribution had larger absolute magnitude than the positive-weight projected contribution was approximately 49.5% for G6, 48.8% for G11, and 50.5% for G18 at p=41. This **does not** mean that half of the vertices change sides if negative edges are removed; the actual sign-change fractions are given above. It is a norm/dominance diagnostic of the same fixed field.
+
+### Archived results, figures, interpretation limits
+
+- [1000 full per-factor signed-angle summaries](../../results/gset/experiment031-signed-gw-geometry/all_cases.csv), [16000 matched hyperplane rows](../../results/gset/experiment031-signed-gw-geometry/all_gw_trials.csv), [ten graph-by-width summary rows and bootstrap intervals](../../results/gset/experiment031-signed-gw-geometry/per_graph_rank.csv), [machine-readable coverage](../../results/gset/experiment031-signed-gw-geometry/summary.json), and [concise report](../../results/gset/experiment031-signed-gw-geometry/report.md).
+- [Reproducible signed-edge angle SVG](../../results/gset/experiment031-signed-gw-geometry/signed_edge_angles.svg) and [negative-field ablation SVG](../../results/gset/experiment031-signed-gw-geometry/gw_negative_field_ablation.svg) are generated from `per_graph_rank.csv` by `python scripts/experiment031_plot_geometry.py`; use `--check` to compare exact file bytes.
+- [Complete graphwise auditable archives](../../results/gset/experiment031-signed-gw-geometry/graphs/): cases, trials, SHA-256 manifest, and all three bit-packed partitions for every matched hyperplane. No large factor archive was duplicated; every original factor and graph ID is referenced and checked.
+- All 48,000 signed partitions were independently rescored on the original edge lists by the GitHub-hosted publishing job. The primary uncertainty intervals for -H versus Y resample **100 seeds**, each summarized across 16 hyperplanes; they are conditional on the five selected G-set graphs and are not a claim of general performance equivalence or statistical significance across graph families.
+- Do not re-run completed Experiment028/029 EVA or Experiment030/031 rounding just to update documentation or figures. No automatic merge is authorized.
 
 ## Question and mathematical frame
 
