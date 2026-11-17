@@ -1,6 +1,34 @@
 # Experiment032 — Compare GW and K-MeansNM on EVA embeddings versus signed local fields across all 71 G-set graphs
 
-**Status: staged; no numerical performance claim until the 71-graph independent audit succeeds.** This is a new, independent study following completed Experiments030 (five-graph field-weighted K-MeansNM) and 031 (five-graph GW/sign geometry), which remain in separate unmerged PRs #87/#88. Experiments028 and 029 are merged into `main`. Do not alter or rerun their factors.
+**Status: COMPLETE, independently audited and archived (2026-11-16, Mexico City).** This is a new, independent study following completed Experiments030 (five-graph field-weighted K-MeansNM) and 031 (five-graph GW/sign geometry), which remain in separate unmerged PRs #87/#88. Experiments028 and 029 are merged into `main`. Do not alter or rerun their factors.
+
+
+## Verified findings (71 graphs, 50 paired starts each)
+
+The three-stage [Actions run #44012539461](https://github.com/heri-espino/maxkcut/actions/runs/44012539461) **passed hosted six-test preflight, Windows PCAG103A-13 computation, and an independent hosted SHA+original-signed-cut audit of all 14,200 partitions**. Every one of the 71 graph manifests, 200 exact packed partitions per graph, and full K-MeansNM Lloyd best-so-far histories was archived. All 71 original graph/legacy EVA SHA source identities matched; **71 reused factors, zero EVA/SDP solves**. The sole initial preflight failure was a missing hosted `threadpoolctl` test dependency, corrected before the successful compute. No outputs from the failed preflight were used.
+
+**Primary endpoint:** paired representation effect (raw `-H` minus `Y`) in original signed Max-Cut cut weight; first average over the 50 matched rounding normals **within each graph**, scale by the corresponding `Y` mean cut, then average **equally over graphs**.
+
+| Rounding method | All 71: mean relative change | Positive-only 35 | Signed 36 |
+|---|---:|---:|---:|
+| GW single hyperplane | **+0.000198%** | +0.000156% | +0.000239% |
+| Antipodal K-MeansNM, best cut along up to 100 Lloyd iterations | **+0.023957%** | +0.001531% | **+0.045759%** |
+
+K-MeansNM `-H` versus `Y` achieved higher **50-start mean cut on 42 graphs, tied on 3 and worsened on 26**. The 71-graph mean raw signed cut difference was **+0.721 units**, but heterogeneous graph sizes/weights make the graph-normalized percentage statistic more informative. The mean fraction of GW vertex-hyperplane classifications that differ between `Y` and `-H` was **0.006459%**; the minimum saved cosine between unit `Y` and normalized `-H` over all 71 graphs was **0.999999510**, demonstrating approximate EVA fixed-point invariance.
+
+### Graph-structure heterogeneity (exploratory)
+
+| Family | Positive-only mean change (n) | Signed mean change (n) |
+|---|---:|---:|
+| Random | −0.004303% (18) | **−0.047400%** (12) |
+| Planar-family | +0.009360% (14) | **+0.138600%** (10) |
+| Toroidal | 0.000000% (3) | **+0.059294%** (14) |
+
+The largest observed normalized mean increases were G19 (+0.4463%), G11 (+0.4101%), G42 (+0.3618%) and G18 (+0.3246%). Declines included G8 (−0.3581%), G27 (−0.2359%) and G40 (−0.2057%). These illustrative cases must not be treated as independent validation or used to select a supposedly universal best method. Signed positive-only status is confounded with graph geometry; the study **does not prove that negative edge weights cause the signed-family differences**.
+
+**Geometric mechanism:** for exact nonzero-field EVA coordinate optima, `-H=DY`, so GW signs are invariant to positive vertex-specific row scaling. K-MeansNM centroid updates depend on magnitudes `D_ii=||h_i||`, so its output can change, positively or negatively. The 50 matched restarts are **rounding randomness conditional on one frozen EVA solution per graph**; they are not 50 independent EVA optimizations. Graphwise 95% percentile CIs are unadjusted for multiple comparisons, G-set graphs/families are correlated, and no signed-graph GW approximation guarantee or SDP global optimality follows.
+
+**Durable outputs:** [full all-71 report](../../results/gset/experiment032-all-gset-field-rounding/report.md), [14,200 original signed scores](../../results/gset/experiment032-all-gset-field-rounding/all_runs.csv), [71 graphwise paired/bootstrap summaries](../../results/gset/experiment032-all-gset-field-rounding/per_graph.csv), [coverage audit](../../results/gset/experiment032-all-gset-field-rounding/summary.json), and [71 independent per-graph packed partitions, SHA manifests and Lloyd histories](../../results/gset/experiment032-all-gset-field-rounding/graphs/). The updated Marp deck appends seven new slides with two source-derived SVG plots; the generator `scripts/experiment032_plot_field_rounding.py` is fully deterministic and requires no optimization.
 
 ## Formal design and research question
 
@@ -30,7 +58,7 @@ For each graph: report paired mean score difference, mean relative percentage (\
 - New output folder only: `results/gset/experiment032-all-gset-field-rounding/`. For each graph, `graphs/G*/cases.csv`, `partitions.npz` (200 exact bit-packed hard cuts), `traces.jsonl` (complete Lloyd best-seen history), `manifest.json` with SHA256 of every file and the original source factor/graph. The graph writer refuses partial prior output and independently rescales every saved partition before returning.
 - Combined outputs: `all_runs.csv` (14,200 score rows), `per_graph.csv` (71 rows), `summary.json` with strict coverage, and a scientifically caveated `report.md`.
 - An **independent hosted audit** reconstructs all 14,200 cuts directly from original signed G-set edge lists and packed partitions, checks all 71 SHA manifests, and commits outputs without accessing EVA factor bytes. If publication fails after computation, recover the uploaded Actions artifacts; **never rerun finished numerical jobs just to fix Git formatting or reporting**.
-- A one-shot Actions workflow should be switched to **manual-only after success**, and the PR kept unmerged until the user authorizes integration. The seven-slide Experiment029 addendum to the 104-slide Marp presentation should remain untouched until **after** this Experiment032 run passes numerical/audit verification; then add a new reproducible, sourced final section with results, sign-stratified statistics, a derived SVG and all-71 graph coverage.
+- The verified numerical result was published without EVA reruns. The one-shot workflow must be switched to **manual-only** after success; PR #89 stays unmerged until the user authorizes integration. The original seven-slide Experiment029 addendum remains untouched, and seven new Experiment032 result slides have been appended to form a **111-slide** canonical Marp deck, with two deterministic SVGs and strict 111-page PDF/HTML export validation.
 
 ## Reproduction
 
