@@ -1586,7 +1586,7 @@ Finite EVA tolerance explains the tiny deviations from the exact sign identity. 
 
 ![w:1070](assets/experiment032_km_relative_by_graph.svg)
 
-**42 graphs improve, 3 tie, 26 worsen** in the mean of 50 paired initial normals. The signed/positive coloring shows the result is **graph dependent**, not simply an effect of negative weights being present.
+**42 graphs improve, 3 tie, 26 worsen** across 50 matched starts each.
 
 ---
 
