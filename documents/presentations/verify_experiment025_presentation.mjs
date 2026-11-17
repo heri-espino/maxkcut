@@ -15,7 +15,7 @@ const displayMarkers = [...deck.matchAll(/^\$\$/gm)].length;
 if (displayMarkers !== 18) throw Error("Expected exactly 9 display math environments");
 const sections = deck.split(/^---\s*$/m);
 const bodies = sections.slice(2);
-if(bodies.length !== 104) throw Error("Experiment029 seven-slide appendix is absent: "+bodies.length+" slides");
+if(bodies.length !== 111) throw Error("Experiment032 seven-slide appendix is absent: "+bodies.length+" slides");
 for(const [index,slide] of bodies.entries()){
   const nonDisplay = slide.replace(/^\$\$/gm, "");
   if ([...nonDisplay.matchAll(/(?<!\\)\$/g)].length % 2) throw Error("Unbalanced inline math on slide " + (index+1));
@@ -27,8 +27,8 @@ const references=[...deck.matchAll(/!\[[^\]]*]\(([^)]+)\)/g)].map(x=>x[1]);
 const missing=references.filter(ref=>!fs.existsSync(path.resolve(directory,ref)));
 if(missing.length)throw Error("Broken slide figure paths: "+missing.join(", "));
 // The seven appended slides are a distinct, independently audited 100-seed study.
-const addendum = bodies.slice(-7).join("\n---\n");
-if (!bodies.at(-7).includes("# 13. Does a full-dimensional EVA embedding improve clustering?") ||
+const addendum = bodies.slice(97,104).join("\n---\n");
+if (!bodies.at(97).includes("# 13. Does a full-dimensional EVA embedding improve clustering?") ||
     !addendum.includes("## E029 — Paired uncertainty across 100 starts") ||
     !addendum.includes("## E029 — Best-of-100 cuts and EVA computational cost") ||
     !addendum.includes("−0.0477%") ||
@@ -43,6 +43,29 @@ const e029Rows=e029Csv.trim().split(/\r?\n/).slice(1);
 if (e029Rows.length!==5 || !e029Rows.every(row => row.split(",")[1]==="100"))
   throw Error("Experiment029 source must contain 5 graphs and 100 seeds each");
 
+// Independent, completed Experiment032 71-graph addition (seven slides after E029).
+const experiment032=bodies.slice(104);
+if(experiment032.length!==7||
+    !experiment032[0].includes("# 14. Should we round EVA vectors or signed local fields?")||
+    !experiment032.join("\n").includes("14,200 original signed cuts")||
+    !experiment032.join("\n").includes("42 graphs improve, 3 tie, 26 worsen")||
+    !experiment032.join("\n").includes("+0.02396%")){
+  throw Error("Verified seven-slide Experiment032 appendix is incomplete");
+}
+const ex032Figures=[
+  "assets/experiment032_field_effect_by_weight_type.svg",
+  "assets/experiment032_km_relative_by_graph.svg"
+];
+for(const ref of ex032Figures){
+  if(references.filter(v=>v===ref).length!==1)throw Error("Experiment032 figure missing or duplicated: "+ref);
+}
+const e032=JSON.parse(fs.readFileSync(path.resolve(root,"results/gset/experiment032-all-gset-field-rounding/summary.json"),"utf8"));
+const graphRows=fs.readFileSync(path.resolve(root,"results/gset/experiment032-all-gset-field-rounding/per_graph.csv"),"utf8").trim().split(/\r?\n/);
+if(!e032.complete||!e032.all_verified||e032.graphs!==71||e032.starts_per_graph!==50||
+   e032.total_cut_records!==14200||e032.new_eva_solves!==0||
+   e032.signed_graph_count!==36||e032.positive_graph_count!==35||graphRows.length!==72)
+ throw Error("Experiment032 source audit/source coverage missing");
+
 const extra=JSON.parse(fs.readFileSync(path.join(directory,"experiment025-reference-ratio-manifest.json"),"utf8"));
 const ratioRefs=references.filter(x=>x.startsWith("assets/experiment025_benchmark_ratio_"));
 if(ratioRefs.length!==3||new Set(ratioRefs).size!==3||extra.nGraphs!==71||extra.nMethods!==18||extra.quicoptGraded!==52)throw Error("External reference ratio graphs missing");
@@ -54,4 +77,4 @@ for(const ref of expected)if(!e025.includes(ref))throw Error("Missing Experiment
 if(manifest.nCells!==1278 || manifest.nGraphs!==71 || manifest.nMethods!==18)throw Error("Invalid full coverage metadata");
 if(manifest.csvSha256!=="8a9d84cfc35f1d424519b862676facc288a6366bc1820e52975a2bf76678de6c")throw Error("Unexpected aggregate source hash");
 if(!deck.includes("independent") || !deck.includes("off-VM") || !deck.includes("generator"))throw Error("Scientific caveats missing");
-console.log(JSON.stringify({slides:bodies.length,referencedImages:references.length,experiment025Charts:e025.length,experiment029Charts:1,externalCharts:ratioRefs.length,manifestComplete:true},null,2));
+console.log(JSON.stringify({slides:bodies.length,referencedImages:references.length,experiment025Charts:e025.length,experiment029Charts:1,experiment032Charts:2,externalCharts:ratioRefs.length,manifestComplete:true},null,2));
