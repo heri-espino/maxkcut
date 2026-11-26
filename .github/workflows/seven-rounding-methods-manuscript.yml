@@ -1,0 +1,72 @@
+name: Compile seven Max-Cut rounding methods manuscript (PDF)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - paper-seven-rounding-methods
+    paths:
+      - "papers/seven-rounding-methods/**"
+      - ".github/workflows/seven-rounding-methods-manuscript.yml"
+  pull_request:
+    paths:
+      - "papers/seven-rounding-methods/**"
+      - ".github/workflows/seven-rounding-methods-manuscript.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: seven-rounding-methods-paper-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Audit source numerical results and all manuscript modules
+        run: python papers/seven-rounding-methods/verify_results.py
+
+      - name: Compile LaTeX research manuscript
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main.tex
+          working_directory: papers/seven-rounding-methods
+          args: -pdf -file-line-error -halt-on-error -interaction=nonstopmode
+
+      - name: Check PDF, manuscript text, and page count
+        shell: bash
+        run: |
+          set -euo pipefail
+          pdf="papers/seven-rounding-methods/main.pdf"
+          test -s "$pdf"
+          pdfinfo "$pdf" | grep -E '^Pages:|^Page size:|^File size:'
+          pages="$(pdfinfo "$pdf" | awk '/^Pages:/ {print $2}')"
+          test "$pages" -ge 12 || { echo "Expected a detailed 12+ page manuscript; got $pages"; exit 1; }
+          pdftotext "$pdf" - | tee /tmp/seven-rounding-methods.txt >/dev/null
+          for label in "Hyperplane Sweep" "Angular Gain Greedy" "Angular Margin Greedy" "Angular Pair Greedy" "Paired Spherical" "Gibbs Annealing" "Cut-aware Spherical"; do
+            grep -Fq "$label" /tmp/seven-rounding-methods.txt || { echo "Missing PDF section: $label"; exit 1; }
+          done
+          if grep -E 'Overfull \\hbox' papers/seven-rounding-methods/main.log; then
+            echo "Warning: overfull TeX box detected; inspect layout"
+          fi
+
+      - name: Upload compiled research PDF and LaTeX build log
+        uses: actions/upload-artifact@v4
+        with:
+          name: seven-rounding-methods-latex-manuscript
+          path: |
+            papers/seven-rounding-methods/main.pdf
+            papers/seven-rounding-methods/main.log
+          if-no-files-found: error
+          retention-days: 30

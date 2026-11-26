@@ -1,0 +1,108 @@
+\section{Problem, notation, and the shared experimental design}\label{sec:problem}
+\subsection{Signed Max-Cut on a fixed SDP-derived embedding}
+Let $G=(V,E,w)$ be an undirected graph with $n=|V|$, $m=|E|$,
+symmetric adjacency $W=(w_{ij})$, $W_{ii}=0$, and possibly negative
+weights. Encode a binary partition by $\ell\in\{0,1\}^n$ or spins
+$s_i=1-2\ell_i\in\{-1,+1\}$. The \emph{original signed} cut objective is
+\begin{equation}\label{eq:cut}
+\cut(s)=\sum_{\{i,j\}\in E}w_{ij}\1[s_i\ne s_j]
+=\frac12\sum_{\{i,j\}\in E}w_{ij}(1-s_i s_j).
+\end{equation}
+A negative crossing edge \emph{reduces} this score.
+In the SDP relaxation, $s_i s_j$ becomes a Gram entry $X_{ij}$,
+subject to $X\succeq0$ and $X_{ii}=1$. The existing EVA-derived
+factor $Y\in\R^{n\times p}$ has rows $y_i^\top$ and approximates
+an SDP-feasible unit-diagonal Gram factorization $X=YY^\top$.
+Every method in this paper uses the \emph{same frozen} $Y$;
+no SDP/EVA problem has been solved anew.
+
+Classical binary GW rounding samples $z\sim N(0,I_p)$,
+normalizes $r=z/\|z\|_2$ and sets
+\begin{equation}\label{eq:gw}
+\ell_i^{\GW}(r)=\1[y_i^\top r>0],\quad
+s_i^{\GW}=1-2\ell_i^{\GW},\quad
+F(r)=\cut(s^{\GW}(r)).
+\end{equation}
+The repository's \sourcecode{FJ} and \sourcecode{GW-RR} labels both refer
+to this one-hyperplane binary construction in the $k=2$ setting.
+The classical guarantee for nonnegative-weight Max-Cut with a
+suitable SDP optimum \citep{goemans1995} does \emph{not}
+automatically apply to an approximate EVA factor on signed graphs.
+
+\subsection{The signed single-vertex gain}
+\begin{lemma}[Vertex-flip identity]\label{lem:flip}
+For a spin assignment $s$, changing only the sign of vertex $i$
+changes the original signed cut by
+\begin{equation}\label{eq:flip}
+g_i(s)=\cut(s^{\oplus i})-\cut(s)
+=s_i\sum_j w_{ij}s_j=s_i(Ws)_i.
+\end{equation}
+\end{lemma}
+\begin{proof}
+Terms not incident to $i$ cancel. An incident edge's contribution
+changes from $w_{ij}(1-s_i s_j)/2$ to
+$w_{ij}(1+s_i s_j)/2$. The difference is $w_{ij}s_i s_j$;
+summing gives \eqref{eq:flip}.
+\end{proof}
+After flipping $i$, a neighbor's gain changes by
+$g_j\gets g_j-2w_{ij}s_i s_j$ using the spins before that flip.
+The same identity supports exact hyperplane-crossing sweeps and
+unrestricted graph label refinement, but the two uses are not
+interchangeable.
+
+\subsection{Raw rounding versus the common refinement}
+For method $a$, graph $g$ and shared GW normal $r_{gt}$,
+$t\in\{1,\ldots,16\}$, write $C^{\rm raw}_{gat}$ for
+the objective immediately after \emph{method-specific rounding}.
+In Experiment025/027, that partition then undergoes
+\[
+\boxed{\text{Round}\longrightarrow
+\text{Flip (20 sweeps)}\longrightarrow
+\text{KL (30 passes)}\longrightarrow
+\text{ILS--KL (80 cycles, eight inner KL passes)}.}
+\]
+Settings are upper bounds, and the journal retains the
+\emph{best} original-graph cut seen at any step, not simply
+the final walker state. A discrete Flip/KL/ILS partition
+need not be representable by a hyperplane in the original embedding.
+
+The historical performance estimand is
+\begin{equation}\label{eq:metric}
+B_{ga}=\max_{1\le t\le16}C^{\rm final}_{gat},\qquad
+R_a=\frac{100}{71}\sum_{g\in\mathcal G}
+\frac{B_{ga}-B_{g,\GW}}{B_{g,\GW}},
+\quad|\mathcal G|=71.
+\end{equation}
+All recorded refined GW denominators are positive.
+This is an \emph{equally weighted graphwise best-of-16}
+measure, not a one-start expectation or cut-per-second score.
+Each method's raw step is separate from its final score.
+
+\subsection{Selection, status and comparability}
+Among the 18 Experiment025 protocols and three Experiment027
+additions, the seven largest reported $R_a$ values were selected.
+Experiment025 contains an aggregate of $71\times18\times16$
+completed refined starts, but the full original 20,448
+partition archives are \emph{not yet independently backed up
+and rescored off VM} \citep{experiment025}. Experiment027
+independently audits 3,408 new method--seed archives and
+2,272 historical GW/Hyperplane Sweep comparators \citep{experiment027}.
+Thus the pooled ranking is useful while its provenance depth
+differs between studies.
+
+The graph identity, archived EVA factor, 16 GW normals,
+original signed objective and refinement policy were held
+consistent. \emph{Matched starts do not mean equal algorithmic work}.
+The historical confidence intervals use 30,000 graph bootstrap
+resamples; the later audit uses 2,000. Seeds within a graph are
+correlated, so the graph, not the seed, is the inference unit.
+
+\begin{figure}[tb]
+\centering
+\input{figures/rounding_pipeline}
+\caption{The method-specific raw candidate and the common Flip/KL/ILS
+pipeline are distinct experimental stages. The proposed future
+geometry-only study would stop at the \emph{raw} cut, not at
+the best after unrestricted label refinement.}
+\label{fig:pipeline}
+\end{figure}

@@ -1,0 +1,19 @@
+\section{Repository paths, data status, and independent reproduction}\label{app:repro}
+\paragraph{Primary code paths.}
+The deterministic source catalog for the seven protocols is \sourcecode{src/maxkcut/experiment023_methods.py} and \sourcecode{src/maxkcut/experiment024_paired_gw16.py}, with the frozen Experiment025 runner in \sourcecode{src/maxkcut/experiment025_bestcut.py}. The exact arc kernel is \sourcecode{src/maxkcut/eva_direct_rounding.py}; the three greedy tangent rules are \sourcecode{scripts/experiment027_angular.py}; spherical Lloyd starting normals are implemented in the paired GW runner; the soft/Gibbs procedure is \sourcecode{src/maxkcut/eva_soft_em_bernoulli.py}; exact affine threshold search and direction proposals are in \sourcecode{src/maxkcut/eva_cutaware_kmeans.py}. The original iterative refiner is \sourcecode{src/maxkcut/experiment025_journal.py}. We have \emph{not} changed any numerical optimizer in authoring this manuscript.
+
+\paragraph{Historical evidence.}
+The 18-method, 71-graph historical ranking and graph-level confidence intervals are in \sourcecode{results/gset/experiment025-gw16-bestcut-quality/analysis/experiment025_method_ranking.csv}; head-to-head HP comparisons are in \sourcecode{.../experiment025_leader_head_to_head.csv}, generated from the documented aggregate \sourcecode{.../full_best_final_by_graph.csv}. The status is \emph{provisional} for independent verification of all original NPZ/JSONL partitions, even though the aggregate has 1,278 complete method--graph rows.
+
+\paragraph{Published independently audited evidence.}
+The Experiment027 Release is \url{https://github.com/heri-espino/maxkcut/releases/tag/experiment027-data-71g-2b313a624780291eb4dd}. Small, auditable results are committed under
+\sourcecode{published/experiment027/releases/experiment027-data-71g-2b313a624780291eb4dd/analysis/}: the method leaderboard, graph comparisons, paired seed deltas, seed-level scores and JSON audit. The Release contains 71 compressed graph archives, content-addressed using SHA256 manifests, for the three new angular methods; it does not include all 18 E025 method histories. The VM uploader reported server-computed digest checks. A complete independent off-VM read-back is recommended.
+
+\paragraph{Source-backed seven-method table.}
+\sourcecode{papers/seven-rounding-methods/data/top_seven.csv} combines only the selected seven source rows and includes the audit-source identifier for each row. The companion \sourcecode{verify_results.py} checks the selected names, expected ranking, graph counts, bootstrap bounds and source numerical agreement before every manuscript PDF build. The compiled PDF is a derived artifact and does \emph{not} replace the original source data.
+
+\paragraph{Build.}
+The manuscript is modular: \sourcecode{main.tex} inputs method-specific files \sourcecode{sections/hyperplane_sweep.tex}, \sourcecode{sections/angular_gain.tex}, \sourcecode{sections/angular_margin.tex}, \sourcecode{sections/angular_pair.tex}, \sourcecode{sections/control_paired.tex}, \sourcecode{sections/em_gibbs.tex} and \sourcecode{sections/cutaware_kmeans.tex}. It also inputs the shared problem/empirical/discussion sections, two proof and provenance appendices, \sourcecode{references.bib}, and versioned TikZ/PGFPlots source figures. Reproduce with the repository's standard PDF build (LaTeXmk) or the dedicated hosted workflow. The experiment code is read-only and never invoked during paper compilation.
+
+\paragraph{Scientific scope.}
+These are Max-\emph{2}-Cut experiments on original signed G-set instances. The presence of four- and eight-cluster methods elsewhere in the repository does not turn these binary cut results into general Max-$k$-Cut approximation guarantees. No global optimality or public benchmark record is asserted, and no Experiment028 rotation/translation study has yet been run.
