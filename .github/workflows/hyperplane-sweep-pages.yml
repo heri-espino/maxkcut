@@ -4,7 +4,7 @@ on:
     branches: [main]
     paths:
       - 'dashboard/**'
-      - 'docs/hyperplane-sweep/**'
+      - 'documents/hyperplane-sweep/**'
       - '.github/workflows/hyperplane-sweep-pages.yml'
   workflow_dispatch:
 permissions:
@@ -26,7 +26,7 @@ jobs:
         with:
           sparse-checkout: |
             dashboard
-            docs/hyperplane-sweep
+            documents/hyperplane-sweep
           lfs: false
       - name: Prepare static site
         run: |
@@ -38,10 +38,10 @@ jobs:
           mkdir -p _site/dashboard
           cp dashboard/index.html _site/dashboard/index.html
           pdf_link=''
-          if [ -s docs/hyperplane-sweep/hyperplane_sweep.pdf ]; then
-            mkdir -p _site/docs/hyperplane-sweep
-            cp docs/hyperplane-sweep/hyperplane_sweep.pdf _site/docs/hyperplane-sweep/
-            pdf_link='<p><a href="./docs/hyperplane-sweep/hyperplane_sweep.pdf">Mathematical explanation (PDF)</a></p>'
+          if [ -s documents/hyperplane-sweep/hyperplane_sweep.pdf ]; then
+            mkdir -p _site/documents/hyperplane-sweep
+            cp documents/hyperplane-sweep/hyperplane_sweep.pdf _site/documents/hyperplane-sweep/
+            pdf_link='<p><a href="./documents/hyperplane-sweep/hyperplane_sweep.pdf">Mathematical explanation (PDF)</a></p>'
           else
             echo "::warning::Explainer PDF is not in the repository yet; deploying dashboard only."
           fi
