@@ -924,3 +924,8 @@ python -m maxkcut.eva_kmeans_init_full_cli --graphs G63 --restarts 50 --chunk-si
 ```
 
 [Full Experiment019 protocol](notes/experiments/experiment019-kmeans-init-full-pipeline.md).
+
+
+## Hyperplane Sweep interactive educational companion
+
+See [the mathematical explainer and static dashboard guide](docs/hyperplane-sweep-dashboard.md). Keep the supplied source, PDF, figures, and generators separate from the existing research manuscript and frozen experiment archives. The Pages workflow is hosted-only; no numerical computations are required.

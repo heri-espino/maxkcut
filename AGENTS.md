@@ -982,3 +982,8 @@ Read instructions → inspect the current branch/files → state the mathematica
 - This is a **provisional research draft**. The 71 × 18 × 16 aggregate is from still-draft PR #75; the original signed-cut partitions have not been independently audited, matched-seed trajectories are not available in the compact dataset, and full raw VM archives have not been independently backed up. Do not claim certified records, superior approximation factors, or equal-compute comparisons.
 - The manuscript proves conditional fixed-arc exactness and retained-GW guarantees only. The code gain-guided mode selects negative single-flip gains, although its comment describes improving flips. Boundary-guided selects small absolute gains, not geometric margins. Test this separately under a newly numbered experiment; keep Experiment025 frozen.
 - Hosted Ubuntu compiles the manuscript. It does not run on or modify the university Windows VM, EVA factors, or optimization checkpoints.
+
+
+## Hyperplane Sweep interactive educational companion
+
+See [the mathematical explainer and static dashboard guide](docs/hyperplane-sweep-dashboard.md). Keep the supplied source, PDF, figures, and generators separate from the existing research manuscript and frozen experiment archives. The Pages workflow is hosted-only; no numerical computations are required.
