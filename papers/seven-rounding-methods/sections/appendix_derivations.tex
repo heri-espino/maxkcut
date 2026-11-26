@@ -1,0 +1,15 @@
+\section{Additional derivations and invariants}\label{app:proofs}
+\subsection{Why the affine threshold is exact for a fixed normal}
+For any fixed $d$, define $z_i=y_i^\top d$ and the cut assignment $\ell_i(b)=\1[z_i>b]$. There are at most $n+1$ open intervals between distinct projections, including the two outer intervals. On each interval, $\ell_i(b)$ and $\cut$ are constant. By sorting $z_i$ and applying the signed flip gain \eqref{eq:flip} to each tied crossing group, the algorithm evaluates every attainable cut. The maximum of those cut scores is therefore exact \emph{conditional on $d$}. As the direction changes, the order of projected vertices can also change; this is why one sorting operation does not solve the full affine problem.
+
+\subsection{Pair projection and its rank condition}
+For rank-two $A=[y_i\ y_j]$ with $p\ge3$, the matrix $P_{A^\perp}=I-A(A^\top A)^+A^\top$ is the orthogonal projector onto the common null space of $y_i^\top$ and $y_j^\top$. For nonzero $z=P_{A^\perp}r$, $t=z/\|z\|$ satisfies $A^\top t=0$. The tangent $u\propto t-(r^\top t)r$ satisfies $r^\top u=0$, giving a candidate great circle. However, $\theta$ is then chosen by maximizing the \emph{entire original signed cut on that arc}; it need not make both selected vertices switch sides.
+
+\subsection{Strict-incumbent retention}
+Let $C_t$ be the independently verified current incumbent after the $t$th proposal round and $\widehat C_t$ the best realized candidate of that round. Setting $C_{t+1}=\max(C_t,\widehat C_t)$ gives $C_{t+1}\ge C_t$. This guarantees a nondecreasing \emph{saved incumbent}, not nondecreasing Lloyd assignments, Gibbs walker states or current ILS states. There are finitely many binary partitions, but a finite proposal budget does not imply global or locally exhaustive optimality.
+
+\subsection{Original signed versus nonnegative-weight interpretations}
+For an edge with $w_{ij}<0$, separating its endpoints \emph{reduces} the objective, and a graph with both signs can favor leaving certain negative edges uncut. A probabilistic or directional proposal justified only for a nonnegative graph must still be independently scored on the signed original edges. In particular, approximation-factor statements for the classical GW nonnegative-weight objective are not automatically inherited by any of these finite heuristic perturbations or the approximate EVA factor. This distinction is both mathematical and an implementation-level archive invariant.
+
+\subsection{The empirical maximum is not the average}
+Let $C_{gat}$ denote a method's final cut at start $t$. A per-graph best-of-16 is $\max_t C_{gat}$, a per-seed paired effect is $16^{-1}\sum_t(C_{gat}-C_{gbt})$, and a difference between two graph maxima is $\max_t C_{gat}-\max_t C_{gbt}$. Their ordering need not agree. The primary manuscript ranking uses the third expression normalized by refined GW, whereas the E027 raw table measures the paired mean difference at the raw stage. Reports must not substitute one for another.

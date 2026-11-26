@@ -1,4 +1,4 @@
-name: Build full Marp research presentation (Experiments 001–025 plus 028–029)
+name: Build full Marp research presentation (Experiments 001–025 plus 028–032)
 
 on:
   workflow_dispatch:
@@ -11,6 +11,8 @@ on:
       - "results/gset/experiment025-gw16-bestcut-quality/analysis/**"
       - "results/gset/experiment022-graph-structure-methods/graph_features.csv"
       - "results/gset/experiment029-eva-kmeansnm-100seed/per_graph.csv"
+      - "results/gset/experiment032-all-gset-field-rounding/per_graph.csv"
+      - "scripts/experiment032_plot_field_rounding.py"
       - ".github/workflows/experiment025-marp-presentation.yml"
   pull_request:
     paths:
@@ -18,6 +20,8 @@ on:
       - "results/gset/experiment025-gw16-bestcut-quality/analysis/**"
       - "results/gset/experiment022-graph-structure-methods/graph_features.csv"
       - "results/gset/experiment029-eva-kmeansnm-100seed/per_graph.csv"
+      - "results/gset/experiment032-all-gset-field-rounding/per_graph.csv"
+      - "scripts/experiment032_plot_field_rounding.py"
       - ".github/workflows/experiment025-marp-presentation.yml"
 
 permissions:
@@ -58,10 +62,12 @@ jobs:
           node documents/presentations/build_experiment025_reference_ratio_figures.mjs --check
           node documents/presentations/build_experiment029_rank_figure.mjs
           node documents/presentations/build_experiment029_rank_figure.mjs --check
+          python scripts/experiment032_plot_field_rounding.py
+          python scripts/experiment032_plot_field_rounding.py --check
 
       - name: Verify committed Experiment025 figures are deterministic
         run: |
-          git diff --exit-code -- documents/presentations/assets/experiment025_*.svg documents/presentations/assets/experiment029_*.svg documents/presentations/experiment025-figure-manifest.json documents/presentations/experiment025-reference-ratio-manifest.json documents/presentations/data/experiment025_best_of16_method_ratios.csv
+          git diff --exit-code -- documents/presentations/assets/experiment025_*.svg documents/presentations/assets/experiment029_*.svg documents/presentations/assets/experiment032_*.svg documents/presentations/experiment025-figure-manifest.json documents/presentations/experiment025-reference-ratio-manifest.json documents/presentations/data/experiment025_best_of16_method_ratios.csv
           node documents/presentations/verify_experiment025_presentation.mjs
 
       - name: Install pinned Marp CLI
@@ -104,8 +110,8 @@ jobs:
           from pypdf import PdfReader
           name="documents/presentations/build/maxkcut_full_research_001_025.pdf"
           count=len(PdfReader(name).pages)
-          if count!=104:
-              raise SystemExit(f"Expected exactly 104 PDF pages; got {count}")
+          if count!=111:
+              raise SystemExit(f"Expected exactly 111 PDF pages; got {count}")
           print(f"Verified PDF pages: {count}")
           PY
           du -h "${root}.pdf" "${root}.html"
@@ -113,7 +119,7 @@ jobs:
       - name: Upload PDF and standalone HTML
         uses: actions/upload-artifact@v4
         with:
-          name: maxkcut-research-001-025-plus-029-marp
+          name: maxkcut-research-001-025-plus-032-marp
           path: |
             documents/presentations/build/maxkcut_full_research_001_025.pdf
             documents/presentations/build/maxkcut_full_research_001_025.html

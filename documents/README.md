@@ -7,6 +7,7 @@ compiled artifacts that are intentionally preserved in Git.
 | Collection | Contents | Entry point |
 |---|---|---|
 | [Presentations](presentations/) | Marp research seminars, archived PDFs, reproducible SVGs, and build tools | [Presentation README](presentations/README.md) |
+| [Hyperplane Sweep](hyperplane-sweep/) | Educational algorithm explanation, LaTeX and figures (archive pending) | [Companion README](hyperplane-sweep/README.md) |
 | [Monographs](monographs/) | Long-form theoretical expositions with modular LaTeX, code, figures, and experiments | [EVA/Max-Cut monograph](monographs/eva-maxcut/README.md) |
 
 ## What does **not** belong here
