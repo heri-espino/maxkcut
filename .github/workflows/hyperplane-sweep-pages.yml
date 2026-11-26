@@ -4,7 +4,7 @@ on:
     branches: [main]
     paths:
       - 'dashboard/**'
-      - 'docs/hyperplane-sweep/**'
+      - 'documents/hyperplane-sweep/**'
       - '.github/workflows/hyperplane-sweep-pages.yml'
   workflow_dispatch:
 permissions:
@@ -26,18 +26,27 @@ jobs:
         with:
           sparse-checkout: |
             dashboard
-            docs/hyperplane-sweep
+            documents/hyperplane-sweep
           lfs: false
       - name: Prepare static site
         run: |
           set -eu
-          test -s dashboard/index.html
-          test -s docs/hyperplane-sweep/hyperplane_sweep.pdf
-          mkdir -p _site/dashboard _site/docs/hyperplane-sweep
+          if [ ! -s dashboard/index.html ]; then
+            echo "::error file=dashboard/index.html::Missing or empty dashboard HTML"
+            exit 1
+          fi
+          mkdir -p _site/dashboard
           cp dashboard/index.html _site/dashboard/index.html
-          cp docs/hyperplane-sweep/hyperplane_sweep.pdf _site/docs/hyperplane-sweep/
-          cat > _site/index.html <<'HTML'
-          <!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Max-Cut research dashboard</title><main><h1>Max-Cut: Hyperplane Sweep</h1><p><a href="./dashboard/">Interactive 3D dashboard</a></p><p><a href="./docs/hyperplane-sweep/hyperplane_sweep.pdf">Mathematical explanation (PDF)</a></p><p><a href="https://github.com/heri-espino/maxkcut">Research repository</a></p></main></html>
+          pdf_link=''
+          if [ -s documents/hyperplane-sweep/hyperplane_sweep.pdf ]; then
+            mkdir -p _site/documents/hyperplane-sweep
+            cp documents/hyperplane-sweep/hyperplane_sweep.pdf _site/documents/hyperplane-sweep/
+            pdf_link='<p><a href="./documents/hyperplane-sweep/hyperplane_sweep.pdf">Mathematical explanation (PDF)</a></p>'
+          else
+            echo "::warning::Explainer PDF is not in the repository yet; deploying dashboard only."
+          fi
+          cat > _site/index.html <<HTML
+          <!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Max-Cut research dashboard</title><main><h1>Max-Cut: Hyperplane Sweep</h1><p><a href="./dashboard/">Interactive 3D dashboard</a></p>${pdf_link}<p><a href="https://github.com/heri-espino/maxkcut">Research repository</a></p></main></html>
           HTML
           touch _site/.nojekyll
       - uses: actions/configure-pages@v5

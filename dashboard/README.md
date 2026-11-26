@@ -9,6 +9,6 @@ python -m pip install plotly
 python build_dashboard.py
 ```
 
-The original generator writes `hyperplane_sweep_dashboard.html` in this directory. To intentionally refresh the published page, replace `index.html` with that generated file after review. See `../docs/hyperplane-sweep/source-manifest.json` for provenance. No numerical benchmark is run.
+The original generator writes `hyperplane_sweep_dashboard.html` in this directory. To intentionally refresh the published page, replace `index.html` with that generated file after review. See `../documents/hyperplane-sweep/source-manifest.json` for provenance. No numerical benchmark is run.
 
-The GitHub-hosted Pages workflow deploys only the dashboard and the explainer PDF. The separate research manuscript and experimental archives are not published by it. Enable GitHub Actions as the Pages source in repository settings before deployment.
+The GitHub-hosted Pages workflow deploys the dashboard and, if present, the explainer PDF. A missing PDF does not block the dashboard. The separate research manuscript and experimental archives are not published by it. Enable GitHub Actions as the Pages source in repository settings before deployment.

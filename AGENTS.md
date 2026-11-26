@@ -990,4 +990,7 @@ Read instructions → inspect the current branch/files → state the mathematica
 
 ## Hyperplane Sweep interactive educational companion
 
-See [the mathematical explainer and static dashboard guide](docs/hyperplane-sweep-dashboard.md). Keep the supplied source, PDF, figures, and generators separate from the existing research manuscript and frozen experiment archives. The Pages workflow is hosted-only; no numerical computations are required.
+See [the mathematical explainer and static dashboard guide](docs/hyperplane-sweep-dashboard.md). Archive the educational PDF, LaTeX source, Python figure generator and figures in `documents/hyperplane-sweep/`; keep the interactive Pages dashboard in `dashboard/` and the manuscript in `papers/hyperplane-sweep/`. The original PDF/source archive has not yet been committed; do not claim it is published. The Pages workflow is hosted-only; no numerical computations are required.
+
+
+**Pages deployment recovery (2026-11-26):** [Run 45888110773](https://github.com/heri-espino/maxkcut/actions/runs/45888110773) failed during static site preparation because the original workflow required an explainer PDF that had not been committed. The standalone HTML is present on main. The revised workflow requires only the HTML, warns if the PDF is absent, and includes its link only when the PDF is available. This is a publication-only change; the PDF, LaTeX and figures still need to be archived separately. No numerical computation or university runner is needed.
