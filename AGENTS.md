@@ -1,3 +1,7 @@
+## Default numerical appendix format — user instruction (2026-11-26)
+
+Read [the shared LaTeX appendix standard](docs/templates/numerical-appendix/README.md) before authoring any numerical appendix. Use the reusable STIX2 LaTeX style and compile/visually check all pages. Commit the final appendix AND the self-contained editable LaTeX project, all figure PDFs and compact source summaries; retain large trajectories and checkpoints separately on the VM with provenance. This supersedes the earlier PDF-only restriction for the small appendix source and figure assets. No repeated numerical optimization or full audit merely to redesign a report. No unauthorized merges or force-pushes.
+
 ## Parallel execution policy — user instruction (2026-11-26)
 
 **Parallelize independent computational workloads by default.** On the university VM PCAG103A-13 (32 user-reported logical processors), target **16 process workers** for numerical experiments, independent graph audits, data processing, and other CPU-bound workloads whenever memory and runner availability permit. This is a default budget, not a guarantee of physical cores or a requirement to oversubscribe a smaller machine. New generic launchers should expose `--workers` (default 16, capped by available CPUs and number of tasks), log requested/effective workers, and record the count in metadata. Historical frozen experiment settings remain historical; this policy supersedes older general 8/32-worker recommendations for new work. Honor explicit per-run instructions.
