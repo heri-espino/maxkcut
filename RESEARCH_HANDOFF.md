@@ -227,3 +227,9 @@ See [the mathematical explainer and static dashboard guide](docs/hyperplane-swee
 
 An opt-in `-PublishMode local` execution path and `scripts/experiment025-summary-preview.py` are proposed in a separate code PR. The scientific optimizer source (`src/maxkcut/`), 71 graphs, 18 methods, 16 GW starts, and frozen EVA factors are unchanged. The current live `experiment025-results` VM scheduler **will continue pushing as launched** until stopped; modifying GitHub does not alter an in-memory Python scheduler. Do not merge into, pull, reset, switch or clean the active results checkout. See [the local archive / compact GitHub publication runbook](notes/experiments/experiment025-local-archive-summary-publication.md). The full local archive must also be backed up off-VM for long-term agent reproducibility.
 
+# Experiment026 proposed prospective Hyperplane Sweep long run (2026-11-03)
+
+See [Experiment026 runbook](notes/experiments/experiment026-hyperplane-longrun.md) and [literature reference provenance](references/README.md). A separate branch includes a source-attributed 71-graph literature target dataset and a resumable long-duration hyperplane search. The existing EVA factors and Experiment025 data and algorithms remain immutable; no new numerical production computation has started. Use a separate idle VM worktree and off-VM backup.
+
+---
+
