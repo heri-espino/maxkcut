@@ -27,3 +27,6 @@ The results directory is results/gset/experiment033-raw-hyperplane-sweep/full/. 
 
 ## Next agent
 Read workflow logs, validate all 71 graph archives and summary coverage, check convergence/time figures and LaTeX output, and append the actual completed numerical appendix to the existing illustrated report. Never fill the appendix with synthetic benchmark figures. The existing papers/hyperplane-sweep/main.tex is a separate manuscript with guided E025 results; do not overwrite it.
+
+## First workflow failure and correction
+Run 45742813340 passed the synthetic signed-trajectory test but failed hosted validation at G1 (`EVA input graph SHA256 mismatch`), so Windows computation never started. The original Windows archive hashes distinguish CRLF from LF. The driver now follows the previously successful E032 cross-platform validation approach: accept only original, LF or CRLF-equivalent graph bytes and separately verify the exact factor bytes, case metadata, dimensions, sweep count and prepared graph/optimizer identity. Source-code hashes normalize line endings for the hosted audit. No data, factor, optimizer, seed schedule or experimental budget changed.
