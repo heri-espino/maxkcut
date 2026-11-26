@@ -1,0 +1,51 @@
+name: Archive and prune consolidated branches (2026-11-26)
+on:
+  push:
+    branches: [main]
+    paths: ['notes/maintenance/branch-consolidation-20261126.json']
+  workflow_dispatch:
+    inputs:
+      execute:
+        type: boolean
+        description: Archive exact branch tips and delete them with leases
+        required: true
+        default: false
+permissions:
+  contents: write
+  actions: read
+  pull-requests: read
+concurrency:
+  group: branch-consolidation-20261126
+  cancel-in-progress: false
+jobs:
+  cleanup:
+    if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            scripts/maintenance
+            notes/maintenance
+          fetch-depth: 1
+          lfs: false
+      - name: Archive and prune only SHA-pinned branch heads
+        shell: bash
+        run: |
+          set -eu
+          python -m py_compile scripts/maintenance/consolidate_branches_20261126.py
+          if [ "${{ github.event_name }}" = push ] || [ "${{ inputs.execute }}" = true ]; then
+            python scripts/maintenance/consolidate_branches_20261126.py --execute --wait-seconds 600
+          else
+            python scripts/maintenance/consolidate_branches_20261126.py
+          fi
+      - name: Preserve remote-ref audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: branch-consolidation-audit
+          path: branch-consolidation-audit.json
+          if-no-files-found: warn
