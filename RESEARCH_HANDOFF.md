@@ -222,3 +222,8 @@ See [the mathematical explainer and static dashboard guide](docs/hyperplane-swee
 
 
 **Pages deployment recovery (2026-11-26):** [Run 45888110773](https://github.com/heri-espino/maxkcut/actions/runs/45888110773) failed during static site preparation because the original workflow required an explainer PDF that had not been committed. The standalone HTML is present on main. The revised workflow requires only the HTML, warns if the PDF is absent, and includes its link only when the PDF is available. This is a publication-only change; the PDF, LaTeX and figures still need to be archived separately. No numerical computation or university runner is needed.
+
+## Experiment025 optional local-only output retention — development note (2026-11-03)
+
+An opt-in `-PublishMode local` execution path and `scripts/experiment025-summary-preview.py` are proposed in a separate code PR. The scientific optimizer source (`src/maxkcut/`), 71 graphs, 18 methods, 16 GW starts, and frozen EVA factors are unchanged. The current live `experiment025-results` VM scheduler **will continue pushing as launched** until stopped; modifying GitHub does not alter an in-memory Python scheduler. Do not merge into, pull, reset, switch or clean the active results checkout. See [the local archive / compact GitHub publication runbook](notes/experiments/experiment025-local-archive-summary-publication.md). The full local archive must also be backed up off-VM for long-term agent reproducibility.
+
