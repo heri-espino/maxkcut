@@ -74,3 +74,13 @@ approximation guarantees.
 Preserve the importable names `load_graph`, `edge_arrays`, `cut_weight`, `factorize`, `round_fj`, `round_spherical_kmeans`, `solve_sdp`, and `benchmark` unless a versioned deprecation is justified. Keep `maxkcut`, `python -m maxkcut`, and `python scripts/gset_benchmark.py` consistent.
 
 **No experimental performance claim can be inferred from static code or tests alone.** A successful small SDP smoke test does not prove the feasibility of large G-set instances.
+
+## Human-facing research documents (2026-11-14)
+
+`documents/presentations/` contains editable Marp decks, vector diagrams,
+build scripts, and archived rendered slides. `documents/monographs/` contains
+the modular EVA/Max-Cut theoretical book and its reproduction scripts.
+See [`documents/README.md`](../documents/README.md) for routing. The
+`papers/hyperplane-sweep/` path is intentionally not moved while a PR edits it.
+Software docs (`docs/`), experimental ledgers (`notes/`), signed cut archives
+(`results/`) and optimizers (`src/`) remain in their established locations.

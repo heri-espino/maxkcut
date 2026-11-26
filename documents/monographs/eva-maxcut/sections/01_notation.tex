@@ -1,0 +1,41 @@
+\chapter{Notation, Mathematical Objects, and Scope}\label{ch:notation}
+\section{Objects, indices, and conventions}
+Let $G=(V,E,w)$ be a finite, undirected, loop-free weighted graph with $V=\{1,\ldots,n\}$ and edge weights $w:E\to\R$. Write $w_{ij}=w_{ji}$ for the adjacency coefficients, with $w_{ii}=0$ and $w_{ij}=0$ for nonedges. Unless stated otherwise, sums over $E$ count each undirected edge \emph{once}; a sum over all ordered pairs counts each twice. The symbol $m=|E|$ denotes the number of edges, not the SDP number of constraints (which is $n$).
+
+\begin{longtable}{>{\(}l<{\)}p{0.70\textwidth}}
+\toprule
+\text{Symbol}&\text{Meaning}\\\midrule
+n,p & Number of graph vertices; embedding dimension (rank budget).\\
+W & Symmetric weighted adjacency matrix in $\Ssym^n$.\\
+d_i, D & Signed weighted degree $d_i=\sum_jw_{ij}$; $D=\Diag(d)$.\\
+L=D-W & Weighted graph Laplacian (not necessarily PSD if weights are signed).\\
+x_i\in\{-1,+1\} & Discrete side assigned to vertex $i$.\\
+X\in\Ssym^n & Symmetric Gram matrix, often $X_{ij}=y_i^\top y_j$.\\
+Y\in\R^{n\times p} & Matrix whose $i$th row is $y_i^\top\in\R^{1\times p}$.\\
+\Ssym_+^n & Cone of real symmetric positive-semidefinite $n\times n$ matrices.\\
+\ip{A}{B} & Frobenius inner product $\tr(A^\top B)=\sum_{ij}A_{ij}B_{ij}$.\\
+\norm{A}_F & Frobenius norm $\sqrt{\ip{A}{A}}$.\\
+\lambda_{\min}(A) & Smallest real eigenvalue of a symmetric matrix $A$.\\
+\preceq,\succeq & Loewner partial order, defined by PSD differences.\\
+\nu,Z & SDP dual diagonal vector and dual slack matrix.\\
+h_i,s_i & EVA local field $h_i=\sum_j w_{ij}y_j$ and its length $s_i=\norm{h_i}$.\\
+\bottomrule
+\end{longtable}
+
+\section{A precise objective normalization}
+For unit vectors, define
+\begin{equation}\label{eq:vector-objective}
+F(Y)=\frac12\sum_{\{i,j\}\in E}w_{ij}(1-y_i^\top y_j).
+\end{equation}
+A graph cut with spins $x\in\{\pm1\}^n$ has identical normalization: $F(x)=\sum_{\{i,j\}\in E}w_{ij}\mathbb{1}[x_i\ne x_j]$. Equivalently,
+\begin{equation}\label{eq:laplacian-objective}
+F(X)=\frac14\ip{L}{X}\qquad \text{when }X_{ii}=1\ (1\le i\le n).
+\end{equation}
+The equality follows from $\ip{L}{X}=\sum_id_iX_{ii}-\sum_{ij}w_{ij}X_{ij}=\sum_{\{i,j\}\in E}2w_{ij}(1-X_{ij})$.
+
+\begin{takeaway}
+The notation $\max_XF(X)$ means \emph{choose a feasible matrix $X$ to maximize a scalar}. It does \emph{not} mean maximize each entry, the Frobenius norm, or $X$ in the Loewner partial order.
+\end{takeaway}
+
+\section{Assumptions to watch}
+Nonnegative weights $w_{ij}\ge0$ are needed for the standard Goemans--Williamson $0.878\ldots$ multiplicative ratio, as presented here. The algebra of the SDP, EVA update, and primal--dual certificates also applies to signed weights, with care about negative optimum values and ratio interpretations. We use exact arithmetic in analytic theorems and explicitly distinguish it from floating-point computation in Part II.

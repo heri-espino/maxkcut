@@ -1,6 +1,78 @@
-## Critical EVA factor location and VM checkout distinction (2026-11-03)
+**Experiment035 — complete and independently audited (2026-11-26):** run [45816398818](https://github.com/heri-espino/maxkcut/actions/runs/45816398818), result commit `ae82791f429ecc6dad36938c2b60775fb74c86cf`. 71 graphs × 16 paired starts; 422,348 new candidate records, zero new EVA solves or numerical fallbacks. At patience 100, GW +2.697%, Sweep +4.496% (advantage +1.800 pp, 95% graph-bootstrap interval [1.492, 2.119]); 69 wins, 2 ties. [Results](results/gset/experiment035-patience-sensitivity/full/report.md). A standalone 12-page numerical appendix includes every existing vector figure and explanations. Rebuild from the audited output with `python scripts/experiment035_numerical_appendix.py results/gset/experiment035-patience-sensitivity/full Experiment035_Numerical_Appendix.pdf` (install `reportlab` and `pymupdf`). No numerical rerun, no requirement to publish raw outputs for every future experiment; retain source, audit data and a single PDF report. No merge without authorization.
 
-The 71 input factors **already exist in three distinct historical source directories**. Per the verified Experiment021 inventory and the exact Experiment025 `select_factor()` loader: 59 G1–G59 factor/case pairs in `results/gset/experiment002-eva/`; 3 G60–G62 pairs in `results/gset/experiment021-complete-71-gset/eva-numba/`; and 9 G63–G67/G70/G72/G77/G81 pairs in `results/gset/experiment003-eva-numba/`. **G60 has an older NPZ also in Experiment002; the latest verified Experiment021 G60 factor wins.** The path map, read-only inventory and SHA verification commands, two Windows checkout locations, and diagnostics are in [docs/eva-factor-locations-vm.md](docs/eva-factor-locations-vm.md). No new SDP or EVA optimization is necessary; full Experiment025 local computation already finished. The EVA factors are nonconvex rank-constrained vectors, not certified convex SDP optima.
+**Experiment034 — prospective adaptive continuation:** [Protocol](notes/experiments/experiment034-adaptive-hyperplane-sweep.md). Continue frozen E033 archived 100-draw histories, five consecutive joint non-improvements, 1,000 total cap. No EVA, no repeated E033 search, no active VM worktree modifications. Results pending independent audit; no merge without authorization.
+
+## Experiment032 — COMPLETE: 71 original EVA factors, 14,200 matched signed cuts, 111-slide Marp appendix (2026-11-16)
+
+[Successful hosted gate, Windows numerical computation, independent original signed-cut audit and Git archival #44012539461](https://github.com/heri-espino/maxkcut/actions/runs/44012539461). All **71 canonical G-set instances** used one original SHA-verified EVA factor from Experiment002 (59), Experiment003 (nine) or Experiment021 (three), **50 matched initial Gaussian normals per graph** for GW/Y, GW/-WY, antipodal K-MeansNM/Y and K-MeansNM/-WY. Saved **14,200 exact signed feasible partitions, all 71 graph factor/graph SHA manifests and all K-Means best-seen Lloyd histories**. No EVA/SDP solver calls, no flips, KL, ILS or other refinement; no source factor modifications and no Experiment025 active VM changes. The primary analysis treats each graph equally, conditional on its one immutable factor. GW mean change on -H is negligible **+0.000198%**, with a mean 0.006459% projected-sign mismatch; K-MeansNM's graph-equal mean relative effect is **+0.023957%** (positive-only 35 graphs +0.001531%, signed 36 +0.045759%), with **42 wins/3 ties/26 losses** over 71 graphwise 50-start mean cuts. Signed planar/toroidal groups improve on average, signed random group declines. No universal dominance claim or multiple-testing adjusted significance is inferred.
+
+[Scientific protocol and caution](notes/experiments/experiment032-all-gset-field-rounding.md), [71-graph report](results/gset/experiment032-all-gset-field-rounding/report.md), [all 14,200 rounds](results/gset/experiment032-all-gset-field-rounding/all_runs.csv), [per-graph paired statistics](results/gset/experiment032-all-gset-field-rounding/per_graph.csv), [full per-graph packed partitions and trajectories](results/gset/experiment032-all-gset-field-rounding/graphs/), [source-only rounding driver](scripts/experiment032_all_gset_field_rounding.py), [synthetic scientific tests](tests/test_experiment032_all_gset_field_rounding.py), [deterministic Marp plotting generator](scripts/experiment032_plot_field_rounding.py), and [111-slide Marp presentation](documents/presentations/maxkcut_full_research_001_025.marp.md) with [hosted PDF+HTML export](.github/workflows/experiment025-marp-presentation.yml). Numerical experiment workflow is **manual-only** after completion. **Do not rerun prior numerical work; PR #89 not merged without separate authorization.**
+
+
+---
+
+## Experiment031 — Signed-edge EVA geometry and matched GW hyperplanes COMPLETE (2026-11-16)
+
+[Complete mathematical protocol and verified empirical findings](notes/experiments/experiment031-signed-gw-geometry.md). Using 1,000 immutable SHA-256 verified Experiment028/029 EVA factor archives, five G-set graphs G1/G6/G11/G14/G18, 100 EVA seeds each at p=41 and p=800, the diagnostic sampled **16,000 Gaussian normals** applied identically to Y, -H, and -H+ in each factor, and saved **48,000 original signed feasible cut scores, exact packed labels and graph/source manifests**. Every original signed partition was independently rescored and audited in successful [Actions #44006548472](https://github.com/heri-espino/maxkcut/actions/runs/44006548472), with green hosted tests, named Windows PCAG103A-13 computation, and independent hosted archival. No new EVA/SDP, k-means, GW best-of-k, KL or ILS computations.
+
+Positive-vs-negative edge mean angles, p41: G6 106.39°/73.64°, G11 144.64°/35.69°, G18 120.27°/57.76°; their GW expected separation probabilities are positive/negative 59.10%/40.91%, 80.35%/19.83%, 66.82%/32.09%. Angles at p800 are nearly identical. At finite EVA stationarity, matched-hyperplane signs from Y vs -H differ on <0.01% of all vertices, matching theory -H≈DY. Dropping negative local-field contributions **at the same fixed Y** changes 14.90% of GW labels on G6, 11.21% on G11, 15.90% on G18, and exactly zero on positive-only G1/G14; this is a projected-field ablation **not optimization on a modified graph**. GW on -H does not systematically improve cuts. The analytic signed GW expected score closely agrees with 16-normal sampling across each factor; seed-clustered bootstrap intervals are available.
+
+Source-of-truth: [1,000 per-factor signed-angle cases](results/gset/experiment031-signed-gw-geometry/all_cases.csv), [16k matched trials](results/gset/experiment031-signed-gw-geometry/all_gw_trials.csv), [summaries and bootstraps](results/gset/experiment031-signed-gw-geometry/per_graph_rank.csv), [full archived partitions/manifests](results/gset/experiment031-signed-gw-geometry/graphs/), [reproducible edge-angle SVG](results/gset/experiment031-signed-gw-geometry/signed_edge_angles.svg), [negative-field ablation SVG](results/gset/experiment031-signed-gw-geometry/gw_negative_field_ablation.svg). Use `python scripts/experiment031_plot_geometry.py --check` to verify figures. Experimental workflow manual-only and original factors remain frozen. Existing Experiment030 PR #87 is a distinct already-completed clustering experiment and remains unmerged. **New Experiment031 PR #88 is ready for review but must not be merged without explicit authorization.**
+
+
+---
+
+## Experiment030 — COMPLETE signed local-field clustering on frozen EVA factors (2026-11-16 UTC)
+
+The 1,000 previously verified Experiment028/029 EVA factors were reused unchanged across G1/G6/G11/G14/G18 × p=41/p=800 × 100 seeds, with **six antipodal K-MeansNM representations**: Y (SHA-matched exact baseline), normalized -H, raw -H, ||h_i||Y, (||h_i|| / weighted-abs-degree)Y, weighted-abs-degree Y. **Exactly 6,000 signed hard-cut scores and 104,242 complete per-iteration clustering traces** were preserved, plus all packed partitions and original factor hashes, in [Experiment030 archive](results/gset/experiment030-local-field-clustering/). [Numerical report](results/gset/experiment030-local-field-clustering/report.md), [paired 95% bootstrap intervals](results/gset/experiment030-local-field-clustering/per_graph_method.csv), [reproducible forest plot](results/gset/experiment030-local-field-clustering/raw_field_relative_effects.svg), [methods/protocol and caveats](notes/experiments/experiment030-local-field-clustering.md), [driver](scripts/experiment030_local_field_rounding.py), [plot generator](scripts/experiment030_plot_effects.py), [synthetic tests](tests/test_experiment030_local_field_rounding.py).
+
+Main result: raw negative local field increases mean signed cut on G11 by +0.90 (both ranks) and G18 by +2.41 (p41)/+1.64 (p800), but decreases G14 by −2.56/−2.92. Equal-graph mean relative gain +0.0602% (p41), +0.0349% (p800), NOT a universal improvement. Normalized -H almost exactly reproduces Y (minimum observed alignment cosine >0.9999996), so field amplitude weighted centroids, not different angular coordinates, explain the effect. Bootstrap intervals are nominal within fixed graphs and not multiplicity-adjusted.
+
+[Actions #43965555603](https://github.com/heri-espino/maxkcut/actions/runs/43965555603): hosted tests and **Windows compute PASS**, but overall original workflow failed solely on a trailing blank line in Markdown at git diff --check. [Hosted recovery #43966589165](https://github.com/heri-espino/maxkcut/actions/runs/43966589165): independent full **6,000/6,000** signed-edge audit and publication **PASS**, no EVA or clustering redo. Original workflow now **manual-only** and successful one-off recovery workflow removed. PR #87 contains verified results (unmerged until explicitly authorized). **Do not rerun completed rounds or modify prior EVA factors, Experiment025, or the shared Windows VM's active worktree.**
+
+
+---
+## Experiment029 — 100 EVA seeds × two embedding ranks × five G-set graphs COMPLETE (2026-11-16 UTC)
+
+Reused 50 checksum-verified Experiment028 p=41/p=800 factors (seeds 2026–2030), solved only **950 missing EVA starts** (2031–2125), and evaluated antipodal **K-MeansNM only**: **1,000/1,000 original signed cuts, 500/500 rank-paired contrasts**, and 1,000 internally converged factor cases (not a global SDP certificate). [Protocol and theoretical limitations](notes/experiments/experiment029-eva-kmeansnm-100seed.md), [complete result table](results/gset/experiment029-eva-kmeansnm-100seed/report.md), [all seeded runs](results/gset/experiment029-eva-kmeansnm-100seed/all_runs.csv), [paired differences](results/gset/experiment029-eva-kmeansnm-100seed/paired_differences.csv), and [binary factors/partitions/sweep logs](results/gset/experiment029-eva-kmeansnm-100seed/runs/) are durable on the experiment branch. Mean equal-graph relative difference p800−p41 is **−0.0477%**, and all five 95% graphwise paired bootstrap CIs include zero; full rank takes ~11–14× EVA time; best-of-100 p41 is better on four graphs, with p800 only winning G11 by 2 units. [Original compute run #43812691400](https://github.com/heri-espino/maxkcut/actions/runs/43812691400) passed hosted and Windows calculation but failed a Git LFS count assertion (identical partitions lead to fewer unique objects than file paths). [Successful hosted independent audit and archive #43814521921](https://github.com/heri-espino/maxkcut/actions/runs/43814521921) rechecked **all 950 new factor SHA-256 values and original signed partitions**, committed **1,900 binary LFS file paths (~2.45 GB) plus 950 complete sweep logs**. One-time recovery workflow removed; original workflow manual-only and idempotent. No existing solver/source, prior EVA factor or Experiment025 result touched. **Experiment028 PR #85 was merged into main on 2026-11-16; Experiment029 PR #86 targets main and includes the validated seven-slide 104-page Marp addendum. No solver reruns or additional VM work are needed.**
+
+
+---
+
+## Experiment028 — Five-graph p=41 versus p=800 pilot COMPLETE (2026-11-16 UTC)
+
+[Protocol, derivation and results](notes/experiments/experiment028-eva-fullrank-pilot.md). Original signed 800-node G-set G1/G6/G11/G14/G18, EVA seeds 2026–2030, both default and full p, exactly 50 sequential-Numba factors, followed by GW/K-Means2N/K-MeansNM (150 signed cuts). [Compact report](results/gset/experiment028-eva-fullrank-pilot/report.md), [raw paired comparisons](results/gset/experiment028-eva-fullrank-pilot/paired_differences.csv), [sweep journals and 100 LFS factor/partition objects](results/gset/experiment028-eva-fullrank-pilot/runs/). Compute [run 43807215661](https://github.com/heri-espino/maxkcut/actions/runs/43807215661) succeeded, but its main workflow **failed in publication due Windows CRLF text diff**; publishing was recovered without numerical recompute by [hosted run 43807897402](https://github.com/heri-espino/maxkcut/actions/runs/43807897402), which independently audited the checkpoint SHA-256 values and pushed all 100 LFS objects. All 50 factors internally converged; factor p=800 produced virtually the same continuous relaxation value, with about 11–14× more EVA time. Across five equally weighted graphs, paired mean relative signed-cut effects (p800 minus p41) were GW −0.4303%, K-Means2N −0.2197%, K-MeansNM −0.1046%. There are meaningful graph-specific exceptions (especially G6 K-MeansNM +11.6 raw mean cut units), so do not generalize to every graph. Existing Experiment002/021 EVA, Experiment025 local-only results, and the VM's active directory were not changed. **Treat this as a finished small pilot, no reruns, no certified SDP optimum, do not merge the results PR without authorization.**
+
+
+---
+
+**Document collection migration (2026-11-14):** The archived presentation
+sources/PDFs/plots and 49-page modular EVA monograph were moved (not
+regenerated) to [`documents/`](documents/README.md) on an isolated branch.
+All old/new paths and file hashes are recorded in
+[`documents/migration-manifest.json`](documents/migration-manifest.json).
+No numerical optimizer source, G-set corpus, frozen EVA factor, or
+Experiment025 result was modified. `papers/hyperplane-sweep/` remains in place
+until coordination with its open manuscript PR.
+
+
+## Mathematical exposition added — EVA, Max-Cut SDP, factorization (2026-11-14)
+
+The self-contained [modular EVA/SDP mathematical monograph](documents/monographs/eva-maxcut/README.md) has 20 TeX input modules, [49-page compiled PDF](documents/monographs/eva-maxcut/EVA_MaxCut_Theory_and_Examples.pdf), fully reproducible (C_5) and weighted (W_6) analytic primal–dual examples, EVA trace plots, code, and `experiment001` outputs. It carefully separates exact SDP dual certification from finite-tolerance EVA stationarity; it is instructional rather than a new G-set benchmark. See its local `AGENTS.md` and `RESEARCH_HANDOFF.md`. No archived EVA/SDP factors or Experiment025 results changed.
+
+---
+
+# UPDATED PRESENTATION — EXPERIMENT025 STRUCTURAL COMPARISON (2026-11-03)
+
+A new 94-slide [Experiment001–025 Marp seminar](documents/presentations/maxkcut_full_research_001_025.marp.md) extends the 74-slide historical deck without modifying it. Twelve committed deterministic [SVG figures](documents/presentations/assets) visualize full 71×18 best-of-16 comparisons, uncertainty, each graph, family and sign strata, fractional winner credit, and structural associations using Experiment022 original-edge degree, transitivity, and negative-edge fraction; the CSV is from draft [aggregate analysis PR #75](https://github.com/heri-espino/maxkcut/pull/75). The [figures and complete reproduction guide](documents/presentations/EXPERIMENT025_PRESENTATION.md) plus [GitHub Actions Marp PDF/HTML build](.github/workflows/experiment025-marp-presentation.yml) use a hosted runner, do not recompute EVA or numerical refinements, and leave the VM's unbacked raw archive untouched. Interpret associations descriptively; independent rescore, off-VM backup and paired individual-seed inference remain pending. Keep this presentation branch stacked on PR #75 until the source data and method findings are reviewed.
+
+---
+
+## EXPERIMENT025 ANALYSIS DRAFT — CSV RECEIVED (2026-11-03)
+
+The user uploaded the complete compact 1,278-row `full_best_final_by_graph.csv`. A self-contained reproducible aggregate-only analysis (no numerical compute) is proposed on a separate draft branch: [full analysis and reproducibility note](notes/experiments/experiment025-aggregate-analysis.md), `scripts/experiment025-analyze-aggregate.py`, method leaderboard, graph winner table and head-to-head comparisons. The analyzed CSV has SHA256 `8a9d84cfc35f1d424519b862676facc288a6366bc1820e52975a2bf76678de6c`. The leading equal-graph **best-of-16** relative gain vs refined GW-RR is Hyperplane Sweep +0.3176% (59 graph wins, 7 ties, 5 losses), compared with Control Paired +0.2719%, EM-Gibbs +0.2707%, and Cut-Aware K-Means +0.2668%. The graph-level differences between these top methods are not decisively established by signed-rank tests. Six MST arms have scores identical to GW across all 71 graphs; EM-Hard and EM-CEM are identical in best-of-16 and mean-of-16 aggregates. Eight graph bests exceed the archived feasible `reference_cut` but are **not independently verified as new best-known records**. The 20,448-row seed-level paired data, full VM raw backup and independent partition rescore remain required. **Do not merge as final claims until audit, and never recompute EVA/SDP or already complete full refinements.**
+
+---
 
 # LATEST EXPERIMENT025 STATUS — FULL LOCAL COMPUTATION FINISHED (2026-11-03)
 
@@ -111,7 +183,7 @@ Experiment numbers not individually listed above are **not assumed to have been 
 
 ## Research presentation (29 October 2026)
 
-The [45-slide Marp research presentation](presentations/maxkcut_research_journey.marp.md) narrates the theory, actual experiment chronology through Experiment021, fixed Round→Flip→KL→ILS method, self-hosted Windows runner, complete 71-graph evidence, best-cut and paired-mean rankings, statistical cautions and proposed Experiment022. Its [README](presentations/README.md), three SVG graphics and `presentations/build_assets.py` are committed as editable reproducible source. It does not initiate new EVA or rounding jobs.
+The [45-slide Marp research presentation](documents/presentations/maxkcut_research_journey.marp.md) narrates the theory, actual experiment chronology through Experiment021, fixed Round→Flip→KL→ILS method, self-hosted Windows runner, complete 71-graph evidence, best-cut and paired-mean rankings, statistical cautions and proposed Experiment022. Its [README](documents/presentations/README.md), three SVG graphics and `documents/presentations/build_assets.py` are committed as editable reproducible source. It does not initiate new EVA or rounding jobs.
 
 ## Experiment022 — Structural analysis of initializer performance (retrospective)
 
@@ -134,3 +206,34 @@ The [full method-topology experiment](notes/experiments/experiment023-all-method
 - **Next independent computational experiment:** `experiment023`, if pursued, should compare an initializer portfolio against additional original K-MeansNM restarts at **equal total wall time / cut-evaluation budget**, with graph-normalized paired effects, multiple-comparison controls and separate preprocessing accounting. Other alternatives (e.g. recombining complementary elite partitions) require a newly specified and archived experiment.
 
 **Repository-first rule:** inspect `README.md`, `AGENTS.md`, this handoff, experiment notes, code, tests and exact SHA-checked outputs before changes; keep every new source, config, result, figure and decision in GitHub. Do not overwrite a completed experiment, rerun expensive optimizations merely for reporting, or merge stacked PRs without explicit authorization.
+
+
+## Hyperplane Sweep algorithmic manuscript (2026-11-05)
+
+- Source, related-work bibliography, build instructions and PDF workflow: [papers/hyperplane-sweep](papers/hyperplane-sweep/README.md).
+- This is a **provisional research draft**. The 71 × 18 × 16 aggregate is from still-draft PR #75; the original signed-cut partitions have not been independently audited, matched-seed trajectories are not available in the compact dataset, and full raw VM archives have not been independently backed up. Do not claim certified records, superior approximation factors, or equal-compute comparisons.
+- The manuscript proves conditional fixed-arc exactness and retained-GW guarantees only. The code gain-guided mode selects negative single-flip gains, although its comment describes improving flips. Boundary-guided selects small absolute gains, not geometric margins. Test this separately under a newly numbered experiment; keep Experiment025 frozen.
+- Hosted Ubuntu compiles the manuscript. It does not run on or modify the university Windows VM, EVA factors, or optimization checkpoints.
+
+
+## Hyperplane Sweep interactive educational companion
+
+See [the mathematical explainer and static dashboard guide](docs/hyperplane-sweep-dashboard.md). Archive the educational PDF, LaTeX source, Python figure generator and figures in `documents/hyperplane-sweep/`; keep the interactive Pages dashboard in `dashboard/` and the manuscript in `papers/hyperplane-sweep/`. The original PDF/source archive has not yet been committed; do not claim it is published. The Pages workflow is hosted-only; no numerical computations are required.
+
+
+**Pages deployment recovery (2026-11-26):** [Run 45888110773](https://github.com/heri-espino/maxkcut/actions/runs/45888110773) failed during static site preparation because the original workflow required an explainer PDF that had not been committed. The standalone HTML is present on main. The revised workflow requires only the HTML, warns if the PDF is absent, and includes its link only when the PDF is available. This is a publication-only change; the PDF, LaTeX and figures still need to be archived separately. No numerical computation or university runner is needed.
+
+## Experiment025 optional local-only output retention — development note (2026-11-03)
+
+An opt-in `-PublishMode local` execution path and `scripts/experiment025-summary-preview.py` are proposed in a separate code PR. The scientific optimizer source (`src/maxkcut/`), 71 graphs, 18 methods, 16 GW starts, and frozen EVA factors are unchanged. The current live `experiment025-results` VM scheduler **will continue pushing as launched** until stopped; modifying GitHub does not alter an in-memory Python scheduler. Do not merge into, pull, reset, switch or clean the active results checkout. See [the local archive / compact GitHub publication runbook](notes/experiments/experiment025-local-archive-summary-publication.md). The full local archive must also be backed up off-VM for long-term agent reproducibility.
+
+# Experiment026 proposed prospective Hyperplane Sweep long run (2026-11-03)
+
+See [Experiment026 runbook](notes/experiments/experiment026-hyperplane-longrun.md) and [literature reference provenance](references/README.md). A separate branch includes a source-attributed 71-graph literature target dataset and a resumable long-duration hyperplane search. The existing EVA factors and Experiment025 data and algorithms remain immutable; no new numerical production computation has started. Use a separate idle VM worktree and off-VM backup.
+
+---
+
+## Critical EVA factor location and VM checkout distinction (2026-11-03)
+
+The 71 input factors **already exist in three distinct historical source directories**. Per the verified Experiment021 inventory and the exact Experiment025 `select_factor()` loader: 59 G1–G59 factor/case pairs in `results/gset/experiment002-eva/`; 3 G60–G62 pairs in `results/gset/experiment021-complete-71-gset/eva-numba/`; and 9 G63–G67/G70/G72/G77/G81 pairs in `results/gset/experiment003-eva-numba/`. **G60 has an older NPZ also in Experiment002; the latest verified Experiment021 G60 factor wins.** The path map, read-only inventory and SHA verification commands, two Windows checkout locations, and diagnostics are in [docs/eva-factor-locations-vm.md](docs/eva-factor-locations-vm.md). No new SDP or EVA optimization is necessary; full Experiment025 local computation already finished. The EVA factors are nonconvex rank-constrained vectors, not certified convex SDP optima.
+

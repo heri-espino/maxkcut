@@ -1,0 +1,53 @@
+\chapter{Positive-Semidefinite Geometry, Gram Matrices, and Spectra}\label{ch:psd}
+\section{The PSD cone}
+\begin{definition}
+A real symmetric $X\in\Ssym^n$ is \emph{positive semidefinite}, written $X\succeq0$, when $z^\top Xz\ge0$ for every $z\in\R^n$. It is positive definite, $X\succ0$, if the inequality is strict for nonzero $z$.
+\end{definition}
+\begin{theorem}[Equivalent PSD characterizations]\label{thm:psd-equiv}
+For symmetric $X\in\Ssym^n$, the following are equivalent:
+\begin{enumerate}
+\item $X\succeq0$.
+\item Every eigenvalue of $X$ is nonnegative.
+\item $X=YY^\top$ for some real matrix $Y$.
+\item $X=Q\Lambda Q^\top$ with $Q^\top Q=I$ and diagonal $\Lambda\succeq0$.
+\end{enumerate}
+\end{theorem}
+\begin{proof}
+By the spectral theorem, $X=Q\Lambda Q^\top$. With $z=Qv$, $z^\top Xz=\sum_j\lambda_jv_j^2$, which is nonnegative for all $v$ exactly when every $\lambda_j\ge0$. Then $Y=Q\Lambda^{1/2}$ yields $YY^\top=X$. Conversely, $z^\top YY^\top z=\norm{Y^\top z}^2\ge0$.
+\end{proof}
+
+\section{The elliptope and its geometry}
+\begin{definition}[Elliptope]
+The real correlation elliptope is
+\[
+\mathcal E_n=\{X\in\Ssym_+^n:\diag(X)=\one\}.
+\]
+Every $X\in\mathcal E_n$ is a Gram matrix of unit vectors $y_1,\ldots,y_n$.
+\end{definition}
+Each two-by-two principal minor is nonnegative, so $1-X_{ij}^2\ge0$; hence $-1\le X_{ij}\le1$. However, the entries are \emph{globally coupled}: satisfying all pairwise bounds is insufficient for PSD, because all principal minors and spectral conditions must be compatible.
+
+\begin{lemma}[Metric induced by the Gram matrix]\label{lem:gram-distance}
+For $\norm{y_i}=\norm{y_j}=1$,
+\[
+\norm{y_i-y_j}^2=2(1-X_{ij}),\qquad X_{ij}=\cos\theta_{ij}.
+\]
+\end{lemma}
+\begin{proof}
+Expand $\norm{y_i-y_j}^2=\norm{y_i}^2+\norm{y_j}^2-2y_i^\top y_j$ and use the definition of the angle between unit vectors.
+\end{proof}
+\begin{intuition}
+Maximizing $F(X)$ for positive weights tends to push vectors on heavily weighted edges far apart on a sphere; it does not require every pair of vectors to be antipodal, which may be geometrically impossible on odd cycles. The objective is a weighted sum of squared chord distances:
+\[
+F(Y)=\frac14\sum_{\{i,j\}\in E}w_{ij}\norm{y_i-y_j}^2.
+\]
+\end{intuition}
+
+\section{Partial order is not an entrywise objective}
+The Loewner order $A\succeq B$ means $A-B\succeq0$, not $A_{ij}\ge B_{ij}$. It is not a total order. For unit-diagonal feasible matrices $X,X'$, $X\succeq X'$ actually forces $X=X'$: the PSD difference $H=X-X'$ has diagonal zero; a PSD matrix with zero diagonal is zero, by $|H_{ij}|^2\le H_{ii}H_{jj}=0$. Thus, \emph{maximize a PSD matrix} is not what the SDP does. Instead it maximizes the \emph{linear functional} $\ip{C}{X}$.
+
+\section{Spectral and trace tools}
+For symmetric $C$ and PSD $X$, $\ip{C}{X}=\tr(CX)$; the sign need not be nonnegative unless $C\succeq0$. A useful upper bound for nonnegative-weight graph Laplacians is
+\begin{equation}\label{eq:spectral-bound}
+F(X)=\frac14\tr(LX)\le \frac14\lambda_{\max}(L)\tr(X)=\frac n4\lambda_{\max}(L),
+\end{equation}
+because $L\preceq\lambda_{\max}(L)I$ and $X\succeq0$. This is usually not sharp; primal--dual certificates will produce sharper bounds in Part II.

@@ -1,0 +1,16 @@
+\chapter*{Preface and Reading Guide}
+\addcontentsline{toc}{chapter}{Preface and Reading Guide}
+This monograph develops the connection
+\[
+\text{discrete Max-Cut}\ \longrightarrow\ \text{convex SDP}\ \longleftrightarrow\
+\text{Gram vectors}\ \longrightarrow\ \text{EVA}\ \longrightarrow\ \text{rounding}.
+\]
+Part I emphasizes definitions, proofs, distinctions among first-order stationarity, second-order conditions, and global optimality, and the algebra of Cholesky and spectral factorizations. Part II supplies two \emph{nontrivial, analytically solvable} examples: the frustrated five-cycle $C_5$ and a six-vertex wheel $W_6$ with a weighted spoke parameter. We exhibit their primal embeddings and positive-semidefinite dual slacks, quantify their integrality gaps, and trace the actual row-update algorithm numerically.
+
+The primary EVA reference is Gonzalez-Torres \emph{et al.} (2026), \emph{EVA: A fast greedy optimization algorithm for the max-cut vector relaxation problem}~\cite{eva2026}. The classical SDP and rounding originate with Goemans--Williamson~\cite{gw1995}; low-rank nonconvex optimization requires additional nuance, discussed with references to Burer--Monteiro, Boumal--Voroninski--Bandeira, and Waldspurger--Waters~\cite{burer2003,boumal2016,boumal2020,waldspurger2020}. The user's earlier thesis and clustering paper provide the rounding context~\cite{rodriguez2021,rodriguez2020}. The independent example-checking script accompanies this source distribution.
+
+\begin{caution}
+Statements explicitly attributed to the EVA paper are distinguished from theorems established here. In particular, \emph{existence of an optimal low-rank Gram matrix}, \emph{first-order KKT stationarity}, and \emph{guaranteed global optimality of a particular EVA iterate} are different mathematical claims. Whenever a numerical method terminates at a finite tolerance, its primal value is not automatically a certified upper bound. A dual feasible matrix is needed for certification.
+\end{caution}
+
+\paragraph{How to edit.} Each file under \texttt{sections/} is a logical concept. Change it in isolation and retain its \verb|\input{sections/name}| in \texttt{main.tex}. The sample code is under \texttt{code/}; the entry point is \texttt{latexmk -pdf main.tex}. No external images are required.

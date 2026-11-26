@@ -1,0 +1,38 @@
+\chapter{Burer--Monteiro Geometry, Rank Bounds, and Spurious Optima}\label{ch:rank}
+\section{Dimension reduction and its price}
+The full SDP has $n(n+1)/2$ symmetric scalar matrix entries (with $n$ fixed diagonal constraints). A factor $Y\in\R^{n\times p}$ has $np$ scalar entries and lies on the compact manifold
+\[
+\mathcal M_p=(S^{p-1})^n=\{Y:\norm{y_i}=1,\ i=1,\ldots,n\}.
+\]
+Its dimension is $n(p-1)$, since each sphere contributes $p-1$ degrees of freedom. The factorization automatically enforces PSD, but creates nonconvexity and rotational gauge redundancy $Y\sim YR$ for $R\in O(p)$.
+
+\section{Existential low-rank theorem}
+\begin{theorem}[Extreme-point rank bound]\label{thm:rankbound}
+For the Max-Cut elliptope, an SDP optimum exists with rank $r$ satisfying
+\[
+\frac{r(r+1)}2\le n.
+\]
+Consequently a factor with $p\ge\lfloor(\sqrt{8n+1}-1)/2\rfloor$ columns can represent \emph{some} SDP optimum.
+\end{theorem}
+\begin{proof}[Proof sketch with the essential dimension argument]
+A linear function attains its optimum at an extreme point of the compact elliptope. Let $X=UU^\top$ be an extreme point of rank $r$, where $U\in\R^{n\times r}$ has full column rank. Any symmetric perturbation $H\in\Ssym^r$ induces a matrix perturbation $UHU^\top$. Requiring its diagonal to remain zero imposes $n$ homogeneous linear equations in the $r(r+1)/2$ entries of $H$. If $r(r+1)/2>n$, a nonzero $H$ exists. For sufficiently small $t>0$, both $I_r\pm tH\succeq0$, and hence $X\pm tUHU^\top$ are distinct feasible matrices averaging to $X$, contradicting extremality.
+\end{proof}
+
+\begin{remark}
+The EVA reference uses a conservative rank prescription $p=\lceil\sqrt{2(n+1)}\rceil$. This is of the same order as the extreme-point bound and is large enough to \emph{represent an optimum}. It is not a claim that every full-rank feasible $X$ lies in the restricted factorization. Moreover, the ability to represent an optimum must not be mistaken for a proof that a particular sequence of coordinate updates finds it.
+\end{remark}
+
+\section{A deterministic global-optimality theorem for rank-deficient factors}
+\begin{theorem}[Rank-deficient second-order point is globally SDP-optimal]\label{thm:rankdef}
+Let $Y\in\mathcal M_p$ satisfy first-order stationarity and the second-order necessary condition \eqref{eq:second-order}. If $\rank(Y)<p$, then $X=YY^\top$ is globally optimal for the SDP.
+\end{theorem}
+\begin{proof}
+Stationarity gives $ZY=0$ with $Z=\Diag(\nu)-C$. Since $\rank(Y)<p$, choose nonzero $q\in\R^p$ such that $Yq=0$. For arbitrary $z\in\R^n$, set $U=zq^\top$. Each row satisfies $u_i^\top y_i=z_iq^\top y_i=0$, so $U$ is tangent. Second-order necessity gives $0\le\tr(U^\top ZU)=\norm{q}^2z^\top Zz$. As $z$ is arbitrary, $Z\succeq0$. Thus $\nu$ is dual feasible and $ZY=0$ implies $ZX=0$. By \cref{thm:strong}, $X$ is globally SDP-optimal.
+\end{proof}
+
+\section{What generic no-spurious-optima theorems actually say}
+Research on the Burer--Monteiro factorization establishes global-optimality conclusions for second-order critical points under appropriate rank and regularity assumptions; important results apply to \emph{generic} objective matrices rather than arbitrary structured graphs~\cite{boumal2016,boumal2020}. There are also counterexamples below critical rank thresholds~\cite{waldspurger2020}. The conclusions depend on which assumptions hold: stationarity order, cost genericity, constraint regularity, rank, and whether a sequence actually reaches a second-order point.
+
+\begin{caution}
+The 2026 EVA paper states a global-optimality result for sufficiently large $p$, invoking prior low-rank SDP theory. A rigorous independent audit must check the cited theorem's hypotheses and whether EVA's convergence notion is sufficient. It is mathematically unsafe to replace ``there exists a low-rank SDP optimum'' or ``the update reaches an approximate KKT point'' with ``every stopped EVA run is globally optimal.'' We use directly verifiable dual certificates whenever claiming global optimality.
+\end{caution}
