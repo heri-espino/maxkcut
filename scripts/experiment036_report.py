@@ -8,10 +8,11 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib import font_manager
 import awesomefigures as af
-import fitz
+import pymupdf as fitz
 from threadpoolctl import threadpool_limits
 import experiment033_raw_hyperplane_sweep as e33
 import experiment036_inertia_guided as ex
+from experiment036_publication_audit import verify
 
 ROOT=ex.ROOT/"full"
 METHODS=("gw","random-sweep")+ex.ARMS
@@ -22,7 +23,7 @@ def main():
     for g in e33.GRAPHS:
         graph,y,rec=e33.inputs(g)
         b,_=e33.verify(g,"full",e33.STARTS,e33.STEPS)
-        data=ex.verify(g,"full",graph,y,rec,b)
+        data=verify(g,"full",graph,y,rec,b)
         denominator=b["cuts"][:,0,0].mean()
         assert denominator>0
         for s in range(e33.STARTS):
@@ -88,7 +89,9 @@ def main():
     metadata=dict(complete=True,graphs=len(gain),paired_starts=len(gain)*e33.STARTS,steps=ex.STEPS,
                   audited_records=len(df),new_records=int(df.method.isin(ex.ARMS).sum()),
                   reused_records=int(df.method.isin(METHODS[:2]).sum()),new_eva_solves=0,
-                  sampled_event_records=len(ev),methods=rows)
+                  sampled_event_records=len(ev),methods=rows,
+                  centroid_angle_audit="cosine absolute tolerance 1e-12; angle range and NaN checked",
+                  computation_commit="007ebcc326797e60edb791f1ed34a53f85a20505")
     (ROOT/"summary.json").write_text(json.dumps(metadata,indent=2)+"\n",encoding="utf8")
     make_figures(df,seed,pg,gain,effects,summary,curves,ev,metadata)
 

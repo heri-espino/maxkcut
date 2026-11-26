@@ -1,0 +1,105 @@
+name: Experiment036 - publication recovery only
+on:
+  push:
+    branches: [experiment036-inertia-guided-sweep]
+    paths: ['.github/workflows/experiment036-recover-publication.yml']
+  workflow_dispatch:
+    inputs:
+      source_run:
+        description: 'Successful compute run with E036 trajectories'
+        default: '45881182796'
+        type: string
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: experiment036-inertia-guided-sweep
+  cancel-in-progress: false
+jobs:
+  recover:
+    if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment036-inertia-guided-sweep'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      PYTHONPATH: src:scripts
+      OPENBLAS_NUM_THREADS: '1'
+      NUMBA_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install reporting dependencies
+        run: python -m pip install 'numpy>=1.26,<3' 'scipy>=1.12,<2' 'numba>=0.61,<0.69' threadpoolctl 'matplotlib==3.10.8' 'pandas==2.2.3' 'pymupdf==1.26.5' 'awesomefigures @ git+https://github.com/heri-espino/awesomefigures.git@d673decd59132094d0763c9e22d4fd6098ff6def'
+      - name: Validate narrow angle-audit change and PDF rendering
+        run: |
+          python scripts/experiment036_publication_audit.py
+          python - <<'PY'
+          import matplotlib
+          matplotlib.use('Agg')
+          import matplotlib.pyplot as plt
+          import awesomefigures as af
+          import pymupdf
+          from matplotlib import font_manager
+          af.set_style("heri",font="STIX",rasterize=True,use_tex=False)
+          plt.rcParams.update({"font.family":"STIXGeneral","mathtext.fontset":"stix","pdf.fonttype":42})
+          font_manager.findfont("STIXGeneral",fallback_to_default=False)
+          fig,ax=plt.subplots()
+          ax.scatter([0,1],[1,0]);ax.set_xlabel(r"$\theta$")
+          af.panel_label(ax,"A")
+          af.save_figure(fig,"/tmp/e036-smoke.pdf",dpi=600)
+          with pymupdf.open("/tmp/e036-smoke.pdf") as doc:
+              assert any("STIX" in f[3].upper() for f in doc[0].get_fonts(full=True))
+          assert len(af.color_palette("tol-bright")) >= 7
+          PY
+      - name: Restore original numerical checkpoints (no optimization)
+        uses: actions/download-artifact@v4
+        with:
+          name: experiment036-trajectories
+          run-id: ${{ inputs.source_run || '45881182796' }}
+          github-token: ${{ github.token }}
+          path: results/gset/experiment036-inertia-guided-sweep/
+      - name: Ensure numerical code is unchanged
+        run: |
+          git diff --exit-code 007ebcc326797e60edb791f1ed34a53f85a20505 -- scripts/experiment036_inertia_guided.py scripts/experiment033_raw_hyperplane_sweep.py src/maxkcut/eva_direct_rounding.py
+          test "$(find results/gset/experiment036-inertia-guided-sweep/full/graphs -name manifest.json | wc -l)" -eq 71
+      - name: Independently audit and regenerate publication
+        run: python scripts/experiment036_report.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: experiment036-report-recovery
+          path: |
+            results/gset/experiment036-inertia-guided-sweep/full/*.pdf
+            results/gset/experiment036-inertia-guided-sweep/full/*.csv
+            results/gset/experiment036-inertia-guided-sweep/full/*.json
+            results/gset/experiment036-inertia-guided-sweep/full/report.md
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Publish audited results and appendices
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config core.autocrlf false
+          git lfs install --local
+          python - <<'PY'
+          from pathlib import Path
+          for p in Path('results/gset/experiment036-inertia-guided-sweep').rglob('*'):
+              if p.is_file() and p.suffix in {'.json','.csv','.md'}:
+                  data=p.read_bytes()
+                  clean=data.replace(b'\r\n',b'\n')
+                  if data!=clean:p.write_bytes(clean)
+          PY
+          git add -f -- results/gset/experiment036-inertia-guided-sweep/
+          git diff --cached --check
+          if ! git diff --cached --quiet; then
+            git commit -m 'experiment036: archive verified original trajectories and STIX appendix'
+            git push origin HEAD:experiment036-inertia-guided-sweep
+          fi
