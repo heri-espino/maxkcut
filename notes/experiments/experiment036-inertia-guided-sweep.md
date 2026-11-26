@@ -1,0 +1,14 @@
+# Experiment036 — geometry-guided rotational sweep
+
+**Status:** prospective; do not assert results until independent audit and publication. Based on E035 branch b6465bccb1fc46ebd7e855ca999100fec92f6a4e; no previous archives modified. Reuse verified E033 100-draw baselines and frozen E021 EVA factors. E035 adaptive results are context, not a matched fixed-budget comparison.
+
+71 graphs × 16 paired starts; at most 100 updates per arm. Five new arms: spherical Lloyd (stop on inertia plateau); centroid-guided exact signed sweep; antipodal-guided exact signed sweep; spherical minimum-inertia sweep; alternating hybrid. All use the same initial normal and E033 Gaussian sequence for random proposals. Guided arms use a random proposal after a rejected state update; hybrid cycles centroid/antipodal/random. Track realized candidates, strict best cuts, timings, event counts, two normalized inertias, centroid separation, turnover, angular displacement, balance, and direction codes. Inertia-only and Lloyd states optimize spherical inertia; retain best cut independently. Pure cut arms accept strict signed cut improvements. Exactness is conditional on one event arc and numerical reconstruction. No global guarantee. Sample complete event profiles for first five arcs on G1/G11/G14, seed zero. Archive all candidate normals and packed labels, independently rescore original signed text edges and verify geometry. Paired graph bootstrap (10,000 draws), no multiplicity adjustment. Historical timings are descriptive only. Fixed 100 budget intentionally isolates geometry from adaptive stopping; E035 remains frozen.
+
+Run from repository root with PYTHONPATH=src:scripts (Windows use semicolon):
+```
+python scripts/experiment036_inertia_guided.py --action test
+python scripts/experiment036_inertia_guided.py --phase pilot --workers 1
+python scripts/experiment036_inertia_guided.py --phase full --workers 8
+python scripts/experiment036_report.py
+```
+Pilot checkpoints reused by full. Existing VM Conda untouched; hosted reporting installs AwesomeFigures at d673decd59132094d0763c9e22d4fd6098ff6def, uses STIXGeneral and STIX mathtext (bundled Matplotlib fonts), hybrid 600-dpi export, panel labels, per-graph curves, standalone A4 appendix. Figures and audit data archived in results/gset/experiment036-inertia-guided-sweep/full/. Raw NPZ and potentially large CSVs tracked with scoped LFS. If publication fails, recover artifact and rerun reporting only, not computation. Never merge without authorization.
