@@ -1,0 +1,65 @@
+\chapter{Conic Duality, KKT Conditions, and Optimality Certificates}\label{ch:dual}
+\section{Deriving the SDP dual from the Lagrangian}
+For \eqref{eq:sdp-primal}, set $C=L/4$ and introduce multipliers $\nu\in\R^n$ for the constraints $X_{ii}=1$. The maximization Lagrangian is
+\begin{align}
+\mathcal L(X,\nu)&=\ip{C}{X}+\sum_i\nu_i(1-X_{ii})\\
+&=\one^\top\nu+\ip{C-\Diag(\nu)}{X}.
+\end{align}
+For the supremum of $\mathcal L$ over $X\succeq0$ to be finite, we require $C-\Diag(\nu)\preceq0$. Otherwise a positive-eigenvalue direction can be scaled to make the supremum infinite. Hence the dual is
+\begin{equation}\label{eq:sdp-dual}
+\boxed{\begin{aligned}
+\min_{\nu\in\R^n}\quad &\sum_{i=1}^n\nu_i\\
+\st\quad &Z:=\Diag(\nu)-C\succeq0.
+\end{aligned}}
+\end{equation}
+The matrix $Z$ is the \emph{dual slack}. Unlike a feasible primal matrix, which gives a lower bound on the SDP maximum, any dual-feasible $\nu$ gives an upper bound.
+
+\begin{theorem}[Weak duality]\label{thm:weak}
+If $X\succeq0$, $\diag(X)=\one$ and $Z=\Diag(\nu)-C\succeq0$, then
+\[
+\ip{C}{X}\le\one^\top\nu.
+\]
+\end{theorem}
+\begin{proof}
+The gap is $\one^\top\nu-\ip{C}{X}=\ip{\Diag(\nu)-C}{X}=\ip{Z}{X}\ge0$, since the trace of a product of two PSD matrices is nonnegative: $\tr(ZX)=\tr(X^{1/2}ZX^{1/2})\ge0$.
+\end{proof}
+
+\begin{theorem}[Strong duality and complementary slackness]\label{thm:strong}
+The Max-Cut SDP has equal attained primal and dual optimal values. A feasible pair $(X,\nu)$ is optimal if and only if
+\begin{equation}\label{eq:complementarity}
+\ip{Z}{X}=0,\qquad Z=\Diag(\nu)-C\succeq0.
+\end{equation}
+For PSD $X,Z$, zero trace product implies $ZX=XZ=0$.
+\end{theorem}
+\begin{proof}
+Strict primal feasibility holds at $I_n$, so conic Slater duality gives equal values and attainment. Weak duality proves sufficiency of zero gap. For the final claim, $\tr(ZX)=\norm{Z^{1/2}X^{1/2}}_F^2=0$ forces $Z^{1/2}X^{1/2}=0$ and hence $ZX=XZ=0$.
+\end{proof}
+
+\section{Exact and approximate certificates}
+A certificate is \emph{exact} when $X$ and $Z$ are exactly PSD, $\diag X=\one$, and $\ip{Z}{X}=0$. For floating-point output, report all of
+\begin{equation}
+\norm{\diag(X)-\one}_\infty,\quad-\lambda_{\min}(X),\quad-\lambda_{\min}(Z),\quad\abs{\ip{Z}{X}},\quad\one^\top\nu-\ip{C}{X}.
+\end{equation}
+Clipping a tiny negative eigenvalue in the primal matrix may repair PSD but also alter the diagonal and objective; the postprocessed matrix must be inspected separately.
+
+\section{KKT equations for factorized coordinates}
+For $Y\in\R^{n\times p}$ with $\norm{y_i}=1$, define
+\[
+\mathscr L(Y,\nu)=\tr(Y^\top CY)-\sum_i\nu_i(\norm{y_i}^2-1).
+\]
+The Euclidean gradient with respect to $Y$ is
+\[
+\nabla_Y\mathscr L=2(C-\Diag(\nu))Y=-2ZY.
+\]
+Thus the first-order KKT stationarity equations are
+\begin{equation}\label{eq:factor-kkt}
+ZY=0,\quad \norm{y_i}=1\ (i=1,\ldots,n).
+\end{equation}
+Crucially, \emph{factor KKT stationarity alone does not guarantee $Z\succeq0$}. It is the missing dual inequality that separates a generic stationary embedding from a certified global SDP solution.
+
+\section{Second-order KKT geometry}
+A tangent perturbation $U\in\R^{n\times p}$ to the product of spheres satisfies $u_i^\top y_i=0$ for each row $i$. At a local maximum, the Hessian of the constrained Lagrangian is negative semidefinite on these tangent directions, yielding
+\begin{equation}\label{eq:second-order}
+\tr(U^\top ZU)\ge0\qquad \text{for every tangent }U.
+\end{equation}
+This condition is weaker than $Z\succeq0$ in general, because tangent variations do not cover all directions in $\R^{n\times p}$. A rank-deficient factor supplies a particularly useful class of tangent variations, as proved in \cref{ch:rank}.

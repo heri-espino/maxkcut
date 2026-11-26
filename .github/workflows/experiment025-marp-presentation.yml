@@ -1,4 +1,4 @@
-name: Build full Marp research presentation (Experiments 001–025)
+name: Build full Marp research presentation (Experiments 001–025 plus 028–032)
 
 on:
   workflow_dispatch:
@@ -7,15 +7,21 @@ on:
       - main
       - presentation/experiment025-structure-results
     paths:
-      - "presentations/**"
+      - "documents/presentations/**"
       - "results/gset/experiment025-gw16-bestcut-quality/analysis/**"
       - "results/gset/experiment022-graph-structure-methods/graph_features.csv"
+      - "results/gset/experiment029-eva-kmeansnm-100seed/per_graph.csv"
+      - "results/gset/experiment032-all-gset-field-rounding/per_graph.csv"
+      - "scripts/experiment032_plot_field_rounding.py"
       - ".github/workflows/experiment025-marp-presentation.yml"
   pull_request:
     paths:
-      - "presentations/**"
+      - "documents/presentations/**"
       - "results/gset/experiment025-gw16-bestcut-quality/analysis/**"
       - "results/gset/experiment022-graph-structure-methods/graph_features.csv"
+      - "results/gset/experiment029-eva-kmeansnm-100seed/per_graph.csv"
+      - "results/gset/experiment032-all-gset-field-rounding/per_graph.csv"
+      - "scripts/experiment032_plot_field_rounding.py"
       - ".github/workflows/experiment025-marp-presentation.yml"
 
 permissions:
@@ -46,19 +52,23 @@ jobs:
 
       - name: Regenerate all historical and Experiment025 SVG figures
         run: |
-          python -m pip install --disable-pip-version-check "numpy>=1.26,<3" "matplotlib>=3.8,<4"
-          python presentations/build_assets.py
-          python presentations/build_full_research_figures.py
-          MPLBACKEND=Agg python presentations/make_extra_graphics.py
-          node presentations/build_experiment025_figures.mjs
-          node presentations/build_experiment025_figures.mjs --check
-          node presentations/build_experiment025_reference_ratio_figures.mjs
-          node presentations/build_experiment025_reference_ratio_figures.mjs --check
+          python -m pip install --disable-pip-version-check "numpy>=1.26,<3" "matplotlib>=3.8,<4" "pypdf>=5,<7"
+          python documents/presentations/build_assets.py
+          python documents/presentations/build_full_research_figures.py
+          MPLBACKEND=Agg python documents/presentations/make_extra_graphics.py
+          node documents/presentations/build_experiment025_figures.mjs
+          node documents/presentations/build_experiment025_figures.mjs --check
+          node documents/presentations/build_experiment025_reference_ratio_figures.mjs
+          node documents/presentations/build_experiment025_reference_ratio_figures.mjs --check
+          node documents/presentations/build_experiment029_rank_figure.mjs
+          node documents/presentations/build_experiment029_rank_figure.mjs --check
+          python scripts/experiment032_plot_field_rounding.py
+          python scripts/experiment032_plot_field_rounding.py --check
 
       - name: Verify committed Experiment025 figures are deterministic
         run: |
-          git diff --exit-code -- presentations/assets/experiment025_*.svg presentations/experiment025-figure-manifest.json presentations/experiment025-reference-ratio-manifest.json presentations/data/experiment025_best_of16_method_ratios.csv
-          node presentations/verify_experiment025_presentation.mjs
+          git diff --exit-code -- documents/presentations/assets/experiment025_*.svg documents/presentations/assets/experiment029_*.svg documents/presentations/assets/experiment032_*.svg documents/presentations/experiment025-figure-manifest.json documents/presentations/experiment025-reference-ratio-manifest.json documents/presentations/data/experiment025_best_of16_method_ratios.csv
+          node documents/presentations/verify_experiment025_presentation.mjs
 
       - name: Install pinned Marp CLI
         run: npm install --no-save --no-package-lock @marp-team/marp-cli@4.5.1
@@ -79,36 +89,39 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p presentations/build
-          source="presentations/maxkcut_full_research_001_025.marp.md"
-          root="presentations/build/maxkcut_full_research_001_025"
+          mkdir -p documents/presentations/build
+          source="documents/presentations/maxkcut_full_research_001_025.marp.md"
+          root="documents/presentations/build/maxkcut_full_research_001_025"
           browser=()
           if [[ -n "${BROWSER_PATH:-}" ]]; then browser=(--browser-path "$BROWSER_PATH"); fi
           ./node_modules/.bin/marp "$source" --allow-local-files "${browser[@]}" --pdf -o "${root}.pdf"
           ./node_modules/.bin/marp "$source" --allow-local-files --html -o "${root}.html"
 
       - name: Embed SVG figures in standalone HTML
-        run: node presentations/embed_experiment025_html_assets.mjs
+        run: node documents/presentations/embed_experiment025_html_assets.mjs
 
       - name: Validate PDF and self-contained HTML
         shell: bash
         run: |
           set -euo pipefail
-          root="presentations/build/maxkcut_full_research_001_025"
+          root="documents/presentations/build/maxkcut_full_research_001_025"
           for ext in pdf html; do test -s "${root}.${ext}"; done
-          if command -v pdfinfo >/dev/null; then
-            pages="$(pdfinfo "${root}.pdf" | awk '/^Pages:/ {print $2}')"
-            test "$pages" -eq 97 || { echo "Expected 97 PDF pages, got $pages"; exit 1; }
-            echo "Verified PDF pages: $pages"
-          fi
+          python - <<'PY'
+          from pypdf import PdfReader
+          name="documents/presentations/build/maxkcut_full_research_001_025.pdf"
+          count=len(PdfReader(name).pages)
+          if count!=111:
+              raise SystemExit(f"Expected exactly 111 PDF pages; got {count}")
+          print(f"Verified PDF pages: {count}")
+          PY
           du -h "${root}.pdf" "${root}.html"
 
       - name: Upload PDF and standalone HTML
         uses: actions/upload-artifact@v4
         with:
-          name: maxkcut-experiment025-structure-marp
+          name: maxkcut-research-001-025-plus-032-marp
           path: |
-            presentations/build/maxkcut_full_research_001_025.pdf
-            presentations/build/maxkcut_full_research_001_025.html
+            documents/presentations/build/maxkcut_full_research_001_025.pdf
+            documents/presentations/build/maxkcut_full_research_001_025.html
           if-no-files-found: error
           retention-days: 30

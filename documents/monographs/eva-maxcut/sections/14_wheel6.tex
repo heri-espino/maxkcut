@@ -1,0 +1,126 @@
+\chapter{A Weighted Six-Vertex Wheel: Exact Primal, Dual, and Discrete Analysis}\label{ch:wheel6}
+\section{Graph family and motivation}
+Let $W_6(q)$ have rim vertices $0,1,2,3,4$, a hub vertex $5$, five unit-weight rim edges $\{i,i+1\bmod5\}$, and five spokes $\{i,5\}$ of weight $q>0$. Thus the graph has six vertices and ten edges, contains multiple odd cycles, and has heterogeneous degrees (rim weighted degree $2+q$; hub weighted degree $5q$). Taking $q=1$ gives the ordinary unweighted wheel. The parameter $q$ lets us study how the SDP geometry changes as the hub interactions strengthen.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=0.74,>=Stealth]
+\coordinate (hub) at (0,0);
+\foreach \i in {0,...,4} {
+  \coordinate (v\i) at ({90-72*\i}:2.2cm);
+}
+\foreach \i in {0,...,4} {
+  \pgfmathtruncatemacro{\j}{mod(\i+1,5)}
+  \draw[very thick,slate] (v\i)--(v\j);
+  \draw[very thick,teal!70!black] (hub)--(v\i);
+}
+\foreach \i in {0,...,4} {\node[circle,draw=navy,fill=navy!7,minimum size=8mm] at (v\i) {$\i$};}
+\node[circle,draw=warm,fill=warm!9,minimum size=8mm] at (hub) {$5$};
+\node[anchor=west] at (3.10,0.6) {\small Rim weights: $1$};
+\node[anchor=west,text=teal!70!black] at (3.10,0.2) {\small Spoke weights: $q$};
+\end{tikzpicture}
+\caption{The wheel $W_6(q)$: five rim edges form a frustrated odd cycle, while the hub is connected to all rim vertices. The competition is controlled by $q$.}\label{fig:wheel}
+\end{figure}
+
+\section{A three-dimensional symmetric Gram factor}
+Let $c=\cos(\pi/5)$ and choose $a\in[0,1]$. Define
+\begin{equation}\label{eq:wheelY}
+\begin{aligned}
+y_i(a)&=\begin{pmatrix}\sqrt{1-a^2}\cos(4\pi i/5)\\\sqrt{1-a^2}\sin(4\pi i/5)\\a\end{pmatrix},\quad i=0,\ldots,4,\\
+y_5&=\begin{pmatrix}0\\0\\-1\end{pmatrix}.
+\end{aligned}
+\end{equation}
+Every vector is unit length. Adjacent rim vectors share the inner product
+\begin{equation}\label{eq:wheelrim}
+\rho_{\mathrm{rim}}(a)=y_i(a)^\top y_{i+1}(a)
+=(1-a^2)\cos(4\pi/5)+a^2=-c+(1+c)a^2.
+\end{equation}
+Each spoke has inner product
+\begin{equation}\label{eq:wheelspoke}
+\rho_{\mathrm{spoke}}(a)=y_i(a)^\top y_5=-a.
+\end{equation}
+Therefore the SDP objective at this feasible embedding is
+\begin{align}
+F_q(a)&=\frac52\left[1-\rho_{\mathrm{rim}}(a)\right]+\frac{5q}{2}\left[1-\rho_{\mathrm{spoke}}(a)\right]\\
+&=\frac52\left[(1+c)(1-a^2)+q(1+a)\right].\label{eq:wheelparam}
+\end{align}
+This is a strictly concave quadratic polynomial in the \emph{single} parameter $a$. Differentiating gives
+\[
+F'_q(a)=-5(1+c)a+\frac{5q}{2},\qquad F''_q(a)=-5(1+c)<0.
+\]
+For $0<q\le2(1+c)$, the maximizer in the ansatz is
+\begin{equation}\label{eq:wheelastar}
+\boxed{a^*=\frac{q}{2(1+c)}.}
+\end{equation}
+Substitution yields the attainable value
+\begin{equation}\label{eq:wheel-value}
+\boxed{F_q(a^*)=\frac52(1+c+q)+\frac{5q^2}{8(1+c)}.}
+\end{equation}
+The ansatz is motivated by the symmetry, but optimizing an ansatz is \emph{not yet} proof of global SDP optimality. We now derive an exact dual certificate.
+
+\section{Constructing a dual certificate for all admissible $q$}
+Set
+\begin{equation}\label{eq:wheel-dual}
+\alpha=\frac{2+q+2c}{4},\qquad \beta=\frac{5q(1+a^*)}{4},\qquad \nu=(\alpha,\alpha,\alpha,\alpha,\alpha,\beta)^\top.
+\end{equation}
+Let $L_q$ be the wheel Laplacian and $Z=\Diag(\nu)-L_q/4$. We will prove $Z\succeq0$ by decomposing $\R^6$ into Fourier-invariant subspaces.
+
+\paragraph{(a) Nonconstant rim Fourier modes.}
+On the four-dimensional rim subspace with zero coordinate sum and zero hub coordinate, the wheel Laplacian eigenvalues are $2+q-2\cos(2\pi k/5)$ for $k=1,2,3,4$. Hence the slack eigenvalues are
+\[
+\alpha-\frac{2+q-2\cos(2\pi k/5)}4
+=\frac{c+\cos(2\pi k/5)}2.
+\]
+For $k=2,3$, the cosine is $-c$ and the slack eigenvalue is zero. For $k=1,4$, the cosine is $b:=\cos(2\pi/5)>0$, giving the strictly positive eigenvalue $(c+b)/2$ (twice).
+
+\paragraph{(b) Constant rim and hub modes.}
+Use the orthonormal basis $u=(1,1,1,1,1,0)^\top/\sqrt5$ and $e_5$. The Laplacian restricted to their span is
+\[
+L_q\big|_{\operatorname{span}\{u,e_5\}}=
+q\begin{pmatrix}1&-\sqrt5\\-\sqrt5&5\end{pmatrix}.
+\]
+Therefore the dual slack block is
+\begin{equation}\label{eq:wheel-block}
+Z_0=\begin{pmatrix}
+\alpha-q/4&q\sqrt5/4\\
+q\sqrt5/4&\beta-5q/4
+\end{pmatrix}
+=\begin{pmatrix}
+(1+c)/2&q\sqrt5/4\\
+q\sqrt5/4&5qa^*/4
+\end{pmatrix}.
+\end{equation}
+Both diagonal entries are nonnegative. Its determinant is exactly zero:
+\[
+\det Z_0=\frac{1+c}{2}\cdot\frac{5q}{4}\cdot\frac{q}{2(1+c)}-\frac{5q^2}{16}=0.
+\]
+Thus $Z_0\succeq0$. All six slack eigenvalues are nonnegative, proving $Z\succeq0$.
+
+\section{Complementary slackness and SDP optimality}
+The first two columns of the factor \eqref{eq:wheelY} are proportional to the $k=2,3$ Fourier modes, on which $Z$ vanishes. The third column is proportional to $(a^*,a^*,a^*,a^*,a^*,-1)^\top$; this vector lies in the null space of $Z_0$ by \eqref{eq:wheelastar}--\eqref{eq:wheel-block}. Consequently $ZY=0$ and $ZX=0$ for $X=YY^\top$. Since $X$ is primal feasible and $\nu$ is dual feasible, \cref{thm:strong} gives
+\begin{equation}\label{eq:wheel-optimal}
+\boxed{\OPT_{\mathrm{SDP}}(W_6(q))=\frac52(1+c+q)+\frac{5q^2}{8(1+c)},\quad 0<q\le2(1+c).}
+\end{equation}
+The dual objective $5\alpha+\beta$ simplifies algebraically to the same expression. This is an exact global result, not merely the best value within a symmetric ansatz.
+
+\section{Exact discrete optimum for the unit-weight wheel}
+Set $q=1$. Fix hub spin $+1$ (global spin inversion changes no cut), and let $r$ of the five rim vertices have spin $-1$. The spokes contribute exactly $r$. The largest possible number of cut rim edges for a given $r$ is
+\[
+\begin{array}{c|rrrrrr}
+r&0&1&2&3&4&5\\\hline
+\text{maximum rim crossings}&0&2&4&4&2&0
+\end{array}
+\]
+(the rim is $C_5$). Therefore
+\[
+\OPT_{\mathrm{MC}}(W_6(1))=\max\{0,3,6,7,6,5\}=\boxed7.
+\]
+For example, the rim pattern $(-,+,-,+,-)$ and hub $+$ cuts four rim edges and three spokes. In contrast, with $q=1$,
+\begin{align}
+a^*&=\frac1{2(1+c)}=\frac{5-\sqrt5}{10}\approx0.2763932023,\\
+\OPT_{\mathrm{SDP}}&=\frac52(2+c)+\frac5{8(1+c)}\approx7.3680339887.\label{eq:wheel-q1}
+\end{align}
+Thus the integrality gap is $\OPT_{\mathrm{SDP}}-\OPT_{\mathrm{MC}}\approx0.3680339887$ and the integrality ratio is approximately $7/7.368034\approx0.950052$.
+
+\section{What makes the solution nontrivial?}
+The optimal SDP matrix has rank three, with three positive eigenvalues and three zeros. The rim vectors are not antipodal; instead, they form a tilted pentagram of unit vectors in $\R^3$. The spokes pull them toward a common positive axial direction while the hub points downward. The exact optimum reflects a competition between rim frustration and hub attraction that cannot be resolved by optimizing each $X_{ij}$ independently.
