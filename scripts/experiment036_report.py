@@ -1,6 +1,7 @@
 """E036: independent archive audit and publication figures, no new optimization."""
 from pathlib import Path
-import json, textwrap
+import argparse, json, os, textwrap
+from concurrent.futures import ProcessPoolExecutor
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -18,55 +19,78 @@ ROOT=ex.ROOT/"full"
 METHODS=("gw","random-sweep")+ex.ARMS
 NAMES=dict(zip(METHODS,["Repeated GW","Random sweep","Spherical 2-means","Centroid sweep",
                         "Antipodal sweep","Inertia sweep","Hybrid sweep"]))
-def main():
+def audit_graph(g):
+    # A worker owns one graph; all archive reads are immutable.
+    with threadpool_limits(limits=1):
+        return _audit_graph(g)
+
+def _audit_graph(g):
     records=[]; seeds=[]; events=[]; curves=[]
-    for g in e33.GRAPHS:
-        graph,y,rec=e33.inputs(g)
-        b,_=e33.verify(g,"full",e33.STARTS,e33.STEPS)
-        data=verify(g,"full",graph,y,rec,b)
-        denominator=b["cuts"][:,0,0].mean()
-        assert denominator>0
-        for s in range(e33.STARTS):
-            initial=b["cuts"][s,0,0]
-            for arm in METHODS:
-                if arm in METHODS[:2]:
-                    a=METHODS.index(arm)
-                    cs=b["cuts"][s,a];bs=b["best"][s,a]
-                    rows=[]
-                    for t in range(len(cs)):
-                        x=np.unpackbits(b["labels"][s,a,t])[:len(y)]
-                        gg=ex.geometry(y,x)[0]
-                        r=b["normals"][s,a,t]
-                        old=np.unpackbits(b["labels"][s,a,np.argmax(cs[:max(1,t)])])[:len(y)]
-                        old_r=b["normals"][s,a,np.argmax(cs[:max(1,t)])]
-                        h=np.mean(x!=old)
-                        rows.append([t,cs[t],bs[t],b["seconds"][s,a,t] if t else 0,
-                                     b["intervals"][s,a,t],*gg,min(h,1-h),
-                                     np.arccos(np.clip(abs(r@old_r),0,1)),
-                                     b["angles"][s,t] if a else np.nan,
-                                     float(t>0 and bs[t]>bs[t-1]+ex.EPS),
-                                     float(t>0 and bs[t]>bs[t-1]+ex.EPS),
-                                     float(b["valid"][s,t]) if a else 1,3,0])
-                    d=np.asarray(rows)
-                else:
-                    d,nn,xx,ev=data[s,arm]
-                    if len(ev):
-                        f=pd.DataFrame(ev,columns=["iteration","theta","euclidean_inertia","spherical_inertia","cut"])
-                        f["graph"]=g;f["seed"]=s;f["method"]=arm;events.append(f)
-                f=pd.DataFrame(d,columns=ex.COLUMNS)
-                f["graph"]=g;f["seed"]=s;f["method"]=arm
-                f["gain_pct"]=100*(f.best-initial)/denominator
-                f["candidate_gain_pct"]=100*(f.cut-initial)/denominator
-                f["cumulative_seconds"]=f.seconds.cumsum()
-                records.append(f)
-                seeds.append(dict(graph=g,seed=s,method=arm,initial_cut=initial,
-                                  final_cut=d[-1,2],gain_pct=f.gain_pct.iloc[-1],
-                                  seconds=f.seconds.sum(),attempts=len(d)-1,records=int(f.cut_record.sum()),
-                                  intervals=int(f.intervals.iloc[1:].sum()),fallbacks=int(f.fallback.sum()),
-                                  invalid=int((f.valid==0).sum()),
-                                  best_inertia=float(f.loc[f.cut.idxmax(),"spherical_inertia"])))
-                curves.append(dict(graph=g,seed=s,method=arm,curve=np.pad(f.gain_pct.to_numpy(),(0,101-len(f)),mode="edge")))
-        print("Audited",g,flush=True)
+    graph,y,rec=e33.inputs(g)
+    b,_=e33.verify(g,"full",e33.STARTS,e33.STEPS)
+    data=verify(g,"full",graph,y,rec,b)
+    denominator=b["cuts"][:,0,0].mean()
+    assert denominator>0
+    for s in range(e33.STARTS):
+        initial=b["cuts"][s,0,0]
+        for arm in METHODS:
+            if arm in METHODS[:2]:
+                a=METHODS.index(arm)
+                cs=b["cuts"][s,a];bs=b["best"][s,a]
+                rows=[]
+                for t in range(len(cs)):
+                    x=np.unpackbits(b["labels"][s,a,t])[:len(y)]
+                    gg=ex.geometry(y,x)[0]
+                    r=b["normals"][s,a,t]
+                    old=np.unpackbits(b["labels"][s,a,np.argmax(cs[:max(1,t)])])[:len(y)]
+                    old_r=b["normals"][s,a,np.argmax(cs[:max(1,t)])]
+                    h=np.mean(x!=old)
+                    rows.append([t,cs[t],bs[t],b["seconds"][s,a,t] if t else 0,
+                                 b["intervals"][s,a,t],*gg,min(h,1-h),
+                                 np.arccos(np.clip(abs(r@old_r),0,1)),
+                                 b["angles"][s,t] if a else np.nan,
+                                 float(t>0 and bs[t]>bs[t-1]+ex.EPS),
+                                 float(t>0 and bs[t]>bs[t-1]+ex.EPS),
+                                 float(b["valid"][s,t]) if a else 1,3,0])
+                d=np.asarray(rows)
+            else:
+                d,nn,xx,ev=data[s,arm]
+                if len(ev):
+                    f=pd.DataFrame(ev,columns=["iteration","theta","euclidean_inertia","spherical_inertia","cut"])
+                    f["graph"]=g;f["seed"]=s;f["method"]=arm;events.append(f)
+            f=pd.DataFrame(d,columns=ex.COLUMNS)
+            f["graph"]=g;f["seed"]=s;f["method"]=arm
+            f["gain_pct"]=100*(f.best-initial)/denominator
+            f["candidate_gain_pct"]=100*(f.cut-initial)/denominator
+            f["cumulative_seconds"]=f.seconds.cumsum()
+            records.append(f)
+            seeds.append(dict(graph=g,seed=s,method=arm,initial_cut=initial,
+                              final_cut=d[-1,2],gain_pct=f.gain_pct.iloc[-1],
+                              seconds=f.seconds.sum(),attempts=len(d)-1,records=int(f.cut_record.sum()),
+                              intervals=int(f.intervals.iloc[1:].sum()),fallbacks=int(f.fallback.sum()),
+                              invalid=int((f.valid==0).sum()),
+                              best_inertia=float(f.loc[f.cut.idxmax(),"spherical_inertia"])))
+            curves.append(dict(graph=g,seed=s,method=arm,curve=np.pad(f.gain_pct.to_numpy(),(0,101-len(f)),mode="edge")))
+    print("Audited",g,flush=True)
+    return records,seeds,events,curves
+
+def main(workers=16):
+    records=[]; seeds=[]; events=[]; curves=[]
+    if workers < 1:
+        raise ValueError("workers must be positive")
+    available=len(os.sched_getaffinity(0)) if hasattr(os,"sched_getaffinity") else (os.cpu_count() or 1)
+    effective=min(workers,available,len(e33.GRAPHS))
+    print(f"Audit workers: requested={workers}, effective={effective}, available={available}",flush=True)
+    def collect(results):
+        for rr,ss,ee,cc in results:
+            records.extend(rr);seeds.extend(ss);events.extend(ee);curves.extend(cc)
+    # map preserves graph order, independent of execution order; aggregation
+    # and PDF creation are single-writer. Spawn is safe on Windows.
+    if effective==1:
+        collect(map(audit_graph,e33.GRAPHS))
+    else:
+        with ProcessPoolExecutor(max_workers=effective) as pool:
+            collect(pool.map(audit_graph,e33.GRAPHS,chunksize=1))
     df=pd.concat(records,ignore_index=True);seed=pd.DataFrame(seeds)
     ev=pd.concat(events,ignore_index=True)
     df.to_csv(ROOT/"iterations.csv",index=False,lineterminator="\n")
@@ -91,7 +115,8 @@ def main():
                   reused_records=int(df.method.isin(METHODS[:2]).sum()),new_eva_solves=0,
                   sampled_event_records=len(ev),methods=rows,
                   centroid_angle_audit="cosine absolute tolerance 1e-12; angle range and NaN checked",
-                  computation_commit="007ebcc326797e60edb791f1ed34a53f85a20505")
+                  computation_commit="007ebcc326797e60edb791f1ed34a53f85a20505",
+                  audit_workers_requested=workers,audit_workers_effective=effective)
     (ROOT/"summary.json").write_text(json.dumps(metadata,indent=2)+"\n",encoding="utf8")
     make_figures(df,seed,pg,gain,effects,summary,curves,ev,metadata)
 
@@ -236,4 +261,7 @@ def make_figures(df,seed,pg,gain,effects,summary,curves,ev,metadata):
     for r in summary.itertuples():report+=f"| {NAMES[r.method]} | {r.gain_pct:.3f} | {r.advantage_pp:+.3f} | [{r.ci_low:.3f}, {r.ci_high:.3f}] | {r.wins}/{r.ties}/{r.losses} |\n"
     (ROOT/"report.md").write_text(report,encoding="utf8",newline="\n")
 if __name__=="__main__":
-    with threadpool_limits(limits=1):main()
+    parser=argparse.ArgumentParser()
+    parser.add_argument("--workers",type=int,default=16)
+    args=parser.parse_args()
+    with threadpool_limits(limits=1):main(args.workers)
