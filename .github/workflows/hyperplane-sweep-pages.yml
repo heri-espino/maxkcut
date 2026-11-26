@@ -1,0 +1,49 @@
+name: Deploy hyperplane sweep dashboard
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'dashboard/**'
+      - 'docs/hyperplane-sweep/**'
+      - '.github/workflows/hyperplane-sweep-pages.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            dashboard
+            docs/hyperplane-sweep
+          lfs: false
+      - name: Prepare static site
+        run: |
+          set -eu
+          test -s dashboard/index.html
+          test -s docs/hyperplane-sweep/hyperplane_sweep.pdf
+          mkdir -p _site/dashboard _site/docs/hyperplane-sweep
+          cp dashboard/index.html _site/dashboard/index.html
+          cp docs/hyperplane-sweep/hyperplane_sweep.pdf _site/docs/hyperplane-sweep/
+          cat > _site/index.html <<'HTML'
+          <!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Max-Cut research dashboard</title><main><h1>Max-Cut: Hyperplane Sweep</h1><p><a href="./dashboard/">Interactive 3D dashboard</a></p><p><a href="./docs/hyperplane-sweep/hyperplane_sweep.pdf">Mathematical explanation (PDF)</a></p><p><a href="https://github.com/heri-espino/maxkcut">Research repository</a></p></main></html>
+          HTML
+          touch _site/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
