@@ -4,7 +4,7 @@ math: mathjax
 theme: default
 size: "16:9"
 paginate: true
-footer: 'maxkcut · Experiments 001–025 and 028–029 · 16 November 2026'
+footer: 'maxkcut · E001–025 / E028–029 / E032 · Nov 2026'
 style: |
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
   section { font-family: 'Inter', 'Aptos', 'Segoe UI', sans-serif; background: #f8fafc; color: #14213b; padding: 52px 64px; font-size: 25px; line-height: 1.32; }
@@ -1515,3 +1515,113 @@ Full rank cost **11–14×** more EVA time, with a graph-equal mean cut differen
 **Verified source:** [100-seed report](https://github.com/heri-espino/maxkcut/blob/main/results/gset/experiment029-eva-kmeansnm-100seed/report.md) · [all 1,000 scores](https://github.com/heri-espino/maxkcut/blob/main/results/gset/experiment029-eva-kmeansnm-100seed/all_runs.csv) · [500 paired contrasts](https://github.com/heri-espino/maxkcut/blob/main/results/gset/experiment029-eva-kmeansnm-100seed/paired_differences.csv) · [protocol](https://github.com/heri-espino/maxkcut/blob/main/notes/experiments/experiment029-eva-kmeansnm-100seed.md).
 
 *Historical Experiment025 conclusions on the preceding slides retain their own archive-audit caveats.*
+
+---
+
+<!-- _class: chapter -->
+
+# 14. Should we round EVA vectors or signed local fields?
+
+**Experiment032 — complete 71-graph comparison**
+
+Compare the unit EVA rows $Y$ against the signed local-field representation $-H=-WY$, using **GW random hyperplanes** and **antipodal spherical K-MeansNM** on every canonical G-set instance.
+
+*Scientific extension of Experiments030–031. Reuses the historically archived EVA factors; zero EVA or SDP solves.*
+
+---
+
+<!-- _class: compact -->
+
+## E032 — A paired and reproducible all-graph protocol
+
+| Control | Exact design |
+|---|---|
+| Graph corpus | **71/71 G-set graphs**, 35 positive-only and 36 signed |
+| EVA data | **One frozen, SHA-verified automatic-rank factor** per graph (Experiments002/003/021) |
+| Randomization | **50 identical Gaussian normals** for all four arms within each graph |
+| Four arms | GW($Y$), GW($-H$), K-MeansNM($Y$), K-MeansNM($-H$) |
+| K-Means rule | Start at $(r,-r)$, 100 Lloyd iterations maximum, **retain best signed cut** |
+| Dataset | **14,200 original signed cuts**, 7,100 paired representation contrasts |
+| Refinement | **None:** no Flip, KL, ILS, Tabu or re-optimization of EVA |
+
+K-Means' first assignment reproduces its matched GW cut up to label complement. Thus its **best-so-far** score cannot be worse than that first cut, although K-Means expends more computations than GW.
+
+---
+
+<!-- _class: compact -->
+
+## E032 — Why GW barely changes, but K-Means can
+
+At an exact nonzero-field EVA fixed point,
+
+$h_i=\sum_j w_{ij}y_j=-\|h_i\|y_i \quad\Longrightarrow\quad -H=DY,\;D_{ii}=\|h_i\|>0.$
+
+**GW uses signs:** $\operatorname{sign}(r^\top(-h_i))=\operatorname{sign}(r^\top y_i)$, so the same random hyperplane gives the same cut.
+
+**K-Means uses centroid sums:** replacing $y_i$ with $-h_i\approx d_i y_i$ changes the influence of vertex $i$ during Lloyd updates.
+
+| Measured all-graph diagnostic | Result |
+|---|---:|
+| GW mean difference, graph-equal relative | **+0.00020%** |
+| Mean fraction of GW vertex labels that differ | **0.00646%** |
+| Lowest recorded $\cos(y_i,-h_i/\|h_i\|)$ | **0.99999951** |
+
+Finite EVA tolerance explains the tiny deviations from the exact sign identity. **A stronger GW approximation or a universal K-Means guarantee is not established.**
+
+---
+
+<!-- _class: small -->
+
+## E032 — Graph-equal mean quality across all 71 instances
+
+![w:1020](assets/experiment032_field_effect_by_weight_type.svg)
+
+**Primary comparison:** $100\,[\overline{C(-H)}-\overline{C(Y)}]/|\overline{C(Y)}|$ within each graph, averaged equally over graphs. Positive values favor the local-field representation.
+
+---
+
+<!-- _class: small -->
+
+## E032 — K-MeansNM's benefit is not uniform
+
+![w:1070](assets/experiment032_km_relative_by_graph.svg)
+
+**42 graphs improve, 3 tie, 26 worsen** across 50 matched starts each.
+
+---
+
+<!-- _class: compact -->
+
+## E032 — Topology matters more than a pooled average
+
+**Mean K-MeansNM percentage change**, with each graph contributing equally:
+
+| Graph family | Positive-only graphs | Signed graphs |
+|---|---:|---:|
+| Random | **−0.0043%** (18) | **−0.0474%** (12) |
+| Planar-family | **+0.0094%** (14) | **+0.1386%** (10) |
+| Toroidal | **0.0000%** (3) | **+0.0593%** (14) |
+
+Examples illustrate heterogeneity, not method selection:
+
+| Better mean with $-H$ | Worse mean with $-H$ |
+|---|---|
+| G19: **+0.4463%** | G8: **−0.3581%** |
+| G11: **+0.4101%** | G27: **−0.2359%** |
+| G42: **+0.3618%** | G40: **−0.2057%** |
+
+The 50 directions quantify **rounding randomness conditional on one saved EVA factor**. They do **not** quantify variability across fresh EVA optimizations, nor are the 71 related G-set instances independent samples of all possible graphs.
+
+---
+
+<!-- _class: chapter -->
+
+# E032 — Scientific conclusion and source of truth
+
+**GW:** Continue rounding on $Y$. Using $H$ or $-H$ is theoretically equivalent at an exact EVA fixed point; the measured difference is negligible.
+
+**K-MeansNM:** Preserve $Y$ as the baseline; retain **raw $-H$ as a graph-dependent candidate**. The graph-equal mean gain is **+0.02396%**, concentrated in some signed planar/toroidal cases rather than signed random graphs. No KL/ILS was applied.
+
+**Evidence and reproducibility:** [Full 71-graph report](https://github.com/heri-espino/maxkcut/blob/experiment032-all-gset-field-rounding/results/gset/experiment032-all-gset-field-rounding/report.md) · [71 paired summaries](https://github.com/heri-espino/maxkcut/blob/experiment032-all-gset-field-rounding/results/gset/experiment032-all-gset-field-rounding/per_graph.csv) · [14,200 original signed cuts](https://github.com/heri-espino/maxkcut/blob/experiment032-all-gset-field-rounding/results/gset/experiment032-all-gset-field-rounding/all_runs.csv) · [Methods and limits](https://github.com/heri-espino/maxkcut/blob/experiment032-all-gset-field-rounding/notes/experiments/experiment032-all-gset-field-rounding.md).
+
+*An independent GitHub-hosted audit verified all 14,200 cuts and 71 complete factor-source identities. This is exploratory empirical evidence, not an SDP optimality certificate.*
