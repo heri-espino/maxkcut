@@ -1,0 +1,43 @@
+\chapter{Goemans--Williamson Rounding and Approximation Theory}\label{ch:rounding}
+\section{Random hyperplanes}
+Given unit vectors $y_1,\ldots,y_n\in\R^p$ and a rotationally invariant random normal vector $g\sim N(0,I_p)$, define
+\begin{equation}\label{eq:gw-round}
+x_i=\operatorname{sign}(y_i^\top g).
+\end{equation}
+The side of the hyperplane orthogonal to $g$ determines the cut. Because a Gaussian is rotationally invariant, only pairwise angles matter.
+
+\begin{lemma}[Separation probability]\label{lem:sep}
+If $\theta_{ij}=\arccos(y_i^\top y_j)\in[0,\pi]$, then
+\[
+\Pr(x_i\ne x_j)=\frac{\theta_{ij}}{\pi}.
+\]
+\end{lemma}
+\begin{proof}
+Orthogonally project $g$ onto the two-dimensional plane spanned by $y_i,y_j$. Its angular direction is uniform on the circle. The signs differ precisely when the separating line's normal lies in the two wedges of total angular measure $2\theta_{ij}$ out of $2\pi$.
+\end{proof}
+
+\begin{theorem}[Goemans--Williamson performance guarantee]\label{thm:gw}
+For nonnegative edge weights and an optimal SDP embedding,
+\[
+\E[\Cut(x)]\ge \alpha_{\mathrm{GW}}\,\OPT_{\mathrm{SDP}}\ge\alpha_{\mathrm{GW}}\,\OPT_{\mathrm{MC}},
+\]
+where
+\begin{equation}\label{eq:alpha}
+\alpha_{\mathrm{GW}}=\min_{0\le\theta\le\pi}
+\frac{2\theta}{\pi(1-\cos\theta)}\approx0.878567.
+\end{equation}
+\end{theorem}
+\begin{proof}
+Linearity of expectation and \cref{lem:sep} give
+$\E[\Cut(x)]=\sum_{\{i,j\}\in E}w_{ij}\theta_{ij}/\pi$. The SDP value is $\sum w_{ij}(1-\cos\theta_{ij})/2$. By the defining lower bound for $\alpha_{\mathrm{GW}}$, $\theta/\pi\ge\alpha_{\mathrm{GW}}(1-\cos\theta)/2$ for each edge. Multiply by $w_{ij}\ge0$, sum, and invoke \cref{prop:upper}.
+\end{proof}
+
+\begin{caution}
+The last theorem is about the \emph{expected cut from an optimal SDP solution} with \emph{nonnegative} weights. A finite-tolerance EVA point is not automatically optimal. Signed weights invalidate the edge-by-edge nonnegative multiplication used in the guarantee. The theorem also says nothing about an individual random draw being at least $0.878\,\OPT$.
+\end{caution}
+
+\section{Probability is determined by the Gram matrix}
+Even if Cholesky and spectral factors have different coordinates, they generate the same randomized-cut law under isotropic Gaussian rounding whenever they have the same Gram matrix. In particular, each pair's crossing probability is $\arccos(X_{ij})/\pi$. The joint distribution of the Gaussian projections is also determined by $X$, because $(y_i^\top g)_{i=1}^n$ is a centered Gaussian with covariance $YY^\top=X$.
+
+\section{Clustering as a different rounder}
+Rodriguez-Fernandez \emph{et al.}~\cite{rodriguez2020} replace a single random hyperplane by clustering the SDP vectors. Spherical $k$-means, antipodal initialization, medoids, and local-search improvements are empirically effective, but optimizing within-cluster distortion is not the same as maximizing the graph-cut objective. To compare rounders, \emph{hold the input Gram factor fixed}. Comparing rounders applied to different SDP factors confounds factor quality with rounding quality.

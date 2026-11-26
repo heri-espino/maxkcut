@@ -1,0 +1,193 @@
+name: Experiment028 - EVA full embedding versus default, five-graph pilot
+
+# Experiment028 is complete. Re-execution requires an explicit manual dispatch.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: experiment028-fullrank-pilot
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment028-eva-fullrank-5x5'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install test dependencies (hosted only)
+        run: python -m pip install 'numpy>=1.26,<3' 'scipy>=1.12,<2' 'numba>=0.67,<0.69' threadpoolctl pytest
+      - name: Test the exact rank, seeds, archive, and clustering protocol
+        env:
+          PYTHONPATH: src
+          NUMBA_NUM_THREADS: '1'
+          OPENBLAS_NUM_THREADS: '1'
+        run: python -m pytest tests/test_experiment028_fullrank_pilot.py -q
+      - name: Verify the five input graph sizes and SHA-256 identities
+        env:
+          PYTHONPATH: src
+        run: python scripts/experiment028_fullrank_pilot.py --validate-inputs-only
+
+  compute:
+    needs: validate
+    if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment028-eva-fullrank-5x5'
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 180
+    steps:
+      - name: Check dedicated runner identity before checkout
+        shell: powershell
+        run: |
+          if ($env:RUNNER_NAME -ne 'PCAG103A-13') { throw 'Wrong university runner' }
+          Write-Host "Dedicated runner: $env:RUNNER_NAME"
+          Write-Host "Actions worktree: $env:GITHUB_WORKSPACE"
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          persist-credentials: false
+      - name: Resolve existing maxkcut Conda (no installation, no VM worktree changes)
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          if ($env:RUNNER_NAME -ne 'PCAG103A-13') { throw 'Runner mismatch' }
+          $prefix=$null
+          if ($env:MAXKCUT_CONDA_PREFIX) {
+            if ((Split-Path $env:MAXKCUT_CONDA_PREFIX -Leaf) -ine 'maxkcut') { throw 'Wrong configured Conda environment' }
+            $prefix=$env:MAXKCUT_CONDA_PREFIX
+          }
+          if (-not $prefix -and $env:CONDA_PREFIX -and (Split-Path $env:CONDA_PREFIX -Leaf) -ieq 'maxkcut') { $prefix=$env:CONDA_PREFIX }
+          if (-not $prefix -and (Get-Command conda -ErrorAction SilentlyContinue)) {
+            $entry=@(((& conda env list --json | Out-String | ConvertFrom-Json).envs))
+            foreach ($e in $entry) { if ((Split-Path $e -Leaf) -ieq 'maxkcut' -and (Test-Path (Join-Path $e 'python.exe'))) { $prefix=$e; break } }
+          }
+          if (-not $prefix) {
+            foreach ($candidate in @("$env:LOCALAPPDATA\miniconda3\envs\maxkcut", "$env:USERPROFILE\miniconda3\envs\maxkcut", 'C:\ProgramData\miniconda3\envs\maxkcut')) {
+              if (Test-Path (Join-Path $candidate 'python.exe')) { $prefix=$candidate; break }
+            }
+          }
+          if (-not $prefix -or -not (Test-Path (Join-Path $prefix 'python.exe'))) { throw 'Existing maxkcut Conda not found' }
+          Add-Content -Path $env:GITHUB_ENV -Value "EX028_PYTHON=$(Join-Path $prefix 'python.exe')"
+          Add-Content -Path $env:GITHUB_ENV -Value "EX028_PREFIX=$prefix"
+          Write-Host 'Conda maxkcut found; no packages will be installed.'
+      - name: Validate imports and graph inputs in read-only mode
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $env:PYTHONPATH=Join-Path (Get-Location).Path 'src'
+          $env:CONDA_PREFIX=$env:EX028_PREFIX
+          $env:CONDA_DEFAULT_ENV='maxkcut'
+          foreach ($part in @('Library\mingw-w64\bin','Library\usr\bin','Library\bin','Scripts','')) {
+            $p=Join-Path $env:EX028_PREFIX $part
+            if (Test-Path $p) { $env:PATH="$p;$env:PATH" }
+          }
+          $env:NUMBA_NUM_THREADS='1'; $env:OPENBLAS_NUM_THREADS='1'; $env:MKL_NUM_THREADS='1'; $env:OMP_NUM_THREADS='1'
+          & $env:EX028_PYTHON scripts/experiment028_fullrank_pilot.py --validate-inputs-only
+          if ($LASTEXITCODE -ne 0) { throw 'Pilot graph hash validation failed' }
+      - name: Run 50 independent, checkpointed EVA solves (5 graph workers)
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $env:PYTHONPATH=Join-Path (Get-Location).Path 'src'
+          $env:CONDA_PREFIX=$env:EX028_PREFIX
+          foreach ($part in @('Library\mingw-w64\bin','Library\usr\bin','Library\bin','Scripts','')) {
+            $p=Join-Path $env:EX028_PREFIX $part
+            if (Test-Path $p) { $env:PATH="$p;$env:PATH" }
+          }
+          $env:NUMBA_NUM_THREADS='1'; $env:OPENBLAS_NUM_THREADS='1'; $env:MKL_NUM_THREADS='1'; $env:OMP_NUM_THREADS='1'
+          & $env:EX028_PYTHON -u scripts/experiment028_fullrank_pilot.py --workers 5 --max-sweeps 1000 --tolerance 0.001 --checkpoint-every 25
+          if ($LASTEXITCODE -ne 0) { throw "Experiment028 numerical job failed: $LASTEXITCODE" }
+          & $env:EX028_PYTHON scripts/experiment028_fullrank_pilot.py --check-only
+          if ($LASTEXITCODE -ne 0) { throw 'Incomplete 150-cut coverage' }
+      - name: Upload complete EVA factor and partition archive (even if incomplete)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: experiment028-fullrank-all-checkpoints
+          path: results/gset/experiment028-eva-fullrank-pilot/
+          retention-days: 90
+          if-no-files-found: warn
+      - name: Upload compact scored results
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: experiment028-fullrank-compact
+          path: |
+            results/gset/experiment028-eva-fullrank-pilot/all_runs.csv
+            results/gset/experiment028-eva-fullrank-pilot/paired_differences.csv
+            results/gset/experiment028-eva-fullrank-pilot/summary.json
+            results/gset/experiment028-eva-fullrank-pilot/report.md
+          retention-days: 90
+          if-no-files-found: error
+
+  publish:
+    needs: compute
+    runs-on: ubuntu-latest
+    if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment028-eva-fullrank-5x5'
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment028-eva-fullrank-5x5
+          fetch-depth: 0
+          lfs: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: experiment028-fullrank-all-checkpoints
+          path: results/gset/experiment028-eva-fullrank-pilot
+      - name: Validate exact coverage and publish compact results FIRST
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PYTHONPATH=src
+          python - <<'PY'
+          import csv,json
+          from pathlib import Path
+          d=Path('results/gset/experiment028-eva-fullrank-pilot')
+          s=json.loads((d/'summary.json').read_text())
+          assert s['complete'] and s['observed_rows']==150 and s['matched_comparisons']==75,s
+          with (d/'all_runs.csv').open(newline='') as f:
+              rows=list(csv.DictReader(f))
+          assert len(rows)==150
+          assert {int(r['p']) for r in rows}=={41,800}
+          assert len(list((d/'runs').glob('*/**/factor.npz')))==50
+          print('PASS: all 50 factors and 150 original signed cut results found')
+          PY
+          # Windows checkout writes CRLF CSV/JSON; normalize text for Git,
+          # preserving binary EVA factor and partition bytes unchanged.
+          python - <<'PY'
+          from pathlib import Path
+          root=Path('results/gset/experiment028-eva-fullrank-pilot')
+          for file in root.rglob('*'):
+              if file.is_file() and file.suffix in {'.json','.jsonl','.md','.csv','.svg'}:
+                  data=file.read_bytes()
+                  fixed=data.replace(b'\\r\\n',b'\\n')
+                  if fixed!=data: file.write_bytes(fixed)
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add results/gset/experiment028-eva-fullrank-pilot/all_runs.csv \
+                  results/gset/experiment028-eva-fullrank-pilot/paired_differences.csv \
+                  results/gset/experiment028-eva-fullrank-pilot/summary.json \
+                  results/gset/experiment028-eva-fullrank-pilot/report.md \
+                  results/gset/experiment028-eva-fullrank-pilot/paired_mean_deltas.svg
+          git diff --cached --check
+          git commit -m 'experiment028: publish verified 5x5x2 compact rank comparison'
+          git push origin HEAD:experiment028-eva-fullrank-5x5
+      - name: Preserve all checkpoint factors, partitions and sweep histories through Git LFS
+        shell: bash
+        run: |
+          set -euo pipefail
+          git lfs install --local
+          git add results/gset/experiment028-eva-fullrank-pilot/runs
+          test "$(git lfs ls-files | grep -c 'experiment028-eva-fullrank-pilot' || true)" -ge 100
+          git diff --cached --check
+          git commit -m 'experiment028: archive 50 full EVA factors, original cuts and iteration traces'
+          git push origin HEAD:experiment028-eva-fullrank-5x5

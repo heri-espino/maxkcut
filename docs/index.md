@@ -13,6 +13,7 @@ This documentation describes a Python package for reproducible experiments motiv
 installation
 quickstart
 windows-powershell
+university-vm-experiment025-operations
 experiments
 experiment-archives
 full-gset-sweep
@@ -26,6 +27,7 @@ full-sdp-batch
 full-sdp-publication
 eva-reproduction
 geometry-dashboard
+hyperplane-sweep-dashboard
 g11-precision-gpu-psd-sdpa
 g11-adaptive-rho-gpu-admm
 g77-full-convex-gpu-preflight-windows
