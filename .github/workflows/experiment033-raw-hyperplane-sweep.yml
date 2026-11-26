@@ -1,0 +1,160 @@
+name: Experiment033 - raw GW vs random-tangent Hyperplane Sweep
+on:
+  push:
+    branches: [experiment033-raw-hyperplane-sweep]
+    paths: ['.github/workflows/experiment033-raw-hyperplane-sweep.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: experiment033-raw-sweep
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment033-raw-hyperplane-sweep'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      PYTHONPATH: src:scripts
+      OPENBLAS_NUM_THREADS: '1'
+      NUMBA_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'numpy>=1.26,<3' 'scipy>=1.12,<2' 'numba>=0.61,<0.69' threadpoolctl pytest
+      - run: python scripts/experiment033_raw_hyperplane_sweep.py --action test
+      - run: python scripts/experiment033_raw_hyperplane_sweep.py --action validate
+
+  compute:
+    needs: validate
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 300
+    steps:
+      - name: Verify runner identity and isolated checkout
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          if ($env:RUNNER_NAME -ne 'PCAG103A-13') { throw 'Wrong runner' }
+          if ($env:GITHUB_WORKSPACE -eq 'C:\Users\175199\maxkcut') { throw 'Refusing active research worktree' }
+          $active=Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'python.exe' -and $_.CommandLine -match 'experiment025|experiment026|experiment027|experiment028|experiment029|experiment030|experiment031|experiment032' }
+          if ($active) { throw 'Another numerical study appears active; do not compete for this VM' }
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Find existing maxkcut Conda environment without modifying packages
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $prefix=$null
+          if ($env:MAXKCUT_CONDA_PREFIX -and (Split-Path $env:MAXKCUT_CONDA_PREFIX -Leaf) -ieq 'maxkcut') { $prefix=$env:MAXKCUT_CONDA_PREFIX }
+          if (-not $prefix -and $env:CONDA_PREFIX -and (Split-Path $env:CONDA_PREFIX -Leaf) -ieq 'maxkcut') { $prefix=$env:CONDA_PREFIX }
+          if (-not $prefix -and (Get-Command conda -ErrorAction SilentlyContinue)) {
+            $json=(& conda env list --json | Out-String | ConvertFrom-Json)
+            foreach ($e in @($json.envs)) {
+              if ((Split-Path $e -Leaf) -ieq 'maxkcut' -and (Test-Path (Join-Path $e 'python.exe'))) { $prefix=$e; break }
+            }
+          }
+          if (-not $prefix) {
+            foreach ($candidate in @("$env:LOCALAPPDATA\miniconda3\envs\maxkcut", "$env:USERPROFILE\miniconda3\envs\maxkcut", 'C:\ProgramData\miniconda3\envs\maxkcut')) {
+              if (Test-Path (Join-Path $candidate 'python.exe')) { $prefix=$candidate; break }
+            }
+          }
+          if (-not $prefix -or -not (Test-Path (Join-Path $prefix 'python.exe'))) { throw 'Existing maxkcut Conda environment unavailable' }
+          Add-Content $env:GITHUB_ENV "EX033_PREFIX=$prefix"
+          Add-Content $env:GITHUB_ENV "EX033_PYTHON=$(Join-Path $prefix 'python.exe')"
+      - name: Pilot and complete matched raw comparison
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $env:PYTHONPATH=(Join-Path (Get-Location).Path 'src')+';'+(Join-Path (Get-Location).Path 'scripts')
+          $env:CONDA_PREFIX=$env:EX033_PREFIX
+          $env:CONDA_DEFAULT_ENV='maxkcut'
+          foreach ($part in @('Library\mingw-w64\bin','Library\usr\bin','Library\bin','Scripts','')) {
+            $p=Join-Path $env:EX033_PREFIX $part
+            if (Test-Path $p) { $env:PATH="$p;$env:PATH" }
+          }
+          $env:NUMBA_NUM_THREADS='1'
+          $env:OPENBLAS_NUM_THREADS='1'
+          $env:MKL_NUM_THREADS='1'
+          $env:OMP_NUM_THREADS='1'
+          & $env:EX033_PYTHON -u scripts/experiment033_raw_hyperplane_sweep.py --action test
+          if ($LASTEXITCODE -ne 0) { throw 'Synthetic test failed' }
+          & $env:EX033_PYTHON -u scripts/experiment033_raw_hyperplane_sweep.py --phase pilot --workers 1
+          if ($LASTEXITCODE -ne 0) { throw 'Pilot failed' }
+          & $env:EX033_PYTHON -u scripts/experiment033_raw_hyperplane_sweep.py --phase pilot --action verify
+          if ($LASTEXITCODE -ne 0) { throw 'Pilot verification failed' }
+          & $env:EX033_PYTHON -u scripts/experiment033_raw_hyperplane_sweep.py --phase full --workers 8
+          if ($LASTEXITCODE -ne 0) { throw 'Full benchmark failed' }
+      - name: Upload recoverable graph checkpoints even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: experiment033-trajectories
+          path: results/gset/experiment033-raw-hyperplane-sweep/
+          if-no-files-found: warn
+          retention-days: 90
+
+  publish:
+    needs: compute
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      PYTHONPATH: src:scripts
+      OPENBLAS_NUM_THREADS: '1'
+      NUMBA_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'numpy>=1.26,<3' 'scipy>=1.12,<2' 'numba>=0.61,<0.69' threadpoolctl matplotlib
+      - uses: actions/download-artifact@v4
+        with:
+          name: experiment033-trajectories
+          path: results/gset/experiment033-raw-hyperplane-sweep/
+      - name: Verify all records and generate figures and numerical appendix
+        run: python scripts/experiment033_report.py
+      - name: Compile numerical appendix
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq texlive-latex-extra
+          cd results/gset/experiment033-raw-hyperplane-sweep/full
+          pdflatex -interaction=nonstopmode -halt-on-error appendix.tex
+          pdflatex -interaction=nonstopmode -halt-on-error appendix.tex
+          rm -f appendix.aux appendix.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: experiment033-report
+          path: |
+            results/gset/experiment033-raw-hyperplane-sweep/full/*.pdf
+            results/gset/experiment033-raw-hyperplane-sweep/full/*.tex
+            results/gset/experiment033-raw-hyperplane-sweep/full/*.csv
+            results/gset/experiment033-raw-hyperplane-sweep/full/*.json
+            results/gset/experiment033-raw-hyperplane-sweep/full/report.md
+          if-no-files-found: error
+          retention-days: 90
+      - name: Commit verified numerical archives and report
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f -- results/gset/experiment033-raw-hyperplane-sweep/
+          git diff --cached --check
+          if git diff --cached --quiet; then echo 'Already committed'; else
+            git commit -m 'experiment033: archive audited raw GW and sweep trajectories and report'
+            git push origin HEAD:experiment033-raw-hyperplane-sweep
+          fi
