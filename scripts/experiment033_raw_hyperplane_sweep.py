@@ -18,8 +18,8 @@ from scipy import sparse
 from threadpoolctl import threadpool_limits
 
 from maxkcut.eva_direct_rounding import optimize_semicircle
-from maxkcut.eva_rounding_cli import _factor_and_case
-from maxkcut.io import edge_arrays
+from maxkcut.eva import _identity, _prepared_graph, load_eva_factor
+from maxkcut.io import edge_arrays, load_graph
 from maxkcut.objective import cut_weight
 
 ROOT = Path("results/gset/experiment033-raw-hyperplane-sweep")
@@ -38,21 +38,49 @@ def unit(z):
     return z / np.linalg.norm(z)
 
 
+def source_sha(path):
+    # Cross-platform source identity: Git may check out Python with CRLF.
+    return hashlib.sha256(Path(path).read_bytes().replace(b"\r\n",b"\n")).hexdigest()
+
+
 def inputs(g):
-    recs = {r["graph"]: r for r in json.loads(INVENTORY.read_text())["records"]}
-    if set(recs) != set(GRAPHS):
+    # Match E032's verified cross-platform original graph identity procedure.
+    obj = json.loads(INVENTORY.read_text(encoding="utf8"))
+    recs = {r["graph"]: r for r in obj["records"]}
+    if set(recs) != set(GRAPHS) or len(obj["records"]) != len(GRAPHS) or obj["missing_factors"]:
         raise ValueError("Canonical inventory differs")
     rec = recs[g]
     folder = Path(rec["factor_source"].replace("\\", "/"))
     path = Path(rec["graph_path"].replace("\\", "/"))
-    graph, y, _, gs, fs = _factor_and_case(path, folder)
-    if (gs != rec["graph_sha256"] or fs != rec["factor_sha256"]
-            or y.shape != (rec["vertices"], rec["rank"])):
+    raw = path.read_bytes()
+    lf = raw.replace(b"\r\n", b"\n")
+    accepted = {hashlib.sha256(s).hexdigest() for s in (raw, lf, lf.replace(b"\n", b"\r\n"))}
+    if rec["graph_sha256"] not in accepted:
+        raise ValueError(f"{g}: original graph SHA mismatch, even after EOL normalization")
+    graph = load_graph(path)
+    factor_path = folder / "factors" / f"{g}.npz"
+    case = json.loads((folder / "cases" / f"{g}.json").read_text(encoding="utf8"))
+    if (case["graph_sha256"] != rec["graph_sha256"] or case["factor_rank"] != rec["rank"]
+            or case["status"] not in ("converged", "iteration_limit")
+            or sha(factor_path) != rec["factor_sha256"]):
         raise ValueError(f"{g}: frozen source identity mismatch")
+    y, meta = load_eva_factor(factor_path)
+    if (y.shape != (rec["vertices"], rec["rank"]) or graph.shape[0] != len(y)
+            or meta["sweeps"] != case["factor_sweeps"]):
+        raise ValueError(f"{g}: original dimensions or sweep metadata mismatch")
+    prepared = _prepared_graph(graph)
+    provenance = case["provenance"]
+    numba_backend = provenance.get("optimizer_backend", "numpy") == "numba"
+    if numba_backend:
+        prepared.sort_indices()
+    expected = _identity(prepared, y.shape[1], provenance["seed"], provenance["tolerance"])
+    if numba_backend:
+        expected["algorithm"] = "eva-sequential-numba-v1"
+    if meta["identity"] != expected:
+        raise ValueError(f"{g}: immutable EVA optimizer identity mismatch")
     if not np.isfinite(y).all() or y.shape[1] < 2:
         raise ValueError(f"{g}: invalid embedding")
     return graph, np.ascontiguousarray(y, dtype=np.float64), rec
-
 
 def score(edges, labels):
     return float(cut_weight(edges, labels))
@@ -135,8 +163,8 @@ def verify(g, phase, starts, steps):
     expected = dict(graph=g, graph_sha256=rec["graph_sha256"],
                     factor_sha256=rec["factor_sha256"], starts=starts, steps=steps,
                     seed=SEED, vertices=len(y), rank=y.shape[1],
-                    driver_sha256=sha(__file__),
-                    sweep_sha256=sha("src/maxkcut/eva_direct_rounding.py"))
+                    driver_sha256=source_sha(__file__),
+                    sweep_sha256=source_sha("src/maxkcut/eva_direct_rounding.py"))
     if any(meta.get(k)!=v for k,v in expected.items()) or sha(folder/"trajectory.npz") != meta["archive_sha256"]:
         raise ValueError(f"{g}: incompatible checkpoint")
     with np.load(folder/"trajectory.npz",allow_pickle=False) as f:
@@ -197,8 +225,8 @@ def compute(job):
         os.replace(tmp,folder/"trajectory.npz")
         meta=dict(graph=g,graph_sha256=rec["graph_sha256"],factor_sha256=rec["factor_sha256"],
                   factor_source=rec["factor_source"],starts=starts,steps=steps,seed=SEED,
-                  vertices=len(y),rank=y.shape[1],driver_sha256=sha(__file__),
-                  sweep_sha256=sha("src/maxkcut/eva_direct_rounding.py"),
+                  vertices=len(y),rank=y.shape[1],driver_sha256=source_sha(__file__),
+                  sweep_sha256=source_sha("src/maxkcut/eva_direct_rounding.py"),
                   archive_sha256=sha(folder/"trajectory.npz"))
         tmp=folder/"manifest.tmp"
         tmp.write_text(json.dumps(meta,indent=2)+"\n",encoding="utf8")
