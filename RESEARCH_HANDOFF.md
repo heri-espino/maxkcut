@@ -1,3 +1,5 @@
+**Experiment035 — prospective patience sensitivity:** [Protocol](notes/experiments/experiment035-patience-sensitivity.md). Recover audited E034 from run 45815246196; extend exact trajectories to joint patience 100, extract 5/10/20/50/100 policies, measure strict gains, failure hazards, geometry and time. No new EVA or repeated archived rounding. No merge without authorization. Results pending audit.
+
 **Experiment034 — prospective adaptive continuation:** [Protocol](notes/experiments/experiment034-adaptive-hyperplane-sweep.md). Continue frozen E033 archived 100-draw histories, five consecutive joint non-improvements, 1,000 total cap. No EVA, no repeated E033 search, no active VM worktree modifications. Results pending independent audit; no merge without authorization.
 
 ## Experiment029 — 100 EVA seeds × two embedding ranks × five G-set graphs COMPLETE (2026-11-16 UTC)
