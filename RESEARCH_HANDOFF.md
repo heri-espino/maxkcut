@@ -237,3 +237,83 @@ See [Experiment026 runbook](notes/experiments/experiment026-hyperplane-longrun.m
 
 The 71 input factors **already exist in three distinct historical source directories**. Per the verified Experiment021 inventory and the exact Experiment025 `select_factor()` loader: 59 G1–G59 factor/case pairs in `results/gset/experiment002-eva/`; 3 G60–G62 pairs in `results/gset/experiment021-complete-71-gset/eva-numba/`; and 9 G63–G67/G70/G72/G77/G81 pairs in `results/gset/experiment003-eva-numba/`. **G60 has an older NPZ also in Experiment002; the latest verified Experiment021 G60 factor wins.** The path map, read-only inventory and SHA verification commands, two Windows checkout locations, and diagnostics are in [docs/eva-factor-locations-vm.md](docs/eva-factor-locations-vm.md). No new SDP or EVA optimization is necessary; full Experiment025 local computation already finished. The EVA factors are nonconvex rank-constrained vectors, not certified convex SDP optima.
 
+## Historical Experiment027 integration notes (November 2026)
+
+# New seven-method modular LaTeX methods manuscript (10 November 2026)
+
+The user requested method-by-method mathematical and algorithmic explanations for the **seven strongest historical protocols by the source-reported equal-graph mean final best-of-16 gain over refined GW** (E025+E027). Source: [papers/seven-rounding-methods/README.md](papers/seven-rounding-methods/README.md), exact [LaTeX main.tex](papers/seven-rounding-methods/main.tex), seven distinct method sections plus proofs, original-result crosswalk and vector TikZ figures, [standard-library numeric provenance check](papers/seven-rounding-methods/verify_results.py), and [PDF-only hosted build](.github/workflows/seven-rounding-methods-manuscript.yml). New dedicated **paper-seven-rounding-methods** branch and draft **PR #82** targeted to E027 branch; PR #80 unchanged and neither merged. Detailed source caveats: Sweep gain-labelled tangents select *negative* single-flip gains, unlike E027 Angular Gain's positive gain/margin ranking; E025 original partitions not yet completely verified off-VM; E027 new methods and GW/HP comparators independently audited; graph-level means after common Flip/KL/ILS not pure hyperplane quality. Do not rerun original numerical experiment. Preserve manuscript files/figures, read paper-local AGENTS.md and HANDOFF.md before further work. User requests no PowerPoint anywhere in this workflow.
+
+---
+
+# User-requested Marp appendix: decoding all method names (9 November 2026)
+
+The current [complete Marp deck](presentations/maxkcut_full_research_001_027.marp.md) has **137 slides** after appending **20 Appendix A slides**, A0–A19, explaining how every important named method works: **all 9 E021 initializers**, **all 18 E025 method protocols**, **all 3 E027 angular methods**, five early EVA rounders, and four local improvement stages. Exact catalog names are cross-validated by `presentations/verify_experiment027_presentation.mjs` against source tuples, and the appendix distinguishes rounding geometry from independent label-space refinement. The slide workflow expects 137 PDF pages and exports only PDF and portable HTML (no PPTX). [Detailed documentation](presentations/EXPERIMENT027_PRESENTATION.md). Preserve original 001–025 deck and frozen sources; don't rerun optimizer or merge PR #80 without permission.
+
+---
+
+# Proposed next research: Experiment028, raw hyperplane geometry only (2026-11-09)
+
+[Experiment028 proposed study, mathematical framework and reproducibility requirements](notes/experiments/experiment028-hyperplane-geometry-proposal.md). Focus on rotations and translations of a single separating hyperplane for **fixed EVA vectors**, scoring **raw original signed Max-Cut**, with **NO Flip/KL/ILS/Tabu/postprocessing**. This is a proposal, not a claim of computed data. Key existing building blocks: exact `optimal_threshold` and `optimize_semicircle`. Affine lift `[Y,1]` permits joint search without a new SDP. Prior art exists (Kevin Lang 2004 swept random hyperplane; Maliakal et al 2025 learned rounding normals). Beware full row rank, which lets hyperplanes realize every labeling; test low-rank variants and structure associations, fully paired seeds and equal budgets. Do not alter E027 frozen optimizer or Experiment025 archives. User expressly requested the current Marp workflow **NOT** generate PowerPoint: PDF + self-contained HTML only.
+
+---
+
+# Export policy for full 001–027 Marp deck (9 November 2026)
+
+User explicitly requests **NO PowerPoint/PPTX output**. New commits remove the PPTX export step, slide-count check and artifact upload from `.github/workflows/experiment027-marp-presentation.yml`; maintain PDF and self-contained HTML plus editable Marp SVG source. Historical prior build #42570516934 did produce PPTX but is not the current workflow. Do not recreate PPTX unless requested.
+
+---
+
+# Experiment001–027 complete Marp research deck updated (2026-11-08)
+
+The requested **exact merged Marp Markdown** is committed to `presentations/maxkcut_full_research_001_027.marp.md`, preserving the previous 001–025 97-slide deck intact. New edition has **117 slides**, including 20 new E027 method/result/provenance slides and 13 deterministic generated SVGs; generator `presentations/build_experiment027_figures.mjs`, manifest and verification scripts plus hosted PDF/HTML build. **Read [Experiment027 presentation runbook](presentations/EXPERIMENT027_PRESENTATION.md)**. All charts use published independently audited 71-graph original signed-cut comparisons, 3,408 new seeds, 2,272 comparator seeds and Experiment022 graph metadata; no EVA, SDP or numerical optimization rerun. New single arms improve on refined GW on average but not consistently on historical Hyperplane Sweep. Ex post 3-arm 42/13/16 graph portfolio is not equal budget. Historical Experiment025 18-method raw archives remain incompletely backed up. Draft PR #80 unmerged, no unauthorized merge.
+
+---
+
+# Full Experiment027 published dataset (2026-11-08)
+
+**EXPERIMENT027 FULL RESULTS PUBLISHED AND VERIFIED IN GITHUB INDEX (2026-11-08):** [GitHub Release 71-graph raw data](https://github.com/heri-espino/maxkcut/releases/tag/experiment027-data-71g-2b313a624780291eb4dd), `published/experiment027/latest_release.json`, 71 per-graph SHA-identified ZIP entries containing **109,159** preserved original files and approx 149 MB compressed, and [new research-results handoff](notes/experiments/experiment027-published-71-graph-results-2026-11-08.md). GitHub-hosted independent audit report confirms **71 graphs, 3,408 new seed results + 2,272 historical GW/Hyperplane Sweep comparator seed archives**; three methods each start from 16 matched GW normals. Mean equal-graph best-of-16 gain vs *refined* GW: angular-gain +0.3167%, margin +0.3027%, pair +0.2814%, but **none demonstrates superiority over historical Hyperplane Sweep** (gain 30 win / 10 tie / 31 loss; mean Δcut −0.31). Best-of-three *post-hoc* angular portfolio beats HP 42 graphs, ties 13, loses 16, but uses extra methods/search budget; do not claim equal-cost improvement. Original Experiment025 raw all-18-method histories remain VM-local and not covered by the new release. The uploader reported GitHub server SHA checking; independently download-check Release ZIPs before claiming full off-VM readback. **Never repeat EVA, old/refined experiments or edit frozen optimizer. PR #80 is draft; no merge without authorization.**
+
+
+---
+
+# Latest Experiment027 — existing draft GitHub Release recovery (2026-11-08)
+
+After independently auditing and packing 71 existing numerical graph archives through G81, VM publisher stopped with `Release creation did not become visible`. The first publisher had queried a by-tag endpoint that does not expose drafts. The amended publisher now lists authenticated drafts with pagination, retrieves Release/asset pages by ID, and resumes without clobbering existing assets or rerunning optimization. To continue from `C:\Users\175199\maxkcut-exp027`, safely fast-forward `exp027-local` against fetched `origin/experiment027-angular-greedy` and run `python scripts/experiment027_publish_release.py --graphs ALL`. The user's pasted Trend Estimation path and experiment011 process query are unrelated; no source folders should be deleted. [Runbook](docs/experiment027-release-no-lfs.md). Actual remote data release/index unverified until VM publication succeeds.
+
+---
+
+**EXPERIMENT027 PUBLICATION BRANCH FIX (2026-11-08):** VM's valid separate results worktree is `C:\Users\175199\maxkcut-exp027` on **`exp027-local`**, not the remote PR's name; preflight covered 71 graphs/3,408 seed archives/393,169,236 bytes, but no data were uploaded. The corrected `scripts/experiment027_publish_release.py` accepts both branches ONLY if the local HEAD contains the latest fetched `origin/experiment027-angular-greedy` tip. Before rerun: `git fetch origin experiment027-angular-greedy` and `git merge --ff-only origin/experiment027-angular-greedy` on the **exp027 worktree**, then `python scripts/experiment027_publish_release.py --graphs ALL`. Stop if Git reports divergence. No switch, no rename, no reset, no force push; preserve Experiment025 old checkout. See [no-LFS release guide](docs/experiment027-release-no-lfs.md).
+
+# Current no-LFS archival plan for Experiment027 (2026-11-07)
+
+User wants the full numerical data archived **in the GitHub repository** and may have limited Git LFS quota. We cannot inspect their actual LFS usage. Preferred solution: **GitHub Releases** store immutable versioned per-graph ZIP assets of all 16 new-method seeds, intermediate partitions, every angular candidate JSONL and accepted normal trajectories. Ordinary Git stores independently audited reports, each original member's SHA256 manifest and `published/experiment027/latest_release.json`. Read [no-LFS release publication and VM commands](docs/experiment027-release-no-lfs.md); implementation `scripts/experiment027_publish_release.py`, hosted tests `tests/test_experiment027_release_publication.py`. Publisher must run from the idle university VM: `python scripts/experiment027_publish_release.py --graphs G1 G11 G14` (pilot) or `--graphs ALL` (only if 71 completed). It runs the independent score audit but **never recomputes SDP/EVA or prior algorithms**. No uploaded user numerical data have been observed as of this note; claim nothing until versioned Git index and release SHA assets are confirmed. Previous LFS runbook is superseded when quota is insufficient. Do not merge draft PR #80 without authorization.
+
+---
+
+# Experiment027 direct repository publication via Git LFS (2026-11-05)
+
+The user explicitly wants numerical results pushed directly from the university VM so future agents can analyze them without pasting files into chat. A new `scripts/experiment027_publish.py` automatically reruns the **read-only** independent signed-cut audit, packages each existing `full/Gxx/` raw result tree into a content-addressed per-graph ZIP (all 16 starts, attempted sweep JSONL, accepted normals, strict-best partition NPZs and stage archives), verifies SHA256, stages exactly `published/experiment027/` and commits/pushes via Git LFS to the draft PR #80 branch. See the **[full PowerShell commands and remote verification](docs/experiment027-publication.md)**. This does **not** rerun EVA or the old/new numerical optimizations. No VM data have been observed to be pushed yet. The Experiment025 all-method raw archive is still a separate outstanding backup. Never force-push, overwrite old raw trees, or infer complete coverage until the published index/manifest exists.
+
+---
+
+# Experiment027 next action — verified numerical audit (Nov 5, 2026)
+
+The user reports the experiment completed successfully, but no local completion record was provided to independently distinguish the three-graph pilot from a full 71-graph run. A **read-only** `scripts/experiment027_analyze.py` now independently audits complete 16-seed archives, original signed graph scores, accepted normals, hashes, per-seed paired comparisons and produces `analysis/audited_comparison.json` and CSV outputs. Run `--graphs G1 G11 G14` or `--graphs ALL` according to actual execution scope and publish only results confirmed by the audit. Source/factor path details: [Experiment027 VM handoff](docs/experiment027-vm-handoff.md). No new optimization/EVA has been launched by this update; old archives unchanged.
+
+---
+
+# Latest — Experiment027 successful pilot report and file-location handoff (2026-11-05)
+
+**Current statement of evidence:** User says the corrected G1/G11/G14 Experiment027 full-quality pilot **succeeded** on the Windows 11 university VM. The exact output/status and 16-per-method checkpoint counts have not been independently inspected. Do not conflate "command succeeded" with audited `9/9` complete graph-method cells or `144/144` new seed archives. **Canonical operational notes:** [Experiment027 VM file map / sources / progress / recovery](docs/experiment027-vm-handoff.md); [methods and experiment plan](notes/experiments/experiment027-angular-greedy.md). The correct launcher `scripts/experiment027_from_archives.py` validates every graph's source factor SHA256 against the original Experiment025 full GW baseline before using the saved factor. Historical G14 missing case was an incorrect common-folder assumption, now addressed. Historical archive is read-only at `$env:USERPROFILE\maxkcut\results\gset\experiment025-gw16-bestcut-quality`; new archives live at `$env:USERPROFILE\maxkcut-exp027\results\gset\experiment027-angular-greedy`. Original Experiment025 71×18×16 work must never be repeated; EVA is frozen. Keep `scripts/experiment027_angular.py` content unchanged to preserve new checkpoint fingerprints; source imports are isolated by launcher. Await full pilot archive audit, SHA-verified external backup, and, if worthwhile, full 71-graph Experiment027 execution. Draft [PR #80](https://github.com/heri-espino/maxkcut/pull/80) contains the handoff; do not merge without authorization.
+
+---
+
+# Experiment027 — Windows pilot repair, per-graph EVA source matching (2026-11-05)
+
+The three-graph `full` pilot failed only after hosted and VM unit tests passed, due to a missing G14 case in an incorrectly assumed single Experiment021 factor source. A new **separate** `scripts/experiment027_from_archives.py` launcher chooses each graph's archived factor by historical Experiment025 SHA256 (priority: 021, 003, 002), checks every source before computation, and fixes importing the package from the previously observed exp026 worktree. The original Experiment027 numerical runner remains content-identical; any G1/G11 partially or fully completed new seeds from the failed parallel invocation must be preserved and verified. See [Experiment027 runbook](notes/experiments/experiment027-angular-greedy.md). No numerical experiment was launched through this GitHub patch. No EVA or historical refinements are to be repeated.
+
+---
+
+# Experiment027 — new angular-greedy methods, prepared only (2026-11-05)\n\nSeparate branch `experiment027-angular-greedy` implements angular-margin, angular-positive-gain, and vertex-pair boundary-targeted exact-sweep proposals, with Experiment025's same 16 GW directions and downstream Flip/KL/ILS but **no historical reruns or EVA/SDP solves**. Read [Experiment027 protocol and VM handoff](notes/experiments/experiment027-angular-greedy.md). Tests are hosted-only; a small numerical pilot must be completed and independently audited before launching the full new-method-only 71-graph comparison. Old Experiment025 raw archives remain VM-local, not assumed uploaded; pending backup and rescore. Existing Experiment026 PR #77 remains independent. No production Experiment027 results are claimed.\n\n---\n\n# UPDATED PRESENTATION — EXPERIMENT025 STRUCTURAL COMPARISON (2026-11-03)
+
+The older `presentations/` directory is intentionally retained as a frozen compatibility snapshot for the Experiment027 slide verifier; newer decks remain under `documents/presentations/`. The historical Experiment028 geometric proposal is not the later numbered Experiment028 rank study. Later verified status takes precedence over historical pilot notes.
