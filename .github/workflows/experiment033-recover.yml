@@ -1,0 +1,85 @@
+name: Experiment033 - recover verified numerical artifacts (no computation)
+on:
+  push:
+    branches: [experiment033-raw-hyperplane-sweep]
+    paths: ['.github/workflows/experiment033-recover.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: experiment033-recovery
+  cancel-in-progress: false
+jobs:
+  recover:
+    if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment033-raw-hyperplane-sweep'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 45750756909
+          name: experiment033-trajectories
+          path: results/gset/experiment033-raw-hyperplane-sweep/
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 45750756909
+          name: experiment033-report
+          path: results/gset/experiment033-raw-hyperplane-sweep/full/
+      - name: Verify archived identities and normalize generated text only
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv, hashlib, json
+          from pathlib import Path
+          root=Path('results/gset/experiment033-raw-hyperplane-sweep')
+          full=root/'full'
+          summary=json.loads((full/'summary.json').read_text())
+          assert summary['complete'] and summary['graphs']==71
+          assert summary['candidate_records']==229472 and summary['new_eva_solves']==0
+          assert summary['graph_wins']==69 and summary['graph_ties']==2 and summary['graph_losses']==0
+          ids={f'G{i}' for i in range(1,68)}|{'G70','G72','G77','G81'}
+          for phase,expected in [('full',ids),('pilot',{'G1','G11','G14'})]:
+              folders=list((root/phase/'graphs').glob('G*'))
+              assert {p.name for p in folders}==expected
+              for p in folders:
+                  m=json.loads((p/'manifest.json').read_text())
+                  assert m['graph']==p.name
+                  assert m['starts']==(16 if phase=='full' else 2)
+                  assert m['steps']==(100 if phase=='full' else 10)
+                  assert hashlib.sha256((p/'trajectory.npz').read_bytes()).hexdigest()==m['archive_sha256']
+          with (full/'per_graph.csv').open(newline='') as f:
+              rows=list(csv.DictReader(f))
+          assert len(rows)==71 and {r['graph'] for r in rows}==ids
+          with (full/'iterations.csv').open(newline='') as f:
+              rows=list(csv.DictReader(f))
+          assert len(rows)==1136*101
+          assert len({(r['graph'],r['restart'],r['iteration']) for r in rows})==len(rows)
+          for name in ['appendix.pdf','convergence.pdf','time_quality.pdf','graph_gains.pdf','all_71_curves.pdf']:
+              assert (full/name).read_bytes().startswith(b'%PDF-')
+          for p in root.rglob('*'):
+              if p.is_file() and p.suffix in ('.json','.csv','.md','.tex'):
+                  raw=p.read_bytes()
+                  clean=raw.replace(b'\r\n',b'\n')
+                  if raw!=clean:p.write_bytes(clean)
+          print('PASS original archive hashes and report coverage; no numerical computation repeated')
+          PY
+      - name: Publish existing audited numerical artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f -- results/gset/experiment033-raw-hyperplane-sweep/
+          git diff --cached --check
+          if git diff --cached --quiet; then echo 'Already published'; else
+            git commit -m 'experiment033: recover all verified trajectories and numerical appendix from run 45750756909'
+            git push origin HEAD:experiment033-raw-hyperplane-sweep
+          fi
