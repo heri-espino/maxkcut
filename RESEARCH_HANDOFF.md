@@ -233,3 +233,7 @@ See [Experiment026 runbook](notes/experiments/experiment026-hyperplane-longrun.m
 
 ---
 
+## Critical EVA factor location and VM checkout distinction (2026-11-03)
+
+The 71 input factors **already exist in three distinct historical source directories**. Per the verified Experiment021 inventory and the exact Experiment025 `select_factor()` loader: 59 G1–G59 factor/case pairs in `results/gset/experiment002-eva/`; 3 G60–G62 pairs in `results/gset/experiment021-complete-71-gset/eva-numba/`; and 9 G63–G67/G70/G72/G77/G81 pairs in `results/gset/experiment003-eva-numba/`. **G60 has an older NPZ also in Experiment002; the latest verified Experiment021 G60 factor wins.** The path map, read-only inventory and SHA verification commands, two Windows checkout locations, and diagnostics are in [docs/eva-factor-locations-vm.md](docs/eva-factor-locations-vm.md). No new SDP or EVA optimization is necessary; full Experiment025 local computation already finished. The EVA factors are nonconvex rank-constrained vectors, not certified convex SDP optima.
+

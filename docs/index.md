@@ -14,6 +14,7 @@ installation
 quickstart
 windows-powershell
 university-vm-experiment025-operations
+eva-factor-locations-vm
 experiments
 experiment-archives
 full-gset-sweep
