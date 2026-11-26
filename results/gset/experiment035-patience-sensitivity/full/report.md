@@ -1,5 +1,7 @@
 # Experiment035: paired patience sensitivity and convergence diagnostics
 
+[Download the numerical appendix (PDF)](Experiment035_Numerical_Appendix.pdf) for all figures and their explanations.
+
 All E033 and E034 prefixes independently verified and reused. Both arms receive identical additional Gaussian draws; 100 consecutive draws without improvement by either arm stop a trajectory. Smaller patience policies are exact retrospective prefixes. A cap of 1,000 total draws protects resources. This is a heuristic plateau, not a convergence proof. Equal draws are not equal time or equal cut evaluations.
 
 | Metric | Result |
