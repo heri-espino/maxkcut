@@ -1,0 +1,19 @@
+\section{Methods compared}\label{sec:methods}
+A hyperplane normal determines a partition. A sweep tests the distinct partitions encountered as the normal rotates; the cut is constant between vertex-crossing events. Let $z\sim\mathcal N(0,I_p)$, let $u(a)=a/\|a\|$ for $a\ne0$, and let $P_r=I_p-rr^\top$ project onto the tangent space at $r$. The two geometry-derived targets are
+\[
+ q_c=u\bigl(u(S_1)-u(S_0)\bigr),\qquad q_a=u(S_1-S_0).
+\]
+The first gives equal weight to the two normalized cluster centers; the second uses their unnormalized sums. The seven methods differ in how they choose a candidate and decide whether to move.
+
+\begin{description}
+\setlength{\itemsep}{2pt}\setlength{\parsep}{0pt}
+\item[Repeated GW.] Draw a fresh independent normal $r'=u(z)$ at each attempt and evaluate its partition. Keep the highest cut seen; subsequent draws do not depend on it. This is the standard repeated-random-rounding baseline.
+\item[Random sweep.] At the current best normal $r$, choose the random tangent $v=u(P_r z)$. Enumerate the partitions along the semicircle $r(\theta)$ and select the largest signed cut, retaining the incumbent if no improvement is found.
+\item[Spherical two-means.] Normalize each cluster sum to form two unit centers; replace $r$ directly by $q_c$, which assigns vertices to the closer unit center. Accept a strict reduction of spherical inertia and stop on the first non-improving attempt. No rotation sweep is performed.
+\item[Centroid sweep.] Use $v=u(P_r q_c)$ to guide the rotation toward the difference of the two normalized centers, then choose the largest signed cut along that arc. Geometry chooses the search direction; the graph objective chooses the update.
+\item[Antipodal sweep.] Use $v=u(P_r q_a)$ and maximize the signed cut along the arc. The target $q_a$ is the optimal direction for fixed labels if the two unit centers are constrained to be antipodal. Unlike $q_c$, it weights cluster contributions by their resultant lengths.
+\item[Inertia sweep.] Propose the centroid tangent $u(P_r q_c)$, but select the interval that minimizes spherical inertia, rather than maximizing the cut. Accept only strict inertia descent. This tests whether geometric compactness alone is a useful surrogate for the original objective.
+\item[Hybrid sweep.] Cycle through centroid, antipodal and random tangent proposals. At each attempt maximize the signed cut along the arc and accept only a strict cut improvement. The mixture combines geometric guidance with unguided exploration.
+\end{description}
+
+\textbf{Shared search rules.} Sweep proposals use $-\pi/2<\theta<\pi/2$ and keep the incumbent as a fallback. In the new guided sweeps, an unavailable or degenerate guided tangent triggers a random tangent; after a rejected update, the next proposal is random. The cut-guided methods advance on strict cut improvement, while spherical two-means and inertia sweep advance on strict inertia reduction. All methods report the best cut encountered, even if a geometry-only candidate is not accepted into the search state.

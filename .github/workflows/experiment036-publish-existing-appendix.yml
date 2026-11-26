@@ -1,0 +1,72 @@
+name: Experiment036 - publish existing audited appendix only
+on:
+  push:
+    branches: [experiment036-inertia-guided-sweep]
+    paths: ['.github/workflows/experiment036-publish-existing-appendix.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: experiment036-existing-appendix-only
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment036-inertia-guided-sweep'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment036-inertia-guided-sweep
+          fetch-depth: 0
+          lfs: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: experiment036-report-recovery
+          run-id: '45885883213'
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/e036-existing-report
+      - name: Validate already compiled appendix without recomputation
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,hashlib
+          from pathlib import Path
+          root=Path(os.environ["RUNNER_TEMP"])/"e036-existing-report"
+          files=list(root.rglob("Experiment036_Numerical_Appendix.pdf"))
+          assert len(files)==1, files
+          p=files[0]; s=json.loads((p.parent/"summary.json").read_text()); f=json.loads((p.parent/"font_audit.json").read_text())
+          assert s["complete"] and s["graphs"]==71 and s["paired_starts"]==1136 and s["new_eva_solves"]==0
+          assert f["pages"]==19 and any("STIX" in x.upper() for x in f["fonts"])
+          b=p.read_bytes(); assert b.startswith(b"%PDF-") and b.rstrip().endswith(b"%%EOF")
+          out=Path(os.environ["RUNNER_TEMP"])/"e036-appendix.pdf"; out.write_bytes(b)
+          print("Already audited PDF:",len(b),"bytes; SHA256",hashlib.sha256(b).hexdigest())
+          PY
+      - name: Commit only the PDF against latest branch head; retry safe races
+        run: |
+          set -euo pipefail
+          branch=experiment036-inertia-guided-sweep
+          path=results/gset/experiment036-inertia-guided-sweep/full/Experiment036_Numerical_Appendix.pdf
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config core.autocrlf false
+          for attempt in 1 2 3 4; do
+            git fetch origin "$branch"
+            git switch --detach FETCH_HEAD
+            if git cat-file -e "HEAD:$path" 2>/dev/null; then
+              echo 'Appendix is already committed; preserve existing publication.'
+              exit 0
+            fi
+            mkdir -p "$(dirname "$path")"
+            cp "$RUNNER_TEMP/e036-appendix.pdf" "$path"
+            git add -f -- "$path"
+            git diff --cached --check
+            test "$(git diff --cached --name-only)" = "$path"
+            git commit -m 'experiment036: publish existing audited STIX appendix only'
+            if git push origin HEAD:"$branch"; then exit 0; fi
+            # Never force push; next attempt starts at latest remote head.
+            sleep 2
+          done
+          echo 'Concurrent branch updates prevented a safe push.' >&2
+          exit 1

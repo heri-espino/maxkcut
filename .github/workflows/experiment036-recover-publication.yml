@@ -1,0 +1,14 @@
+name: Experiment036 - publication recovery only
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: experiment036-inertia-guided-sweep
+  cancel-in-progress: false
+jobs:
+  retired:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'Retired; use Experiment036 compact publication workflow. Do not rerun optimization.'

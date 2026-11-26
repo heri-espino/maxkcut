@@ -1,0 +1,82 @@
+\documentclass[11pt,a4paper]{article}
+\newcommand{\ExperimentNumber}{036}
+\newcommand{\AppendixFooter}{Fixed EVA factors $\cdot$ G-set benchmark}
+\usepackage{maxcut-appendix}
+\input{results.tex}
+\hypersetup{pdftitle={Experiment 036: Geometry-guided hyperplane rounding}}
+\begin{document}
+\appendixheading{EXPERIMENT 036 \enspace / \enspace EMPIRICAL RESULTS}{Geometry-guided hyperplane rounding}{Numerical appendix \quad | \quad G-set benchmark \quad | \quad 26 November 2026}
+\textbf{Research question.} Can geometry-informed rotations improve the original signed Max-Cut objective relative to random-tangent hyperplane sweeps, and is directly minimizing inertia an effective proxy for maximizing the cut?
+
+\textbf{Principal finding.} \PrincipalFinding
+
+\section{Experimental design}
+All seven methods start from identical Goemans--Williamson (GW) normals, using fixed EVA semidefinite factors on 71 graphs with 16 paired starts per graph. Each sweep has a budget of 100 attempts; spherical two-means may stop earlier. No new SDP solve or discrete local refinement was performed. The two baseline trajectories are reused from Experiment 033.
+
+For a signed weighted graph $G=(V,E,w)$, let $y_i\in\mathbb R^p$ be the unit embedding of vertex $i$. A unit normal $r$ induces $x_i=\mathbf 1\{y_i^\top r>0\}$. The objective and normalized spherical inertia are
+\begin{equation*}
+ C(x)=\sum_{(i,j)\in E}w_{ij}\mathbf 1\{x_i\ne x_j\},\qquad
+ I_{\mathrm{sph}}(x)=2-\frac{2}{n}\left(\|S_0\|+\|S_1\|\right),
+\end{equation*}
+where $S_k=\sum_{i:x_i=k}y_i$. A rotation $r(\theta)=r\cos\theta+v\sin\theta$ with $v^\top r=0$ induces a finite sequence of partitions. The random, centroid, antipodal and hybrid cut sweeps optimize the signed cut along the proposed arc. The geometry-only arms update by spherical inertia and separately retain the best cut encountered.
+
+\input{methods.tex}
+
+\section{Primary numerical results}
+\begin{table}[H]\centering\small
+\caption{Equal-graph mean gain and paired difference versus random sweep. The interval is a 95\% graph-bootstrap interval; W/T/L counts graphs won, tied and lost.}\label{tab:results}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrrl@{}}
+\toprule
+Method & Gain (\%) & $\Delta$ (pp) & 95\% interval (pp) & W/T/L\\
+\midrule
+\ResultRows
+\bottomrule
+\end{tabular*}
+\end{table}
+\smallskip
+{\small Gains are changes from the initial GW cut divided by the graph's mean initial GW cut. Each graph receives equal weight, and intervals use 10,000 graph-level bootstrap resamples; they are not multiplicity-adjusted.}
+
+\sectionpage{Convergence and paired effects}
+\resultfigure[.30\textheight]{convergence}{Mean incumbent gain over 100 attempts. Stopped spherical two-means trajectories are held constant.}{\ConvergenceFinding}
+\resultfigure[.32\textheight]{paired_effects}{Paired graph-bootstrap effects relative to random sweep. The vertical reference is zero; horizontal bars are 95\% intervals.}{\EffectFinding}
+
+\sectionpage{Computational effort and record frequency}
+\resultfigure[.30\textheight]{quality_cost}{Mean gain against archived method seconds (A) and examined intervals (B). Axes use a symmetric logarithmic scale.}{\CostFinding}
+\resultfigure[.29\textheight]{records}{Mean number of strict cut records (A) and attempted updates (B). A cut record is an increase in the best signed cut, not a reduction in inertia.}{\RecordFinding}
+
+\sectionpage{Graph heterogeneity and geometry}
+\resultfigure[.32\textheight]{graph_heatmap}{Graphwise advantage relative to random sweep, for each new method. Positive values favor the new method.}{\GraphFinding}
+\resultfigure[.29\textheight]{inertia_trajectories}{Active-candidate spherical (A) and Euclidean (B) inertia, normalized by the number of vertices.}{Late active-only means for two-means are selected by survival. A decrease in inertia is not a guarantee of a larger signed cut.}
+
+\sectionpage{Inertia and the original cut objective}
+\resultfigure[.49\textheight]{inertia_cut_density}{Candidate gain versus spherical-inertia reduction relative to the common starting geometry; logarithmic hexbin density. Panels correspond to the five new methods.}{\GeometryFinding}
+\textbf{Implication.} Geometric information is useful as a proposal mechanism, but the acceptance objective matters. Pooled candidate-level densities are exploratory, because starts and iterations within a graph are dependent and graphs differ in scale.
+
+\sectionpage{Search diagnostics}
+\resultfigure[.53\textheight]{search_diagnostics}{Strict record probability, Hamming turnover, projective angular displacement and minority-side fraction, by active attempt. Global sign reversal is ignored in turnover and angle.}{Record rates and movement characterize the trajectory rather than establish superiority. Candidate curves may differ from incumbent curves; an inertia-descent arm can reject a candidate yet retain its cut independently.}
+\textbf{Interpretive caution.} Timing comparisons are descriptive because the archived baselines and new methods came from different runs. The recorded time excludes some diagnostics and is not an equal-time benchmark.
+
+\sectionpage{Rotation-event landscapes}
+The rotation profiles below show the first arc at paired seed zero. Each point corresponds to an open interval between hyperplane crossing events. Blue denotes signed cut; orange denotes spherical inertia. The plotted profiles are sampled diagnostics, not independent observations.
+\resultfigure[.37\textheight]{event_G1}{Event landscape for G1, four guided rotation variants.}{}
+\resultfigure[.37\textheight]{event_G11}{Event landscape for G11, four guided rotation variants.}{}
+\clearpage
+\resultfigure[.47\textheight]{event_G14}{Event landscape for G14, four guided rotation variants.}{}
+\textbf{Interpretation.} The extrema of the two objectives need not coincide. Choosing the arc direction from the geometry and selecting the partition by its original signed cut are distinct operations. These three examples illustrate that distinction; they do not establish a population-level association.
+\section{Verification and reproducibility}
+\AuditFinding\ The independent audit reconstructs partitions from saved normals, evaluates the signed objective using the original graph edges, and checks incumbent monotonicity, geometry, checksums and factor identities. The centroid-angle comparison uses cosine space to avoid endpoint ill-conditioning. All results in this appendix were generated from the existing audited archive, without repeating any optimization. The source project includes the original figure PDFs and compact summary data; the full trajectories are retained separately under the VM archival policy.
+
+\sectionpage{Graphwise convergence}
+The following six figures cover all 71 graphs in benchmark order. Each curve averages the 16 paired starts; vertical scales are graph-specific. Stopped two-means trajectories are held constant. Compare methods within a panel rather than absolute heights across panels.
+\resultfigure[.77\textheight]{graph_curves_1}{Graphwise convergence, batch 1 of 6.}{}
+\clearpage
+\resultfigure[.86\textheight]{graph_curves_2}{Graphwise convergence, batch 2 of 6.}{}
+\clearpage
+\resultfigure[.86\textheight]{graph_curves_3}{Graphwise convergence, batch 3 of 6.}{}
+\clearpage
+\resultfigure[.86\textheight]{graph_curves_4}{Graphwise convergence, batch 4 of 6.}{}
+\clearpage
+\resultfigure[.86\textheight]{graph_curves_5}{Graphwise convergence, batch 5 of 6.}{}
+\clearpage
+\resultfigure[.86\textheight]{graph_curves_6}{Graphwise convergence, batch 6 of 6.}{}
+\end{document}

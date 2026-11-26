@@ -1,0 +1,17 @@
+\newcommand{\PrincipalFinding}{The centroid sweep reached a mean gain of 4.384\%, versus 4.239\% for random sweep (+0.145 pp). All three cut-guided variants improved on random sweep in the equal-graph mean; inertia-only search did not.}
+\newcommand{\ConvergenceFinding}{Repeated GW achieves 2.411\%, random sweep 4.239\%, and the centroid, antipodal and hybrid variants 4.384\%, 4.383\% and 4.373\%, respectively. Gains are measured relative to the common initial cut.}
+\newcommand{\EffectFinding}{Centroid: +0.145 pp, interval [+0.086, +0.209]; antipodal: +0.144 pp, interval [+0.095, +0.197]; hybrid: +0.134 pp, interval [+0.087, +0.184]. These intervals exclude zero, but do not establish a ranking among the three guided variants.}
+\newcommand{\CostFinding}{Mean archived seconds are 0.163 for random sweep and 0.197 for centroid sweep; inertia sweep takes 1.069. The latter yields lower cut quality despite examining a similar number of intervals.}
+\newcommand{\RecordFinding}{Random sweep registers 17.31 strict records on average, compared with 16.13 for centroid sweep. Spherical two-means stops after 24.01 attempts on average. More records do not imply a better final incumbent.}
+\newcommand{\GraphFinding}{Centroid wins on 52 of 71 graphs, antipodal on 55, and hybrid on 50. Their respective losses (14, 13, 18) rule out universal dominance.}
+\newcommand{\GeometryFinding}{Direct inertia minimization attains 2.839\% versus 4.239\% for random sweep (-1.400 pp). Spherical two-means achieves 2.813\%. The cut-guided variants perform better on average than these geometry-only updates.}
+\newcommand{\AuditFinding}{The completed audit covered 716,826 records, including 487,354 new and 229,472 reused records; 48,060 sampled event intervals were archived. All methods recorded zero invalid candidate flags.}
+\newcommand{\ResultRows}{
+Repeated GW & 2.411 & -1.828 & [-2.151, -1.509] & 0/2/69 \\
+Random sweep & 4.239 & +0.000 & [+0.000, +0.000] & 0/71/0 \\
+Spherical two-means & 2.813 & -1.425 & [-1.725, -1.137] & 1/2/68 \\
+\textbf{Centroid sweep} & 4.384 & +0.145 & [+0.086, +0.209] & 52/5/14 \\
+Antipodal sweep & 4.383 & +0.144 & [+0.095, +0.197] & 55/3/13 \\
+Inertia sweep & 2.839 & -1.400 & [-1.699, -1.116] & 1/2/68 \\
+Hybrid sweep & 4.373 & +0.134 & [+0.087, +0.184] & 50/3/18 \\
+}
