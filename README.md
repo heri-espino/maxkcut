@@ -1,4 +1,7 @@
 # maxkcut
+
+**Experiment035 — prospective patience sensitivity:** [Protocol](notes/experiments/experiment035-patience-sensitivity.md). Recover audited E034 from run 45815246196; extend exact trajectories to joint patience 100, extract 5/10/20/50/100 policies, measure strict gains, failure hazards, geometry and time. No new EVA or repeated archived rounding. No merge without authorization. Results pending audit.
+
 ## Experiment030 — Signed local-field clustering without rerunning EVA
 
 A new [preregistered frozen-factor study](notes/experiments/experiment030-local-field-clustering.md) tests whether the local weighted field `H=WY`, its magnitude `||h_i||` or normalized coherence `||h_i|| / sum_j |w_ij|` improve antipodal spherical K-MeansNM on **the existing** 1,000 EVA factors (5 G-set graphs × 100 seeds × p=41 or p=800). Six controlled inputs, including normalized direction and weighted-degree baselines, produce **6,000 original signed Max-Cut scores**. [Driver](scripts/experiment030_local_field_rounding.py) · [synthetic checks](tests/test_experiment030_local_field_rounding.py) · [dedicated hosted-gated Windows Actions workflow](.github/workflows/experiment030-local-field-clustering.yml). All full iteration traces and packed labels are archived in `results/gset/experiment030-local-field-clustering/` with exact baseline-factor SHA references, without duplicating or modifying Experiment028–029 factors. **Completed and audited (2026-11-16):** all 6,000 original signed partitions, 1,000 exact Experiment029 baseline matches, and 104,242 clustering iterations were independently checked and archived. Raw -H improves average paired signed cut on G11/G18, but worsens G14; its equal-graph mean relative change is +0.0602% at p=41 and +0.0349% at p=800, with graph-specific effects and unadjusted intervals. [Scientific report](results/gset/experiment030-local-field-clustering/report.md) · [paired confidence intervals](results/gset/experiment030-local-field-clustering/per_graph_method.csv) · [deterministic chart](results/gset/experiment030-local-field-clustering/raw_field_relative_effects.svg) · [successful independent verification](https://github.com/heri-espino/maxkcut/actions/runs/43966589165). The original solver and completed Ex028/029 factors remain untouched; primary workflow is now manual-only.
@@ -928,3 +931,8 @@ python -m maxkcut.eva_kmeans_init_full_cli --graphs G63 --restarts 50 --chunk-si
 ```
 
 [Full Experiment019 protocol](notes/experiments/experiment019-kmeans-init-full-pipeline.md).
+
+
+## Hyperplane Sweep interactive educational companion
+
+See [the mathematical explainer and static dashboard guide](docs/hyperplane-sweep-dashboard.md). Archive the educational PDF, LaTeX source, Python figure generator and figures in `documents/hyperplane-sweep/`; keep the interactive Pages dashboard in `dashboard/` and the manuscript in `papers/hyperplane-sweep/`. The original PDF/source archive has not yet been committed; do not claim it is published. The Pages workflow is hosted-only; no numerical computations are required.

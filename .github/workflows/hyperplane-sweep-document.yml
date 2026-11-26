@@ -1,0 +1,78 @@
+name: Build and archive Hyperplane Sweep document
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'documents/hyperplane-sweep/hyperplane_sweep.tex'
+      - 'documents/hyperplane-sweep/make_figures.py'
+      - '.github/workflows/hyperplane-sweep-document.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: hyperplane-sweep-document
+  cancel-in-progress: false
+jobs:
+  archive:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            documents
+            docs/hyperplane-sweep-dashboard.md
+            dashboard/README.md
+            README.md
+            AGENTS.md
+            RESEARCH_HANDOFF.md
+          sparse-checkout-cone-mode: false
+          lfs: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install document dependencies
+        run: |
+          python -m pip install numpy==2.2.6 matplotlib==3.10.3
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends texlive-latex-base texlive-latex-recommended texlive-fonts-recommended lmodern poppler-utils
+      - name: Generate figures and compile
+        working-directory: documents/hyperplane-sweep
+        env:
+          SOURCE_DATE_EPOCH: '1795651200'
+        run: |
+          set -euo pipefail
+          python make_figures.py
+          pdflatex -halt-on-error -interaction=nonstopmode hyperplane_sweep.tex
+          pdflatex -halt-on-error -interaction=nonstopmode hyperplane_sweep.tex
+          pdfinfo hyperplane_sweep.pdf
+          pdftotext hyperplane_sweep.pdf extracted.txt
+          grep -q 'Hyperplane Sweep' extracted.txt
+          grep -q 'Pseudocode' extracted.txt
+          mkdir -p preview
+          pdftoppm -r 100 -png hyperplane_sweep.pdf preview/page
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          files = ['hyperplane_sweep.tex', 'make_figures.py', 'hyperplane_sweep.pdf', 'r2.pdf', 'r3.pdf', 'events.pdf', 'worked_r3.pdf']
+          manifest = {'provenance':'Reconstructed from the earlier educational draft, not byte-identical to original archive.', 'files':{name:{'sha256':hashlib.sha256(Path(name).read_bytes()).hexdigest(),'bytes':Path(name).stat().st_size} for name in files}}
+          Path('source-manifest.json').write_text(json.dumps(manifest,indent=2)+'\n',encoding='utf-8')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hyperplane-sweep-document-preview
+          path: |
+            documents/hyperplane-sweep/hyperplane_sweep.pdf
+            documents/hyperplane-sweep/preview/
+          if-no-files-found: error
+      - name: Commit only the generated document assets
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          d=documents/hyperplane-sweep
+          git add -f "$d/hyperplane_sweep.pdf" "$d/r2.pdf" "$d/r3.pdf" "$d/events.pdf" "$d/worked_r3.pdf" "$d/source-manifest.json"
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "docs: archive compiled Hyperplane Sweep explainer and figures"
+          # Never overwrite concurrent research commits or publish a PDF from stale source.
+          git push origin HEAD:main
