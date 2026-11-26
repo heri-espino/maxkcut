@@ -1,0 +1,29 @@
+\chapter{Discrete Max-Cut and Quadratic Optimization}\label{ch:discrete}
+\section{Indicator and Ising-spin formulations}
+A cut is a bipartition $V=S\sqcup (V\setminus S)$. Assign $x_i=+1$ if $i\in S$, and $x_i=-1$ otherwise. The elementary identity
+\begin{equation}\label{eq:cut-indicator}
+\mathbb{1}[x_i\ne x_j]=\frac{1-x_ix_j}{2}
+\end{equation}
+holds because $x_ix_j\in\{\pm1\}$. Thus
+\begin{equation}\label{eq:iqp}
+\OPT_{\mathrm{MC}}=\max_{x\in\{\pm1\}^n}\frac12\sum_{\{i,j\}\in E}w_{ij}(1-x_ix_j)=\max_{x\in\{\pm1\}^n}\frac14x^\top Lx.
+\end{equation}
+To verify the Laplacian formula, expand $x^\top Lx=\sum_{\{i,j\}\in E}w_{ij}(x_i-x_j)^2$, where $(x_i-x_j)^2=4$ for crossing edges and zero for noncrossing edges.
+
+\begin{definition}[Cut polytope in Gram coordinates]
+The matrix of a cut $x$ is $X=xx^\top$. The set $\mathcal Q_n=\{xx^\top:x\in\{\pm1\}^n\}$ contains every discrete cut matrix, and $\operatorname{conv}(\mathcal Q_n)$ is the convex hull of those matrices. Its entries satisfy $X_{ii}=1$, $X_{ij}\in\{\pm1\}$, $X\succeq0$, and $\rank(X)=1$.
+\end{definition}
+Since $xx^\top=(-x)(-x)^\top$, swapping the two sides of a cut does not change its Gram matrix. The discrete solution space has $2^{n-1}$ possible cut matrices (including the trivial cut) for $n\ge1$.
+
+\section{Why the quadratic formulation is difficult}
+The feasible set is discrete and exponential in $n$. Quadratic interactions $x_ix_j$ couple choices at different vertices: making one edge cross may prevent other edges from crossing. On an odd cycle, for example, no sign assignment can cut every edge; traversing an odd number of sign changes cannot return to the original sign. This \emph{frustration} is a source of the integrality gap exhibited in \cref{ch:cycle5,ch:wheel6}.
+
+\section{The continuous relaxation idea}
+Replace the scalar spins $x_i\in\{\pm1\}$ by unit vectors $y_i\in\R^p$. The original problem is embedded in the new one by selecting $y_i=x_ie_1$ where $e_1$ is any unit vector. Hence, for every $p\ge1$,
+\begin{equation}
+\OPT_{\mathrm{MC}}\le \max_{\norm{y_i}=1}F(Y)\le\OPT_{\mathrm{SDP}}.
+\end{equation}
+The first inequality becomes equality at $p=1$; the second becomes equality for $p=n$. The latter statement follows from Gram factorization, not from the success of a particular nonconvex solver.
+
+\section{Statistical-mechanical interpretation}
+The spins $x_i$ constitute a two-state Ising system. With zero external fields, maximizing the cut corresponds (up to an affine transformation) to minimizing an antiferromagnetic energy $H(x)=\sum_{\{i,j\}\in E}w_{ij}x_ix_j$. Replacing Ising spins by vectors produces a classical $O(p)$ spin model with spherical constraints, in which the local alignment field $h_i$ acquires the interpretation of an effective interaction field. For positive edges, the interaction is antiferromagnetic; for negative edges, it is ferromagnetic in the cut objective.

@@ -1,0 +1,56 @@
+\chapter{Convergence, Riemannian Stationarity, and Rate Claims}\label{ch:convergence}
+\section{Why the objective sequence converges}
+The feasible set $\mathcal M_p$ is compact, $F$ is continuous, and every exact EVA coordinate update makes $F$ nondecreasing by \eqref{eq:eva-gain}. Consequently, for the sequential states $Y^t$,
+\[
+F(Y^0)\le F(Y^1)\le\cdots\le \max_{\mathcal M_p}F<\infty.
+\]
+The monotone convergence theorem for real sequences therefore gives $F(Y^t)\to F_\infty$. More precisely, the nonnegative coordinate gains sum to at most the finite available objective improvement:
+\begin{equation}\label{eq:gain-telescope}
+\sum_{t,i}\Delta_{t,i}=F_\infty-F(Y^0)<\infty\quad\Longrightarrow\quad\Delta_{t,i}\to0.
+\end{equation}
+This does \emph{not} immediately show that $Y^t$ converges as a matrix or that every $\theta_{t,i}\to0$. Zero fields can permit large row changes with zero gain, and symmetries can produce multiple equivalent factor representations.
+
+\section{The product of spheres as a Riemannian manifold}
+At $Y\in\mathcal M_p$, the tangent space is
+\[
+T_Y\mathcal M_p=\{U\in\R^{n\times p}:u_i^\top y_i=0\ \forall i\}.
+\]
+For the objective $F(Y)$, differentiating with respect to $y_i$ gives
+\[
+\nabla_{y_i}F=-\tfrac12h_i.
+\]
+The tangent-space orthogonal projection is $P_{y_i}z=z-(y_i^\top z)y_i$. Hence the \emph{Riemannian gradient} is
+\begin{equation}\label{eq:riemgrad}
+\operatorname{grad}_{y_i}F=-\frac12\left[h_i-(y_i^\top h_i)y_i\right].
+\end{equation}
+A stationary point of the constrained smooth problem has $h_i$ parallel to $y_i$ for every $i$. This includes both \emph{antiparallel} alignment (coordinate maximum) and \emph{parallel} alignment (coordinate minimum), so first-order Riemannian stationarity is weaker than coordinate-wise maximality. A true EVA fixed point with all $h_i\ne0$ obeys $h_i=-s_iy_i$ and is coordinate-wise maximal.
+
+\section{Field length, gain, and angular complexity}
+\begin{proposition}[Conditional $O(\varepsilon^{-2})$ sweep bound]\label{prop:conditional-rate}
+Suppose every local field encountered after some initialization satisfies $s_{t,i}\ge\delta>0$, and define $B=\sup_{Y\in\mathcal M_p}F(Y)$. Then the number of \emph{sweeps} containing an update with angle $\theta_{t,i}>\varepsilon$ is at most
+\[
+\frac{\pi^2(B-F(Y^0))}{\delta\varepsilon^2}.
+\]
+\end{proposition}
+\begin{proof}
+For $0\le\theta\le\pi$, $1-\cos\theta=2\sin^2(\theta/2)\ge2\theta^2/\pi^2$, using the concavity lower bound $\sin u\ge2u/\pi$ on $[0,\pi/2]$. By \eqref{eq:eva-gain}, an update with $\theta>\varepsilon$ improves the objective by at least $\delta\varepsilon^2/\pi^2$. Distinct such sweeps contribute distinct positive gains, and their sum cannot exceed $B-F(Y^0)$.
+\end{proof}
+
+\begin{caution}
+The uniform field lower bound is a real hypothesis, not an algebraic identity. If $h_i=0$ or $s_i\downarrow0$, small improvement alone does not control the update angle. The EVA article states an $O(\varepsilon^{-2})$ convergence result for an angular approximate-KKT criterion using additional arguments on nonvanishing fields~\cite{eva2026}. Our proposition provides a directly checkable version and makes the missing denominator issue explicit. It is not presented as a replacement for the paper's full proof.
+\end{caution}
+
+\section{What converges, and in what sense?}
+Several statements should be distinguished:
+\begin{enumerate}
+\item \emph{Objective convergence:} $F(Y^t)\to F_\infty$, established by monotonicity and boundedness.
+\item \emph{Vanishing coordinate gains:} $\Delta_{t,i}\to0$, established by summability.
+\item \emph{Angular stationarity:} $\max_i\theta_{t,i}\to0$, requiring control of zero or small local fields.
+\item \emph{First-order KKT:} $\operatorname{grad}F(Y^*)=0$ at an accumulation point, requiring an appropriate continuity and update-rule argument.
+\item \emph{Second-order stationarity:} the constrained Hessian is negative semidefinite on all tangent directions; not implied solely by small angular moves.
+\item \emph{Global SDP optimality:} needs additional rank/regularity hypotheses or a feasible dual certificate $Z\succeq0$.
+\end{enumerate}
+These are logically different results. Reporting one as another obscures what the numerical algorithm actually establishes.
+
+\section{Floating-point stopping criteria}
+A direct computation $\theta=\arccos(y_{\mathrm{old}}^\top y_{\mathrm{new}})$ is poorly conditioned near $\theta=0$ because $\arccos'(t)=-1/\sqrt{1-t^2}$. In double precision, rounding of a dot product near $1$ can produce an apparent angle near $10^{-8}$ radians, or zero, depending on summation order. Always clip the dot product to $[-1,1]$, report the tolerance, and do not equate tiny differences in sweep counts with different mathematical solutions.

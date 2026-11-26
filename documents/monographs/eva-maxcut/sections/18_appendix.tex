@@ -1,0 +1,40 @@
+\chapter{Supplementary Proofs, Extensions, and Common Misconceptions}\label{app:proofs}
+\section{The complete graph $K_4$ shows nonuniqueness of SDP solutions}
+For the unweighted complete graph on four vertices, the discrete best cut is $4$. One rank-one optimum is $x=(1,1,-1,-1)^\top$ and $X_1=xx^\top$. A different optimal Gram matrix is $X_2=(4/3)I_4-(1/3)\one\one^\top$, with ones on the diagonal, $-1/3$ off diagonal, and eigenvalues $(0,4/3,4/3,4/3)$. Both have objective $4$. The equality follows from
+\[
+F(X)=3-\frac12\sum_{i<j}X_{ij},\qquad \one^\top X\one=4+2\sum_{i<j}X_{ij}\ge0.
+\]
+Thus $F(X)\le4$, with both $X_1$ and $X_2$ attaining equality. A CVXPY solver and a factorized solver can therefore return different optimal Gram matrices, not merely differently rotated copies of one matrix.
+
+\section{Why maximizing the Frobenius norm is a different problem}
+For any rank-one cut matrix $X=xx^\top$ with $x_i=\pm1$, $\norm{X}_F^2=\tr(X^2)=\tr(nxx^\top)=n^2$, so $\norm{X}_F=n$ independent of the cut's weight. For the $K_4$ example, two very different cuts have the same Frobenius norm $4$ but different objectives. Hence $\max\norm{X}_F$ is not Max-Cut, even under unit diagonal and PSD constraints.
+
+\section{Generalization to Max-$k$-Cut}
+The Frieze--Jerrum relaxation uses a regular simplex encoding for $k$ groups. Its Gram constraints are
+\[
+X\succeq0,\quad X_{ii}=1,\quad X_{ij}\ge-\frac1{k-1},
+\]
+and its cut objective can be written $\frac{k-1}{2k}\ip{L}{X}$. For $k=2$, the lower bound $-1$ is already implied by PSD and unit diagonals, and the coefficient reduces to $1/4$. For $k>2$, the off-diagonal lower bounds are essential. \emph{The EVA algorithm studied in this monograph implements the $k=2$ vector relaxation}; merely supplying $k>2$ to the objective does not enforce the additional constraints. A general Max-$k$-Cut factorized solver needs a separate feasibility-preserving mechanism.
+
+\section{A direct test of spectral factorization}
+If $X$ is exactly PSD and $\diag X=\one$, let $X=Q\Lambda Q^\top$ and $Y=Q\Lambda^{1/2}$. Then $YY^\top=X$, each row has length one, and $F(Y)=F(X)$. For the same matrix, any orthogonal transformation $YR$ produces identical Gram entries and therefore the same probability law of isotropic Gaussian-hyperplane rounding. Cholesky and eigen factors are just different coordinate representations when both are exact.
+
+\section{A tight gap identity}
+For any primal feasible $X$ and dual feasible $\nu$, the primal--dual gap is
+\[
+\mathrm{Gap}(X,\nu)=\sum_i\nu_i-\frac14\ip{L}{X}=\ip{Z}{X}\ge0.
+\]
+If $X=YY^\top$, this becomes $\mathrm{Gap}=\tr(Y^\top ZY)=\norm{Z^{1/2}Y}_F^2$. This explains why complementarity $ZY=0$ gives zero gap. It also shows why no amount of Cholesky factorization, by itself, reduces the gap of a fixed primal matrix.
+
+\section{What to remember}
+\begin{takeaway}
+\[
+\boxed{
+\begin{gathered}
+\text{choose feasible }X\ \text{or unit-row }Y;\qquad X=YY^\top;\\
+F(X)=\frac14\ip{L}{X}=\frac12\sum_{\{i,j\}\in E}w_{ij}(1-X_{ij});\\
+\text{EVA: }y_i\gets-\frac{\sum_jw_{ij}y_j}{\norm{\sum_jw_{ij}y_j}};\qquad
+\text{certificate: }Z=\Diag(\nu)-L/4\succeq0,\ ZY=0.
+\end{gathered}}
+\]
+\end{takeaway}

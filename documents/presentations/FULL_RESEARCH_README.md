@@ -1,0 +1,52 @@
+**NEW — completed Experiment025 presentation (2026-11-03):** The original 74-slide Experiments001–023 Marp/PDF stays archived. The new [Experiment001–025 edition](maxkcut_full_research_001_025.marp.md) (94 slides) incorporates 12 committed reproducible SVG charts comparing 18 methods by graph, generator family, weight type, and original-edge structural metrics from Experiment022. Its hosted [GitHub Actions workflow](../../.github/workflows/experiment025-marp-presentation.yml) regenerates figures and exports PDF/HTML. [Full build and scientific caveats](EXPERIMENT025_PRESENTATION.md). Complete computation does not imply independently audited reference records, equal-compute superiority, per-seed paired significance, or off-VM backup.
+
+# Full Max-Cut research seminar — Marp edition
+
+**Audience:** Professor Ángel E. Rodríguez Fernández. **Date:** 29 October 2026.
+
+This is a **separate 74-slide deck**, derived from the repository’s original `documents/presentations/maxkcut_research_journey.marp.md`. That 44-slide historical deck remains unchanged.
+
+## Contents
+
+1. Signed Max-Cut, SDP reference, nonconvex EVA geometry, GW, spherical K-means.
+2. Early experiment chronology: MST, flip, KL, Tabu, cut-aware, hyperplanes, EM and multigroup clustering.
+3. Verified Experiments019–021: nine two-centroid initializers, 71 graphs, 31,950 saved searches; best-of-50 and mean-of-50 comparisons.
+4. Retrospective Experiment022: random/planar-family/toroidal classification, structural audit, method wins, negative LOOCV selection result.
+5. Additional historical 62-graph raw GW/K-means results and G63-only MST/EM comparisons with warnings about incomparable budgets.
+6. Experiment023: its 17 registered algorithm protocols, pilot/runner/coverage design, and a clear **NOT VERIFIED COMPLETE** status.
+7. Reproducibility, citations, and future validation.
+
+**No Experiment023 numerical outcomes are presented.** It was implemented but a complete final report was not present in the repository at the time the deck was prepared.
+
+## Open in Marp
+
+From the repository root, with Node.js installed:
+
+```powershell
+npx @marp-team/marp-cli documents/presentations/maxkcut_full_research_001_023.marp.md --allow-local-files -o maxkcut_full_research.pdf
+```
+
+Or open the Markdown in VS Code with the **Marp for VS Code** extension and use Preview/Export. The `assets/` directory resolves relative to the Markdown source.
+
+The pre-rendered PDF companion is `MaxCut_Full_Research_Experiments_001_023_Angel.pdf`. Its reference rendering used MathJax and WeasyPrint; minor typography differences can arise with Marp CLI/Chromium exports.
+
+## Rebuild new SVG diagrams
+
+```powershell
+python documents/presentations/build_full_research_figures.py
+```
+
+The script uses Python's standard library. The older scientific SVGs remain under `documents/presentations/assets/`; the new diagrams were designed from source-audited Experiment021/022 statistics. **Illustrative graph drawings are not benchmark node coordinates.**
+
+## Evidence boundaries
+
+- Source-of-record numerical results: `results/gset/experiment021-complete-71-gset/statistics/` and `results/gset/experiment022-graph-structure-methods/`.
+- Historical raw rounding: archived summaries from Experiments002/003/008; 62 graphs, 20 starts per method.
+- Historical G63: heterogeneous archived Experiments009/012/013/016/017/018/019. In particular, elite-EM retains an existing 26,917 cut rather than discovering it.
+- Experiment023 is a **registered prospective experiment** (`notes/experiments/experiment023-all-method-topology.md`), not a completed result in this deck.
+- Generator-family labels are not strict graph-theoretic planarity certificates.
+- Never treat repeated restarts or 1,207 planned method cells as independent graphs, or claim equal-compute superiority without an equal-budget result.
+
+The original 44-slide talk has not been edited.
+
+Experiment025 (2026-11-05): The 97-slide deck adds external-reference-normalized winner/GW bar charts for random (30), planar-family (24) and toroidal (17) G-set graphs. Source snapshots, all 1,278 method ratios and reproducible SVG source are committed; see `EXPERIMENT025_PRESENTATION.md`. Output artifacts remain PDF and HTML only.

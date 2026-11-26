@@ -1,0 +1,64 @@
+\chapter{Reproducing the SDP--EVA--Factorization Comparison}\label{ch:reproduce}
+\section{Two programs, one graph, two different optimizations}
+The comparison is between (A) a convex conic problem in $X$, and (B) a nonconvex product-of-spheres problem in $Y$. A fair investigation must score both using the same graph and $F(X)=\tr(LX)/4$, then apply the same rounding methods separately to each factor. The included script \texttt{code/solve\_sdp\_compare.py} implements both routes for $C_5$ and $W_6(1)$; it uses CVXPY if installed. The independent \texttt{code/check\_examples.py} requires only NumPy and verifies the analytic primal and dual constructions without a conic solver.
+
+\section{Primal SDP in CVXPY}
+The essential CVXPY model is:
+\begin{lstlisting}[style=py]
+import cvxpy as cp
+X = cp.Variable((n, n), symmetric=True)
+problem = cp.Problem(
+    cp.Maximize(cp.trace(L @ X) / 4.0),
+    [cp.diag(X) == 1.0, X >> 0]
+)
+problem.solve(solver=cp.SCS, eps=1e-7, max_iters=50000)
+\end{lstlisting}
+The \texttt{>>} constraint denotes PSD, not elementwise nonnegativity. The objective is linear in $X$. CVXPY is a modeling environment: \texttt{SCS}, \texttt{SDPA}, or another installed conic solver performs the numerical optimization. A solver status alone cannot certify accuracy to arbitrary precision.
+
+\section{Factorization after CVXPY}
+The source code uses spectral decomposition of the symmetrized numerical matrix and explicitly reports negative eigenvalues:
+\begin{lstlisting}[style=py]
+S = (Xvalue + Xvalue.T) / 2
+lamb, Q = np.linalg.eigh(S)
+if lamb.min() < -1e-5:
+    raise ValueError("Unacceptable PSD violation")
+V = Q * np.sqrt(np.maximum(lamb, 0))[None, :]
+V /= np.linalg.norm(V, axis=1, keepdims=True)
+\end{lstlisting}
+This is a spectral square root, not Cholesky. For exact singular matrices, the spectral factorization is appropriate; the rank can be reduced by discarding exact or controlled near-zero eigenvalues. Renormalizing rows changes the resulting Gram matrix when the solver's diagonal is not exactly one, and the change must be disclosed.
+
+\section{EVA without forming a dense Gram matrix}
+The core update is:
+\begin{lstlisting}[style=py]
+for i in range(n):
+    h = W[i] @ Y
+    s = np.linalg.norm(h)
+    if s > 1e-14:
+        Y[i] = -h / s  # sequential, in place
+\end{lstlisting}
+For large sparse graphs, use CSR adjacency lists to avoid a dense $W$. To score a continuous candidate without constructing $YY^\top$, sum only the dot products on actual edges:
+\begin{lstlisting}[style=py]
+value = 0.5 * sum(
+    weight * (1 - np.dot(Y[i], Y[j]))
+    for i, j, weight in edges
+)
+\end{lstlisting}
+The exact per-update gain can be verified against \eqref{eq:eva-gain} in a unit test.
+
+\section{Independent dual validation}
+For a candidate $Y$ in an approximate EVA fixed point, compute $h_i=\sum_jw_{ij}y_j$, $s_i=\norm{h_i}$, $\nu_i=(d_i+s_i)/4$, and $Z=\Diag(\nu)-L/4$. Check $\lambda_{\min}(Z)$ and $\norm{ZY}_F$. In the known analytic examples, the exact $X^*$ and $Z^*$ constructed in earlier chapters satisfy $\lambda_{\min}(X^*)\ge0$, $\lambda_{\min}(Z^*)\ge0$ and $Z^*X^*=0$. For an approximate run, use numerical bounds and report precision rather than calling near-zero numbers exact zeros.
+
+\section{Recommended reproducibility commands}
+\begin{lstlisting}[style=py]
+# From the folder containing main.tex:
+# python -m pip install numpy scipy
+python code/check_examples.py
+
+# Optional independent convex numerical solve:
+# python -m pip install cvxpy scs
+python code/solve_sdp_compare.py
+
+# Compile and preserve an auditable artifact:
+# latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
+\end{lstlisting}
+The printed values are numerical diagnostics and should be contrasted with the exact formulas \eqref{eq:c5cert} and \eqref{eq:wheel-optimal}. The project deliberately includes no dependency on the original university VM's already archived EVA factors; these analytic toy instances are distinct independent demonstrations.

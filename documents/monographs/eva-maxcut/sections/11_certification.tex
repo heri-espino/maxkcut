@@ -1,0 +1,34 @@
+\chapter{Reconstructing a Global-Optimality Certificate from EVA}\label{ch:certificate}
+\section{From local fields to a dual candidate}
+Assume $Y\in\mathcal M_p$ is a coordinate-wise EVA fixed point with each $h_i=-s_iy_i$, $s_i=\norm{h_i}\ge0$. Since the Laplacian satisfies $(LY)_i=d_iy_i-h_i=(d_i+s_i)y_i$, define
+\begin{equation}\label{eq:eva-nu}
+\boxed{\nu_i:=\frac{d_i+s_i}{4}.}
+\end{equation}
+Let
+\begin{equation}\label{eq:eva-slack}
+\boxed{Z:=\Diag(\nu)-\frac14L.}
+\end{equation}
+Then row by row $(ZY)_i=\nu_i y_i-\frac14(d_i+s_i)y_i=0$, so \emph{stationarity/complementarity} holds.
+
+\begin{theorem}[EVA dual PSD test]\label{thm:eva-cert}
+If the $Y$ above has unit rows and $Z\succeq0$, then $X=YY^\top$ is a globally optimal SDP solution. Its exact objective is $\OPT_{\mathrm{SDP}}=\sum_i\nu_i$.
+\end{theorem}
+\begin{proof}
+The factor gives primal feasibility: $X\succeq0$ and $X_{ii}=\norm{y_i}^2=1$. The assumed inequality $Z\succeq0$ gives dual feasibility. Since $ZY=0$, we have $ZX=ZYY^\top=0$. Strong duality and complementary slackness (\cref{thm:strong}) prove optimality and equality of primal and dual objective values.
+\end{proof}
+
+\section{What failure of the PSD test tells us}
+If $\lambda_{\min}(Z)<0$, the candidate $\nu$ does not prove global optimality. This does not, by itself, prove that $Y$ is globally suboptimal: the factor could be near-optimal but not exactly stationary, or a different dual vector could be feasible. However, at an exact stationary point, a negative slack eigenvalue reveals a direction unavailable to the simple first-order certificate and motivates checking the tangent Hessian or escaping a saddle.
+
+\section{Numerical diagnostic protocol}
+For an actual run, independently compute
+\begin{align}
+\epsilon_{\mathrm{unit}}&=\max_i|\norm{y_i}^2-1|,\\
+\epsilon_{\mathrm{KKT}}&=\norm{ZY}_F,\\
+\epsilon_{\mathrm{dual}}&=\max\{0,-\lambda_{\min}(Z)\},\\
+\epsilon_{\mathrm{gap}}&=\sum_i\nu_i-F(YY^\top).
+\end{align}
+If any quantity is materially nonzero, report it. A robust independent SDP upper bound may be constructed conservatively by increasing every dual diagonal entry by $\max\{0,-\lambda_{\min}(Z)\}$, because adding this amount times $I$ makes the dual slack PSD (up to numerical verification). This produces an upper bound with additional cost $n\max\{0,-\lambda_{\min}(Z)\}$. It can be loose, but provides a practical \emph{a posteriori} route to an upper bound from an approximate candidate.
+
+\section{Why a primal objective is not automatically an upper bound}
+For maximization, any feasible Gram matrix yields a \emph{lower} bound on the SDP optimum; a feasible discrete cut yields a lower bound on the discrete optimum. A dual-feasible $\nu$ yields an \emph{upper} bound on the SDP optimum and therefore on the discrete optimum. Numerically reporting $F(Y)$ as a ``certified SDP bound'' reverses this logic. This is particularly relevant when EVA's primal value exceeds a first-order conic solver's reported primal value: such a comparison exposes numerical accuracy differences, not a mathematical violation of weak duality.

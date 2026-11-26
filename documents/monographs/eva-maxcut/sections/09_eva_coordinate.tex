@@ -1,0 +1,60 @@
+\chapter{EVA from First Principles: Exact Vector-Coordinate Ascent}\label{ch:eva}
+\section{The optimization problem and the local field}
+Efficient Vector Ascent (EVA)~\cite{eva2026} operates directly on
+\begin{equation}\label{eq:eva-problem}
+\max_{Y\in\mathcal M_p}F(Y)=\frac12\sum_{\{i,j\}\in E}w_{ij}(1-y_i^\top y_j),\qquad \mathcal M_p=(S^{p-1})^n.
+\end{equation}
+One \emph{coordinate block} is an entire vector $y_i\in\R^p$, rather than one scalar component or one entry of the Gram matrix. A sweep visits all vertices, typically in a fixed order. Within a sweep, updates use the already-updated latest rows (Gauss--Seidel, not a simultaneous Jacobi step).
+
+Fix all vectors except $y_i$. Group the objective by edges incident to vertex $i$:
+\begin{align}
+F(Y)&=\underbrace{\frac12\sum_{\{a,b\}\in E,\,i\notin\{a,b\}}w_{ab}(1-y_a^\top y_b)+\frac12\sum_{j\in N(i)}w_{ij}}_{C_i\ \text{independent of }y_i}
+-\frac12\sum_{j\in N(i)}w_{ij}y_i^\top y_j\\
+&=C_i-\frac12 y_i^\top h_i,\qquad h_i:=\sum_{j\in N(i)}w_{ij}y_j.\label{eq:field-decomp}
+\end{align}
+Note that $h_i$ depends on the \emph{other} rows, so it is fixed during this individual update, even though it changes later as other vertices move. For signed $w_{ij}$, the same decomposition is valid; negative-weight edges push the local effective field in the opposite direction.
+
+\section{Solving the spherical subproblem exactly}
+The subproblem is
+\begin{equation}\label{eq:local-sub}
+\max_{\norm{y_i}=1}\{C_i-\tfrac12y_i^\top h_i\}\quad\Longleftrightarrow\quad\min_{\norm{y_i}=1}y_i^\top h_i.
+\end{equation}
+Cauchy--Schwarz says $|y_i^\top h_i|\le\norm{y_i}\norm{h_i}=\norm{h_i}$, hence $y_i^\top h_i\ge-\norm{h_i}$. If $h_i\ne0$, equality holds precisely at the negative normalized field:
+\begin{equation}\label{eq:eva-update}
+\boxed{y_i^{+}=-\frac{h_i}{\norm{h_i}},\qquad h_i\ne0.}
+\end{equation}
+Alternatively use a Lagrange multiplier: minimize $y_i^\top h_i+\frac\mu2(\norm{y_i}^2-1)$. Stationarity gives $h_i+\mu y_i=0$, so $y_i=-h_i/\mu$ and the norm constraint implies $|\mu|=\norm{h_i}$. The minimizing choice has $\mu=\norm{h_i}$; the other stationary point is the maximizer of the dot product (the worst possible coordinate choice for $F$).
+
+\begin{definition}[Zero local field]
+If $h_i=0$, the local function $C_i-\tfrac12y_i^\top h_i$ is constant on the sphere: \emph{every} unit vector is coordinate-optimal. An implementation must specify a tie policy (retain the current row, choose a deterministic tie-break, or draw a random unit row). A random tie-break can change later trajectories without changing the immediate objective.
+\end{definition}
+
+\section{Exact improvement identity and angular interpretation}
+Let $s_i=\norm{h_i}>0$ and let $\theta_i=\arccos((y_i^-)^\top y_i^+)\in[0,\pi]$ be the angle between old and newly optimal row. Since $h_i=-s_iy_i^+$,
+\[
+(y_i^-)^\top h_i=-s_i\cos\theta_i,\qquad (y_i^+)^\top h_i=-s_i.
+\]
+Therefore, the exact improvement attributable to the update is
+\begin{equation}\label{eq:eva-gain}
+\boxed{\Delta_i=F(Y^+)-F(Y^-)=\frac{s_i}{2}(1-\cos\theta_i)=s_i\sin^2\frac{\theta_i}{2}\ge0.}
+\end{equation}
+This equation proves \emph{monotonic ascent} without line search or Lipschitz constants. It also explains why a small update angle often means a small objective increment, but the reverse need not hold if the local field $s_i$ is very small.
+
+\begin{intuition}
+A vector is moved to the antipodal point relative to the weighted vector sum of its neighbors. This is \emph{not} the claim that it is antipodal to each neighbor separately; such a configuration may be impossible. The update solves one local spherical optimization problem exactly.
+\end{intuition}
+
+\section{One-epoch pseudocode and cost}
+\begin{tcolorbox}[colback=navy!2,colframe=navy!45,title=EVA with sequential in-place updates]
+\begin{enumerate}
+\item Choose $p$, initial unit rows $y_i$, maximum sweeps, and angular tolerance $\varepsilon>0$.
+\item For $i=1,\ldots,n$, compute $h_i=\sum_{j\in N(i)}w_{ij}y_j$ using current rows.
+\item If $h_i\ne0$, set $y_i\gets-h_i/\norm{h_i}$; otherwise follow the declared tie rule.
+\item Record $\theta_i=\arccos(\operatorname{clip}((y_i^{\mathrm{old}})^\top y_i,-1,1))$.
+\item Stop a sweep when $\max_i\theta_i\le\varepsilon$; otherwise continue.
+\end{enumerate}
+\end{tcolorbox}
+The local field for vertex $i$ costs $O(\deg(i)p)$ arithmetic operations for sparse $W$. A complete sweep costs $O(mp+np)$ (usually abbreviated $O(mp)$ when the graph has no isolated vertices and $m=\Omega(n)$); storing rows and sparse graph data costs $O(np+m)$. The paper's complexity statements concern sparse graph access, not formation of a dense $n\times n$ Gram matrix, which is unnecessary for the update.
+
+\section{Why simultaneous updates are different}
+If all $h_i$ are computed from the same old $Y$ and all rows are updated simultaneously, the exact single-row monotonicity argument no longer telescopes: modifying $y_i$ changes the terms coupled to other modified rows. Thus the sequential Gauss--Seidel implementation and its monotonicity proof cannot be transferred automatically to a GPU Jacobi update. Parallel execution requires either a new proof or careful independent-set scheduling.

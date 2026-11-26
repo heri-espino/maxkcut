@@ -1,0 +1,41 @@
+\chapter{Cholesky, Spectral Factorization, and Numerical Rank}\label{ch:factorization}
+\section{A square root of a Gram matrix is not another optimizer}
+Given an SDP solution $X\succeq0$, a matrix $Y$ satisfying $YY^\top=X$ represents a configuration of vectors with exactly the inner products encoded in $X$. Computing $Y$ after an SDP solve is \emph{linear algebraic factorization}; it does not improve or reoptimize the SDP objective.
+
+\section{Cholesky factorization}
+\begin{theorem}[Cholesky for positive-definite matrices]
+If $X\in\Ssym_{++}^n$, then there is a unique lower-triangular $L_c$ with strictly positive diagonal entries such that $X=L_cL_c^\top$.
+\end{theorem}
+The matrix $L_c$ has $n$ rows; row $i$ is a coordinate vector for graph vertex $i$. Beware that we write $L_c$ for the Cholesky factor, reserving $L=D-W$ for the graph Laplacian. These are unrelated matrices.
+
+\paragraph{Why Cholesky may fail at the SDP optimum.} A positive-semidefinite matrix can be singular (zero eigenvalues). A standard numerical Cholesky routine is designed for positive-definite input and can fail on singular matrices. Many Max-Cut SDP optima are deliberately low rank: the exact embeddings in \cref{ch:cycle5,ch:wheel6} have ranks two and three. Adding a ``jitter'' term $\delta I$ makes Cholesky possible but changes the matrix, diagonal, objective, and sometimes the rounded-cut distribution. It must not silently replace the original SDP solution.
+
+\section{Spectral factorization}
+Let $X=Q\Lambda Q^\top$ with $\Lambda=\Diag(\lambda_1,\ldots,\lambda_n)$ and $\lambda_j\ge0$. Then
+\begin{equation}\label{eq:eigfactor}
+Y=Q_{:,I}\Diag(\sqrt{\lambda_j}:j\in I),\quad I=\{j:\lambda_j>0\},\qquad YY^\top=X.
+\end{equation}
+This yields a \emph{thin} factor with $p=\rank(X)$ columns and avoids requiring positive definiteness. The columns of $Y$ are scaled eigenvectors, but its \emph{rows} are the graph-vertex embeddings. Confusing rows with columns changes the dimensional interpretation.
+
+\section{Numerical PSD projection and renormalization}
+A first-order conic solver may return an approximately symmetric matrix $\widehat X$ with small negative eigenvalues. One common repair is
+\[
+S=\tfrac12(\widehat X+\widehat X^\top)=Q\Lambda Q^\top,\quad
+\widetilde X=Q\Diag(\max\{\lambda_j,0\})Q^\top.
+\]
+This is the Frobenius-nearest positive-semidefinite matrix to $S$ in the unweighted Euclidean metric. If $\diag(\widetilde X)\ne\one$, create row vectors $y_i$ from the spectral square root and normalize them:
+\[
+\widehat y_i=\frac{y_i}{\norm{y_i}},\qquad
+\widehat X_{ij}=\frac{\widetilde X_{ij}}{\sqrt{\widetilde X_{ii}\widetilde X_{jj}}}.
+\]
+This gives another feasible Max-Cut elliptope matrix if no denominator vanishes, but need not preserve the original objective. This is the approach used by the project's \texttt{rounding.factorize} implementation, rather than ordinary Cholesky.
+
+\section{Orthogonal invariance and identifiability}
+If $R\in\R^{p\times p}$ is orthogonal, then
+\[
+(YR)(YR)^\top=YRR^\top Y^\top=YY^\top.
+\]
+Thus the coordinate vectors are not uniquely identifiable: rotating or reflecting the entire configuration changes $Y$ but not $X$ or the graph objective. Conversely, for two full-column-rank minimal factors of the same Gram matrix, there exists an orthogonal change of coordinates relating them. Compare embeddings by \emph{Gram matrices} or orthogonally aligned factors, not by unaligned entries.
+
+\section{SVD and rank diagnostics}
+If $Y=U\Sigma V^\top$ is a compact singular-value decomposition, then $YY^\top=U\Sigma^2U^\top$. Its nonzero eigenvalues are the squared singular values of $Y$. Defining numerical rank requires a declared tolerance $\tau$; e.g., count $\lambda_j>\tau\lambda_{\max}$. A small eigenvalue can carry genuine geometric information, so arbitrary truncation must be treated as a separate experiment.
