@@ -1,3 +1,5 @@
+**Required methods overview:** Every appendix must explain each benchmarked algorithm and baseline near the beginning, before numerical results, including its intuitive idea, mathematical proposal, objective and acceptance/stopping rule as implemented. See the shared appendix standard.
+
 ## Default numerical appendix format — user instruction (2026-11-26)
 
 Read [the shared LaTeX appendix standard](docs/templates/numerical-appendix/README.md) before authoring any numerical appendix. Use the reusable STIX2 LaTeX style and compile/visually check all pages. Commit the final appendix AND the self-contained editable LaTeX project, all figure PDFs and compact source summaries; retain large trajectories and checkpoints separately on the VM with provenance. This supersedes the earlier PDF-only restriction for the small appendix source and figure assets. No repeated numerical optimization or full audit merely to redesign a report. No unauthorized merges or force-pushes.
