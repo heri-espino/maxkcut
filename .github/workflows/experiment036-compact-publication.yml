@@ -1,0 +1,199 @@
+name: Experiment036 - compact appendix and VM archive
+on:
+  push:
+    branches: [experiment036-inertia-guided-sweep]
+    paths: ['.github/workflows/experiment036-compact-publication.yml']
+  workflow_dispatch:
+    inputs:
+      source_run:
+        description: 'Successful compute run with E036 trajectories'
+        default: '45881182796'
+        type: string
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: experiment036-inertia-guided-sweep
+  cancel-in-progress: false
+jobs:
+  report:
+    if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment036-inertia-guided-sweep'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      PYTHONPATH: src:scripts
+      OPENBLAS_NUM_THREADS: '1'
+      NUMBA_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install reporting dependencies
+        run: python -m pip install 'numpy>=1.26,<3' 'scipy>=1.12,<2' 'numba>=0.61,<0.69' threadpoolctl 'matplotlib==3.10.8' 'pandas==2.2.3' 'pymupdf==1.26.5' 'awesomefigures @ git+https://github.com/heri-espino/awesomefigures.git@d673decd59132094d0763c9e22d4fd6098ff6def'
+      - name: Validate narrow angle-audit change and PDF rendering
+        run: |
+          python scripts/experiment036_publication_audit.py
+          python - <<'PY'
+          import matplotlib
+          matplotlib.use('Agg')
+          import matplotlib.pyplot as plt
+          import awesomefigures as af
+          import pymupdf
+          from matplotlib import font_manager
+          af.set_style("heri",font="STIX",rasterize=True,use_tex=False)
+          plt.rcParams.update({"font.family":"STIXGeneral","mathtext.fontset":"stix","pdf.fonttype":42})
+          font_manager.findfont("STIXGeneral",fallback_to_default=False)
+          fig,ax=plt.subplots()
+          ax.scatter([0,1],[1,0]);ax.set_xlabel(r"$\theta$")
+          af.panel_label(ax,"A")
+          af.save_figure(fig,"/tmp/e036-smoke.pdf",dpi=600)
+          with pymupdf.open("/tmp/e036-smoke.pdf") as doc:
+              assert any("STIX" in f[3].upper() for f in doc[0].get_fonts(full=True))
+          assert len(af.color_palette("tol-bright")) >= 7
+          PY
+      - name: Restore original numerical checkpoints (no optimization)
+        uses: actions/download-artifact@v4
+        with:
+          name: experiment036-trajectories
+          run-id: ${{ inputs.source_run || '45881182796' }}
+          github-token: ${{ github.token }}
+          path: results/gset/experiment036-inertia-guided-sweep/
+      - name: Ensure numerical code is unchanged
+        run: |
+          git diff --exit-code 007ebcc326797e60edb791f1ed34a53f85a20505 -- scripts/experiment036_inertia_guided.py scripts/experiment033_raw_hyperplane_sweep.py src/maxkcut/eva_direct_rounding.py
+          test "$(find results/gset/experiment036-inertia-guided-sweep/full/graphs -name manifest.json | wc -l)" -eq 71
+      - name: Independently audit and regenerate publication
+        run: python scripts/experiment036_report.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: experiment036-report-for-vm
+          path: |
+            results/gset/experiment036-inertia-guided-sweep/full/*.pdf
+            results/gset/experiment036-inertia-guided-sweep/full/*.csv
+            results/gset/experiment036-inertia-guided-sweep/full/*.json
+            results/gset/experiment036-inertia-guided-sweep/full/report.md
+          if-no-files-found: error
+          retention-days: 14
+
+  archive_vm:
+    needs: report
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 60
+    steps:
+      - name: Confirm designated VM and isolated checkout
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          if ($env:RUNNER_NAME -ne 'PCAG103A-13') { throw 'Wrong runner' }
+          if ($env:GITHUB_WORKSPACE -eq 'C:\Users\175199\maxkcut') { throw 'Refusing active research checkout' }
+      - uses: actions/download-artifact@v4
+        with:
+          name: experiment036-trajectories
+          run-id: ${{ inputs.source_run || '45881182796' }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/e036-${{ github.run_id }}/raw
+      - uses: actions/download-artifact@v4
+        with:
+          name: experiment036-report-for-vm
+          path: ${{ runner.temp }}/e036-${{ github.run_id }}/report
+      - name: Persist complete data outside Actions checkout and produce manifest
+        shell: powershell
+        env:
+          SOURCE_RUN: ${{ inputs.source_run || '45881182796' }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $stage=Join-Path $env:RUNNER_TEMP "e036-$env:GITHUB_RUN_ID"
+          $dest=Join-Path $env:USERPROFILE "maxkcut-archives\experiment036\run-$env:SOURCE_RUN"
+          New-Item -ItemType Directory -Force -Path $dest | Out-Null
+          $files=@()
+          foreach ($kind in @('raw','report')) {
+            $source=Join-Path $stage $kind
+            foreach ($f in Get-ChildItem -LiteralPath $source -File -Recurse) {
+              $relative=$f.FullName.Substring($source.Length+1)
+              $target=Join-Path (Join-Path $dest $kind) $relative
+              $hash=(Get-FileHash -LiteralPath $f.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+              New-Item -ItemType Directory -Force -Path (Split-Path $target) | Out-Null
+              if (Test-Path -LiteralPath $target) {
+                if ((Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash.ToLowerInvariant() -ne $hash) { throw "Existing archive differs: $target" }
+              } else {
+                Copy-Item -LiteralPath $f.FullName -Destination $target
+              }
+              if ((Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash.ToLowerInvariant() -ne $hash) { throw "Archive hash mismatch: $target" }
+              $files+= [ordered]@{path=("$kind/"+$relative.Replace('\','/'));bytes=$f.Length;sha256=$hash}
+            }
+          }
+          $graphs= @(Get-ChildItem -LiteralPath (Join-Path $dest 'raw\full\graphs') -Filter manifest.json -Recurse -File)
+          if ($graphs.Count -ne 71) { throw 'Expected 71 graph manifests' }
+          foreach ($g in $graphs) {
+            $m=Get-Content -LiteralPath $g.FullName -Raw | ConvertFrom-Json
+            $npz=Join-Path $g.DirectoryName 'trajectory.npz'
+            if ((Get-FileHash -LiteralPath $npz -Algorithm SHA256).Hash.ToLowerInvariant() -ne $m.archive_sha256) { throw "Checkpoint hash mismatch: $npz" }
+          }
+          $pdf=Join-Path $dest 'report\Experiment036_Numerical_Appendix.pdf'
+          if (-not (Test-Path -LiteralPath $pdf)) { throw 'Missing appendix' }
+          $out=Join-Path $stage 'publish'
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          Copy-Item -LiteralPath $pdf -Destination $out
+          $manifest=[ordered]@{
+            experiment='experiment036'; runner=$env:RUNNER_NAME; machine=$env:COMPUTERNAME
+            archive_root=$dest; source_run=$env:SOURCE_RUN; publication_run=$env:GITHUB_RUN_ID
+            computation_commit='007ebcc326797e60edb791f1ed34a53f85a20505'
+            graph_count=$graphs.Count; files=$files; total_bytes=($files | Measure-Object -Property bytes -Sum).Sum
+            verified_utc=[DateTime]::UtcNow.ToString('o'); policy='VM local archive; Git contains appendix and manifest only; no independent durable backup guaranteed'
+          }
+          $json=$manifest | ConvertTo-Json -Depth 8
+          $utf8=New-Object System.Text.UTF8Encoding($false)
+          [IO.File]::WriteAllText((Join-Path $out 'storage_manifest.json'),$json+"`n",$utf8)
+          Copy-Item -LiteralPath (Join-Path $out 'storage_manifest.json') -Destination $dest -Force
+          Write-Host "Verified durable VM archive: $dest"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: experiment036-compact-deliverables
+          path: ${{ runner.temp }}/e036-${{ github.run_id }}/publish/
+          if-no-files-found: error
+          retention-days: 90
+
+  publish:
+    needs: archive_vm
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 0
+          ref: experiment036-inertia-guided-sweep
+      - uses: actions/download-artifact@v4
+        with:
+          name: experiment036-compact-deliverables
+          path: results/gset/experiment036-inertia-guided-sweep/full/
+      - name: Commit only appendix and storage manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config core.autocrlf false
+          root=results/gset/experiment036-inertia-guided-sweep/full
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          root=Path('results/gset/experiment036-inertia-guided-sweep/full')
+          m=json.loads((root/'storage_manifest.json').read_text(encoding='utf-8'))
+          assert m['graph_count']==71
+          p=root/'Experiment036_Numerical_Appendix.pdf'
+          entry=next(x for x in m['files'] if x['path']=='report/'+p.name)
+          assert hashlib.sha256(p.read_bytes()).hexdigest()==entry['sha256']
+          PY
+          git add -f -- "$root/Experiment036_Numerical_Appendix.pdf" "$root/storage_manifest.json"
+          git diff --cached --check
+          if ! git diff --cached --quiet; then
+            git commit -m 'experiment036: publish appendix and verified VM archive manifest only'
+            git push origin HEAD:experiment036-inertia-guided-sweep
+          fi
