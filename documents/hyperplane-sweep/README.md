@@ -4,14 +4,14 @@ This directory is the canonical location for the six-page mathematical explainer
 
 ## Archive status
 
-The original compiled PDF and source bundle were produced in ChatGPT but are not yet committed here. Preserve the original files together (do not replace them with placeholders):
+The educational LaTeX source and Python figure generator are reconstructed from the earlier ChatGPT draft and committed here. The original binary bundle could not be retrieved in this session; regenerated figures and PDF are built from these sources. The expected archived files are:
 
 - `hyperplane_sweep.pdf` — compiled six-page mathematical explainer
 - `hyperplane_sweep.tex` — editable LaTeX source
 - `make_figures.py` — Python figure generator
 - `r2.pdf`, `r3.pdf`, `events.pdf`, `worked_r3.pdf` — vector figures
 
-Extract these files from the supplied `hyperplane_sweep_complete.zip` into this directory. Do not move or overwrite other research documents. Record SHA-256 digests of the imported originals; check that the PDF renders and that all referenced figures exist.
+The hosted [document build workflow](../../.github/workflows/hyperplane-sweep-document.yml) generates the four figures, compiles the PDF, checks it, records SHA-256 hashes in `source-manifest.json` and archives the generated files on main. No original binary equivalence is claimed. No other research documents are moved.
 
 ## Reproduction
 
@@ -29,4 +29,4 @@ The dashboard generator is maintained separately under `dashboard/`. The worked 
 
 ## Publication
 
-The hosted Pages workflow looks for `documents/hyperplane-sweep/hyperplane_sweep.pdf` and publishes it only if present. The dashboard can deploy without the PDF. This is a path correction and archive preparation, not a verified PDF upload or deployment.
+The hosted Pages workflow looks for `documents/hyperplane-sweep/hyperplane_sweep.pdf` and publishes it only if present. The dashboard can deploy without the PDF. The document build is separate from the Pages deployment; after the compiled PDF is archived, the Pages workflow can be run manually to publish the updated site. Until the build succeeds, the PDF is not yet verified on main.
