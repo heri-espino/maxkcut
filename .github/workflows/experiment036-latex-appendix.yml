@@ -21,33 +21,24 @@ jobs:
           ref: experiment036-inertia-guided-sweep
           fetch-depth: 0
           lfs: false
-      - uses: actions/download-artifact@v4
-        with:
-          name: experiment036-report-recovery
-          run-id: '45885883213'
-          github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/e036-audited-report
-      - name: Prepare self-contained LaTeX source from the audited report
+      - name: Prepare existing Git-tracked source project
         run: |
           set -euo pipefail
           export PROJECT="$RUNNER_TEMP/e036-latex"
-          mkdir -p "$PROJECT/figures" "$PROJECT/data"
-          cp results/gset/experiment036-inertia-guided-sweep/full/latex/{main.tex,generate_results.py,README.md,maxcut-appendix.sty} "$PROJECT/"
-          python - <<'PY'
-          import os,hashlib,json,shutil
-          from pathlib import Path
-          p=Path(os.environ["PROJECT"]); src=Path(os.environ["RUNNER_TEMP"])/"e036-audited-report"
-          original=next(src.rglob("Experiment036_Numerical_Appendix.pdf")).parent
-          figures=sorted(x for x in original.glob("*.pdf") if x.name!="Experiment036_Numerical_Appendix.pdf")
-          assert len(figures)==17
-          for f in figures: shutil.copy2(f,p/"figures"/f.name)
-          for name in ["summary.json","method_summary.csv","per_graph.csv","per_seed.csv"]: shutil.copy2(original/name,p/"data"/name)
-          s=json.loads((p/"data/summary.json").read_text()); assert s["audited_records"]==716826 and s["complete"]
-          files=[x for d in ("data","figures") for x in sorted((p/d).glob("*")) if x.is_file()]
-          data={"source_run":45885883213,"artifact_id":15149891652,"computation_commit":"007ebcc326797e60edb791f1ed34a53f85a20505","files":[{"path":str(x.relative_to(p)),"bytes":x.stat().st_size,"sha256":hashlib.sha256(x.read_bytes()).hexdigest()} for x in files]}
-          (p/"provenance.json").write_text(json.dumps(data,indent=2)+"\n")
-          PY
+          mkdir -p "$PROJECT"
+          cp -a results/gset/experiment036-inertia-guided-sweep/full/latex/. "$PROJECT/"
           cd "$PROJECT"
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          j=json.loads(Path("provenance.json").read_text())
+          for f in j["files"]:
+              p=Path(f["path"])
+              assert p.stat().st_size==f["bytes"] and hashlib.sha256(p.read_bytes()).hexdigest()==f["sha256"], f["path"]
+          assert len(list(Path("figures").glob("*.pdf")))==17
+          s=json.loads(Path("data/summary.json").read_text())
+          assert s["audited_records"]==716826 and s["complete"]
+          PY
           python generate_results.py
       - name: Install LaTeX and STIX2
         run: |
@@ -63,8 +54,9 @@ jobs:
           pdffonts main.pdf > "$RUNNER_TEMP/e036-fonts.txt"
           grep -i 'STIXTwoText' "$RUNNER_TEMP/e036-fonts.txt"
           grep -i 'STIXTwoMath' "$RUNNER_TEMP/e036-fonts.txt"
-          pdfinfo main.pdf | grep -E '^Pages: +14$'
+          pdfinfo main.pdf | grep -E '^Pages: +15$'
           pdftotext main.pdf "$RUNNER_TEMP/e036-text.txt"
+          grep -F 'Methods compared' "$RUNNER_TEMP/e036-text.txt"
           grep -F '716,826' "$RUNNER_TEMP/e036-text.txt"
           mkdir -p "$RUNNER_TEMP/e036-preview"
           pdftoppm -r 80 -png main.pdf "$RUNNER_TEMP/e036-preview/page"
@@ -75,7 +67,8 @@ jobs:
           from pathlib import Path
           p=Path("provenance.json")
           j=json.loads(p.read_text())
-          j["compiled_pdf"]={"bytes":Path("main.pdf").stat().st_size,"sha256":hashlib.sha256(Path("main.pdf").read_bytes()).hexdigest(),"pages":14}
+          j["revision"]="Methods overview added before primary numerical results; unchanged audited data and figures."
+          j["compiled_pdf"]={"bytes":Path("main.pdf").stat().st_size,"sha256":hashlib.sha256(Path("main.pdf").read_bytes()).hexdigest(),"pages":15}
           p.write_text(json.dumps(j,indent=2)+"\n")
           PY
       - uses: actions/upload-artifact@v4
@@ -105,7 +98,7 @@ jobs:
             git add -f -- "$root/Experiment036_Numerical_Appendix.pdf" "$root/latex/"
             git diff --cached --check
             if git diff --cached --quiet; then exit 0; fi
-            git commit -m 'experiment036: typeset STIX2 appendix and preserve complete LaTeX source'
+            git commit -m 'experiment036: add implementation-grounded methods overview to appendix'
             if git push origin HEAD:"$branch"; then exit 0; fi
             sleep 2
           done
