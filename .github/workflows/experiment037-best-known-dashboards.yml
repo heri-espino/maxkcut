@@ -36,9 +36,17 @@ jobs:
       - name: Install dashboard dependencies only
         run: |
           python -m pip install 'numpy>=1.26,<3' 'matplotlib==3.10.8' 'pymupdf==1.26.5' 'awesomefigures @ git+https://github.com/heri-espino/awesomefigures.git@d673decd59132094d0763c9e22d4fd6098ff6def'
+      # Fixed-page layout and real-data preflight (recovery of run 46069574170).
       - name: Render and verify the 96 dashboard pages directly
         run: |
           python scripts/experiment037_report.py --data "$RUNNER_TEMP/e037-data" --output "$RUNNER_TEMP/e037-dashboard" --workers 16
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: experiment037-dashboard-diagnostics
+          path: ${{ runner.temp }}/e037-dashboard/
+          if-no-files-found: ignore
+          retention-days: 14
       - uses: actions/upload-artifact@v4
         with:
           name: experiment037-dashboards

@@ -10,6 +10,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import awesomefigures as af
 from matplotlib import font_manager
+from matplotlib.transforms import Bbox
 NAMES=("Repeated GW","Random sweep","KMeansNM")
 COLORS=("#4477AA","#228833","#AA3377")
 def style():
@@ -17,7 +18,22 @@ def style():
     plt.rcParams.update({"font.family":"STIXGeneral","mathtext.fontset":"stix","pdf.fonttype":42,"axes.unicode_minus":False,"font.size":10,"axes.titlesize":11})
     font_manager.findfont("STIXGeneral",fallback_to_default=False)
 def save(fig,p):
-    fig.tight_layout(pad=1.2,rect=(0,0,1,.95));af.save_figure(fig,p,dpi=600);plt.close(fig)
+    # AwesomeFigures defaults to a tight crop with only 0.035 inches of padding.
+    # Use the full fixed-size canvas instead: PDF font metrics can exceed Agg's
+    # tight bounding box. Reserve explicit space for the title and panel labels.
+    fig.tight_layout(pad=1.2,rect=(.035,.025,.975,.92))
+    width,height=fig.get_size_inches()
+    try:
+        af.save_figure(fig,p,dpi=600,bbox_inches=Bbox.from_bounds(0,0,width,height))
+    finally:
+        plt.close(fig)
+
+def verify_page(page, name):
+    assert abs(page.rect.width-504)<.1 and abs(page.rect.height-655.2)<.1,(name,page.rect)
+    assert len(page.get_text().strip())>30,name
+    for block in page.get_text("blocks"):
+        if block[6]==0:
+            assert block[0]>=-1 and block[1]>=-1 and block[2]<=page.rect.width+1 and block[3]<=page.rect.height+1,(name,block)
 def labels(axs):
     for j,ax in enumerate(np.asarray(axs).flat):af.panel_label(ax,chr(65+j))
 def dashboard(job):
@@ -34,7 +50,7 @@ def dashboard(job):
     d.axvline(100,color=".35",ls="--");d.set(title="Initial gap closed (eligible graphs)",xlabel="Gap closed (%)",ylabel="Graphs")
     e.plot(t,100*np.mean(x>x[:,0,None]+1e-9,axis=0),color=color);e.set(title="Graphs improved since initialization",xlabel="Attempt",ylabel="Graphs (%)",ylim=(0,103))
     order=np.argsort(x[:,-1]);f.plot(np.arange(len(order)),x[order,-1],".",color=color,ms=3);f.axhline(100,color=".35",ls="--");f.set(title="Final graph ranking",xlabel="Rank (ascending quality)",ylabel="Reference attained (%)",ylim=(lo,hi))
-    fig.suptitle(title,fontsize=15)
+    fig.suptitle(title,fontsize=15,y=.96)
     labels(axs);save(fig,Path(path))
 def make_report(data,out,workers):
     out=Path(out);data=Path(data);out.mkdir(parents=True,exist_ok=True);figdir=out/"figures";figdir.mkdir(exist_ok=True);datadir=out/"data";datadir.mkdir(exist_ok=True)
@@ -54,14 +70,21 @@ def make_report(data,out,workers):
         for k,m in enumerate(NAMES):add(k,f"{mode} over 30 repetitions / {m}",fn(q[:,:,k],axis=1),f"aggregate_{mode.lower()}_{k}")
     effective=min(workers,os.cpu_count() or 1,96)
     print("Dashboard figure workers:",effective,flush=True)
-    with ProcessPoolExecutor(max_workers=effective) as pool:list(pool.map(dashboard,jobs,chunksize=1))
+    # Validate one real dashboard before the full batch; reuse its PDF.
+    dashboard(jobs[0])
+    with fitz.open(jobs[0][0]) as pilot:
+        assert len(pilot)==1
+        verify_page(pilot[0],"preflight first dashboard")
+    print("First dashboard passed fixed-page layout validation",flush=True)
+    with ProcessPoolExecutor(max_workers=effective) as pool:list(pool.map(dashboard,jobs[1:],chunksize=1))
     assert len(dash)==96
     target=out/"Experiment037_Dashboard_Appendix.pdf"
     with fitz.open() as combined:
         toc=[]
         for i,(name,title,mean,med) in enumerate(dash):
             with fitz.open(figdir/(name+".pdf")) as page:
-                assert len(page)==1 and len(page[0].get_text().strip())>30,name
+                assert len(page)==1,name
+                verify_page(page[0],name)
                 combined.insert_pdf(page)
             toc.append([1,title,i+1])
         combined.set_toc(toc)
@@ -69,10 +92,7 @@ def make_report(data,out,workers):
     with fitz.open(target) as doc:
         assert len(doc)==96
         for i,page in enumerate(doc):
-            assert len(page.get_text().strip())>30,i
-            for block in page.get_text("blocks"):
-                if block[6]==0:
-                    assert block[0]>=-1 and block[1]>=-1 and block[2]<=page.rect.width+1 and block[3]<=page.rect.height+1,(i,block)
+            verify_page(page,i)
         previews=out/"previews";previews.mkdir(exist_ok=True)
         for i in (0,1,2,89,90,95):
             doc[i].get_pixmap(matrix=fitz.Matrix(.9,.9)).save(previews/f"page-{i+1:02d}.png")
