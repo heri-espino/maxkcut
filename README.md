@@ -1,5 +1,8 @@
 # maxkcut
 
+**Experiment037 — prospective reference-normalized 30-start study:** [protocol](notes/experiments/experiment037-best-known-dashboards.md). 71 frozen factors, three agreed methods (Repeated GW, exact random-tangent sweep, historical KMeansNM/Y), 30 paired starts, 100 update budget, best-known reference normalization (certified vs feasible distinguished), 16 graph workers. 90 individual + 6 mean/median dashboard pages and separate STIX2 main appendix; raw files stored on VM, Git only source/figures/compact data/PDFs. No new EVA, no merge without authorization; no results until verified.
+
+
 **Experiment035 — prospective patience sensitivity:** [Protocol](notes/experiments/experiment035-patience-sensitivity.md). Recover audited E034 from run 45815246196; extend exact trajectories to joint patience 100, extract 5/10/20/50/100 policies, measure strict gains, failure hazards, geometry and time. No new EVA or repeated archived rounding. No merge without authorization. Results pending audit.
 
 ## Experiment032 — all-71 G-set Y versus -WY rounding COMPLETE

@@ -1,0 +1,188 @@
+name: Experiment037 - best-known normalized 30-start dashboards
+on:
+  push:
+    branches: [experiment037-best-known-dashboards]
+    paths: ['.github/workflows/experiment037-best-known-dashboards.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: maxkcut-experiment037
+  cancel-in-progress: false
+jobs:
+  validate:
+    if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment037-best-known-dashboards'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PYTHONPATH: src:scripts
+      OPENBLAS_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      NUMBA_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install 'numpy>=1.26,<3' 'scipy>=1.12,<2' 'numba>=0.61,<0.69' threadpoolctl
+      - run: python scripts/experiment037_best_known.py --action test
+  compute:
+    needs: validate
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 330
+    steps:
+      - name: Confirm designated idle VM
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          if ($env:RUNNER_NAME -ne 'PCAG103A-13') { throw 'Wrong runner' }
+          if ($env:GITHUB_WORKSPACE -eq 'C:\Users\175199\maxkcut') { throw 'Refusing active research checkout' }
+          $active=Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'python.exe' -and $_.CommandLine -match 'maxkcut|experiment0[23][0-9]' }
+          if ($active) { throw 'Another research process appears active; do not compete with the VM' }
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Locate existing Conda without changing VM packages
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $prefix=$null
+          if ($env:MAXKCUT_CONDA_PREFIX -and (Split-Path $env:MAXKCUT_CONDA_PREFIX -Leaf) -ieq 'maxkcut') { $prefix=$env:MAXKCUT_CONDA_PREFIX }
+          if (-not $prefix -and $env:CONDA_PREFIX -and (Split-Path $env:CONDA_PREFIX -Leaf) -ieq 'maxkcut') { $prefix=$env:CONDA_PREFIX }
+          if (-not $prefix -and (Get-Command conda -ErrorAction SilentlyContinue)) {
+            $json=(& conda env list --json | Out-String | ConvertFrom-Json)
+            foreach ($e in @($json.envs)) { if ((Split-Path $e -Leaf) -ieq 'maxkcut' -and (Test-Path (Join-Path $e 'python.exe'))) { $prefix=$e; break } }
+          }
+          if (-not $prefix) {
+            foreach ($candidate in @("$env:LOCALAPPDATA\miniconda3\envs\maxkcut","$env:USERPROFILE\miniconda3\envs\maxkcut",'C:\ProgramData\miniconda3\envs\maxkcut')) {
+              if (Test-Path (Join-Path $candidate 'python.exe')) { $prefix=$candidate; break }
+            }
+          }
+          if (-not $prefix -or -not (Test-Path (Join-Path $prefix 'python.exe'))) { throw 'Existing maxkcut Conda environment unavailable' }
+          Add-Content $env:GITHUB_ENV "EX037_PREFIX=$prefix"
+          Add-Content $env:GITHUB_ENV "EX037_PYTHON=$(Join-Path $prefix 'python.exe')"
+      - name: Compute and audit 71 graphs using 16 workers; archive directly to durable VM path
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $env:PYTHONPATH=(Join-Path (Get-Location).Path 'src')+';'+(Join-Path (Get-Location).Path 'scripts')
+          $env:CONDA_PREFIX=$env:EX037_PREFIX
+          $env:CONDA_DEFAULT_ENV='maxkcut'
+          foreach ($part in @('Library\mingw-w64\bin','Library\usr\bin','Library\bin','Scripts','')) {
+            $p=Join-Path $env:EX037_PREFIX $part
+            if (Test-Path $p) { $env:PATH="$p;$env:PATH" }
+          }
+          $env:NUMBA_NUM_THREADS='1'; $env:OPENBLAS_NUM_THREADS='1'; $env:MKL_NUM_THREADS='1'; $env:OMP_NUM_THREADS='1'
+          $archive=Join-Path $env:USERPROFILE "maxkcut-archives\experiment037\run-$env:GITHUB_RUN_ID"
+          $compact=Join-Path $archive 'compact'
+          New-Item -ItemType Directory -Force -Path $archive | Out-Null
+          Add-Content $env:GITHUB_ENV "EX037_ARCHIVE=$archive"
+          Write-Host "Durable VM archive: $archive"
+          & $env:EX037_PYTHON -u scripts/experiment037_best_known.py --action test
+          if ($LASTEXITCODE -ne 0) { throw 'Synthetic tests failed' }
+          & $env:EX037_PYTHON -u scripts/experiment037_best_known.py --workers 16 --archive $archive --output $compact
+          if ($LASTEXITCODE -ne 0) { throw 'Experiment037 failed; verified checkpoints remain on VM' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: experiment037-compact
+          path: ${{ env.EX037_ARCHIVE }}/compact/
+          if-no-files-found: error
+          retention-days: 90
+  report:
+    needs: compute
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          lfs: false
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/download-artifact@v4
+        with:
+          name: experiment037-compact
+          path: ${{ runner.temp }}/e037-data
+      - name: Install publication dependencies
+        run: |
+          python -m pip install 'numpy>=1.26,<3' 'matplotlib==3.10.8' 'pymupdf==1.26.5' 'awesomefigures @ git+https://github.com/heri-espino/awesomefigures.git@d673decd59132094d0763c9e22d4fd6098ff6def'
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends latexmk texlive-latex-extra texlive-science texlive-fonts-extra poppler-utils
+          kpsewhich stix2.sty
+      - name: Generate 96 dashboards and main numerical appendix
+        run: |
+          set -euo pipefail
+          root=results/gset/experiment037-best-known-dashboards/full/latex
+          project="$RUNNER_TEMP/e037-project"
+          mkdir -p "$project"
+          cp "$root"/{main.tex,dashboard.tex,README.md} "$project/"
+          cp docs/templates/numerical-appendix/maxcut-appendix.sty "$project/"
+          cp scripts/experiment037_report.py "$project/"
+          python scripts/experiment037_report.py --data "$RUNNER_TEMP/e037-data" --output "$project" --workers 16
+          cd "$project"
+          latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
+          latexmk -pdf -interaction=nonstopmode -halt-on-error dashboard.tex
+          if grep -E 'Overfull \\[hv]box|undefined references|There were undefined' main.log dashboard.log; then exit 1; fi
+          pdfinfo dashboard.pdf | grep -E '^Pages: +96$'
+          pdffonts main.pdf | grep -i STIXTwoMath
+          pdffonts main.pdf | grep -i STIXTwoText
+          python - <<'PY'
+          import pymupdf as fitz
+          from pathlib import Path
+          for name in ("main","dashboard"):
+              with fitz.open(name+".pdf") as d:
+                  assert all(len(p.get_text())>30 for p in d)
+                  for p in d:
+                      assert all(b[0]>=-1 and b[1]>=-1 and b[2]<=p.rect.width+1 and b[3]<=p.rect.height+1 for b in p.get_text("blocks") if b[6]==0)
+                  for i in ([0,1,len(d)-1] if name=="main" else [0,1,2,89,90,95]):
+                      d[i].get_pixmap(matrix=fitz.Matrix(.9,.9)).save(str(Path(name+"-preview-"+str(i+1)+".png")))
+          PY
+          cp main.pdf "$RUNNER_TEMP/Experiment037_Numerical_Appendix.pdf"
+          cp dashboard.pdf "$RUNNER_TEMP/Experiment037_Dashboard_Appendix.pdf"
+          latexmk -c main.tex dashboard.tex
+          rm -f main.pdf dashboard.pdf
+      - uses: actions/upload-artifact@v4
+        with:
+          name: experiment037-appendices-and-source
+          path: |
+            ${{ runner.temp }}/Experiment037_Numerical_Appendix.pdf
+            ${{ runner.temp }}/Experiment037_Dashboard_Appendix.pdf
+            ${{ runner.temp }}/e037-project/
+          if-no-files-found: error
+          retention-days: 90
+      - name: Publish PDFs and editable source only against latest branch
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config core.autocrlf false
+          branch=experiment037-best-known-dashboards
+          root=results/gset/experiment037-best-known-dashboards/full
+          for attempt in 1 2 3 4; do
+            git fetch origin "$branch"
+            git switch --detach FETCH_HEAD
+            mkdir -p "$root/latex"
+            cp "$RUNNER_TEMP"/Experiment037_*_Appendix.pdf "$root/"
+            cp -a "$RUNNER_TEMP/e037-project/." "$root/latex/"
+            rm -f "$root/latex/"*-preview-*.png
+            cp "$root/latex/data/storage_manifest.json" "$root/"
+            git add -f -- "$root/Experiment037_Numerical_Appendix.pdf" "$root/Experiment037_Dashboard_Appendix.pdf" "$root/storage_manifest.json" "$root/latex/"
+            git diff --cached --check
+            if git diff --cached --quiet; then exit 0; fi
+            git commit -m 'experiment037: publish verified reference-normalized appendices and complete LaTeX source'
+            if git push origin HEAD:"$branch"; then exit 0; fi
+            sleep 2
+          done
+          exit 1

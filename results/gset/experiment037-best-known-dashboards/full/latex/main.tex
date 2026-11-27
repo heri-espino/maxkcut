@@ -1,0 +1,45 @@
+\documentclass[11pt,a4paper]{article}
+\newcommand{\ExperimentNumber}{037}
+\newcommand{\AppendixFooter}{Fixed EVA factors $\cdot$ Reference-normalized cuts}
+\usepackage{maxcut-appendix}
+\input{findings.tex}
+\begin{document}
+\appendixheading{EXPERIMENT 037 / EMPIRICAL RESULTS}{Reference-normalized Max-Cut rounding}{Numerical appendix \quad | \quad 71 G-set graphs \quad | \quad 30 paired repetitions}
+\textbf{Research question.} How rapidly do independent random hyperplanes, exact hyperplane sweeps and KMeansNM approach a fixed best-known cut reference?
+\textbf{Principal finding.} \PrincipalFinding
+
+\section{Experimental design}
+Each graph has one immutable EVA embedding $Y\in\mathbb R^{n\times p}$; all methods share 30 independently seeded antipodal initializations. There are no new semidefinite solves or local label refinements. All methods use the original signed objective $C(x)=\sum_{(i,j)\in E}w_{ij}\mathbf 1\{x_i\ne x_j\}$. Let $B_g>0$ be a frozen reference and $C^*_{grmt}$ the best cut encountered by graph $g$, start $r$, method $m$, and attempt $t$. We report
+\[
+ Q_{grmt}=100 C^*_{grmt}/B_g.
+\]
+A value of 100 means the reference has been reached, not necessarily global optimality. The archived November 5 reference snapshot is used with G62 updated to 4,872 following Glass--Feder (2026, Table 1). Nine canonical toroidal references are certified in that source; the others are feasible literature references, not proved optima. Values over 100 are retained for uncertified references, not clipped. Gap closed is $100(Q_t-Q_0)/(100-Q_0)$ when $Q_0<100$.
+
+\section{Methods compared}
+\textbf{Repeated GW.} Draw an independent Gaussian normal $z/\|z\|$ each attempt; split vertices by the sign of their projection and retain the largest signed cut. The next draw does not depend on the incumbent.
+
+\textbf{Random hyperplane sweep.} Given incumbent normal $r$, project a Gaussian draw onto the tangent space, $v=(I-rr^\top)z/\|(I-rr^\top)z\|$. Scan the entire semicircle $r\cos\theta+v\sin\theta$, $-\pi/2<\theta<\pi/2$, enumerating vertex-crossing intervals and maximizing the signed cut. Move only on strict improvement. This is the exact random-tangent method from Experiment033/036, not a centroid-guided variant.
+
+\textbf{KMeansNM.} Initialize two antipodal unit centers using the same normal. Assign each vertex to the center with largest dot product, then independently normalize the sum of members of each cluster. Reassign until labels stabilize or the original 100-assignment limit is reached. Retain the largest original signed cut of all assignments, not merely the final clustering. Empty or zero-resultant clusters use the historical seeded replacement rule. This is the prior Experiment032 KMeansNM on $Y$, not the inertia-acceptance spherical arm of Experiment036.
+
+\textbf{Common axis.} GW and sweep have 100 attempts after initialization. KMeansNM's original 100 assignments include the initialization; stopped trajectories are held at their best cut to attempt 100. This padding is not additional computation, and the attempt budget is not an equal-time budget.
+
+\sectionpage{Primary numerical results}
+\begin{table}[H]\centering\small
+\caption{Final reference attainment (percent); paired effects relative to random sweep (percentage points), 95\% graph-bootstrap intervals and graphwise wins/ties/losses. The mean gives every graph and start equal weight. Median pools graph-start pairs.}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrrrl@{}}
+\toprule Method & Mean & Median & $\Delta$ & 95\% interval & W/T/L\\
+\midrule
+\input{results.tex}
+\bottomrule
+\end{tabular*}
+\end{table}
+\textbf{Interpretation.} \PrincipalFinding\ The paired bootstrap resamples graphs after averaging their 30 starts. Intervals are descriptive and unadjusted for multiplicity. Neither best-known ratios nor these intervals establish an improved theoretical approximation guarantee.
+
+\section{Dashboard appendix guide}
+The companion dashboard appendix has exactly 96 pages: 30 paired repetitions times three methods, followed by three mean and three median dashboards. The mean/median aggregation first combines the 30 starts pointwise within each graph, then displays the across-graph distribution; it is distinct from pooling all graph-start pairs. Every page has identical panels and common quality-axis limits. A shows the 71 individual curves; B shows mean, median and interquartile band; C shows final quality distribution; D shows initial gap closed for eligible graphs; E shows the fraction improved; F shows ranked final quality. Reference line 100 is never clipped. For aggregate pages, gap closure and improvement are computed from the aggregated graph curves, not averages of restart-specific gap metrics.
+
+\section{Verification and limitations}
+The VM independently rescored \AuditCount\ actual candidate partitions directly from original signed text edges, checked normal/label agreement, common starts and monotone incumbents, and recorded per-graph source hashes and archive checksums. The publication consumes compact verified summaries without repeating optimization. The full archives remain on the designated VM outside the Actions checkout; see \texttt{data/storage\_manifest.json}. The 30 starts are conditional on one frozen factor per graph, not 30 new SDP optimizations. Raw weights and reference provenance are preserved. Differences in method timing are descriptive. Figure panels using active candidates do not treat carried-forward values as new observations. Rotation-event landscapes of geometry-guided variants are outside the agreed three-method study.
+\input{main_figures.tex}
+\end{document}

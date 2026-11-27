@@ -1,3 +1,5 @@
+**Experiment037 — prospective reference-normalized 30-start study:** [protocol](notes/experiments/experiment037-best-known-dashboards.md). 71 frozen factors, three agreed methods (Repeated GW, exact random-tangent sweep, historical KMeansNM/Y), 30 paired starts, 100 update budget, best-known reference normalization (certified vs feasible distinguished), 16 graph workers. 90 individual + 6 mean/median dashboard pages and separate STIX2 main appendix; raw files stored on VM, Git only source/figures/compact data/PDFs. No new EVA, no merge without authorization; no results until verified.
+
 **Required methods overview:** Every appendix must explain each benchmarked algorithm and baseline near the beginning, before numerical results, including its intuitive idea, mathematical proposal, objective and acceptance/stopping rule as implemented. See the shared appendix standard.
 
 ## Default numerical appendix format — user instruction (2026-11-26)
