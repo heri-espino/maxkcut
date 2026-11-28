@@ -11,8 +11,13 @@ concurrency:
   group: maxkcut-experiment038
   cancel-in-progress: false
 jobs:
+  source_only:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'Source update only; original experiment run is 46099945409. Do not recompute.'
   validate:
-    if: github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment038-patience300'
+    if: github.event_name == 'workflow_dispatch' && github.repository == 'heri-espino/maxkcut' && github.ref == 'refs/heads/experiment038-patience300'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
